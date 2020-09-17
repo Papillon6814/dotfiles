@@ -13,6 +13,7 @@ Plugin 'tpope/vim-commentary'
 Plugin 'racer-rust/vim-racer'
 Plugin 'sickill/vim-monokai'
 Plugin 'simeji/winresizer'
+Plugin 'elixir-editors/vim-elixir'
 
 call vundle#end()
 filetype plugin indent on
@@ -28,6 +29,7 @@ inoremap {<Enter> {}<Left><CR><ESC><S-o>
 inoremap ( ()<ESC>i
 inoremap (<Enter> ()<Left><CR><ESC><S-o>
 
+set shell=/bin/bash
 
 set hidden
 let g:racer_cmd = '~/.cargo/bin/racer'
@@ -36,6 +38,7 @@ let g:racer_experimental_completer = 1
 set cursorline
 
 :syntax on
+syntax on
 
 if has("autocmd")
     filetype plugin on
