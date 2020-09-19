@@ -14,12 +14,17 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'sickill/vim-monokai'
 Plugin 'simeji/winresizer'
 Plugin 'elixir-editors/vim-elixir'
+Plugin 'ayu-theme/ayu-vim'
 
 call vundle#end()
 filetype plugin indent on
 
+set termguicolors
+let ayucolor="mirage"
+colorscheme ayu
+
 set number
-colorscheme monokai
+"colorscheme monokai
 set clipboard+=unnamed
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>

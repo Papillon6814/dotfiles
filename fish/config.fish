@@ -8,12 +8,21 @@ set -x GOENV_ROOT $HOME/.goenv
 set -x PATH $PATH $GOENV_ROOT/bin
 eval (goenv init - | source)
 
+set -x CC clang
+set -x CFLAGS -02 -g -Wno-error=implicit-function-declaration
+set -x KERL_BUILD_DOCS no
+set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
+
 # alias
 alias b='bat'
-alias d='docker'
-alias l='exa'
-alias v='vim'
+alias bi='brew install'
+alias bu='brew update'
 alias cdg='cd ~/Documents/Github'
+alias cdr='cd -'
+alias d='docker'
+alias docc='docker-compose'
+alias l='exa -a'
+alias v='vim'
 
 # nodebrew
 set -x PATH $PATH $HOME/.nodebrew/current/bin
@@ -28,3 +37,4 @@ set -x PYTHON_CONFIGURE_OPTS "--with-tcltk-includes='-I/usr/local/opt/tcl-tk/inc
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc' ]; . '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc'; end
+source ~/.asdf/asdf.fish
