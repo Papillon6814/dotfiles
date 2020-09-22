@@ -8,13 +8,17 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'scrooloose/nerdtree'
-Plugin 'dracula/vim'
 Plugin 'tpope/vim-commentary'
 Plugin 'racer-rust/vim-racer'
-Plugin 'sickill/vim-monokai'
+Plugin 'mileszs/ack.vim'
+Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
 Plugin 'elixir-editors/vim-elixir'
+
+" Colors
+Plugin 'sickill/vim-monokai'
 Plugin 'ayu-theme/ayu-vim'
+Plugin 'dracula/vim'
 
 call vundle#end()
 filetype plugin indent on
@@ -24,7 +28,6 @@ let ayucolor="mirage"
 colorscheme ayu
 
 set number
-"colorscheme monokai
 set clipboard+=unnamed
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
