@@ -73,5 +73,6 @@ func! STL()
   let stl_right = ' %<%F %m%r%h%w%=[%{&fenc},%{&ff},%Y] (%03l/%03L,%03v) '
   return stl_left.bar.stl_right
 endfunc
+
 set laststatus=2
 set statusline=%!STL()
