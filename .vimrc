@@ -16,7 +16,6 @@ Plugin 'simeji/winresizer'
 Plugin 'elixir-editors/vim-elixir'
 
 " Colors
-Plugin 'sickill/vim-monokai'
 Plugin 'ayu-theme/ayu-vim'
 Plugin 'dracula/vim'
 
