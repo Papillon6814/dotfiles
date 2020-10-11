@@ -55,6 +55,7 @@ if has("autocmd")
 endif
 
 func! STL()
+  let barWidth = &columns / 6
   let barWidth = barWidth < 3 ? 3 : barWidth
   let n = line('$') > 1 ? line('$') - 1 : line('$')
   let buf_top    = (line('w0') - 1) * (barWidth - 1) / n

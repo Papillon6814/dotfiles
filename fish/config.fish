@@ -13,6 +13,9 @@ set -x CFLAGS -02 -g -Wno-error=implicit-function-declaration
 set -x KERL_BUILD_DOCS no
 set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 
+set -x DATABASE_URL localhost://postgres:postgres@localhost:5432/milka
+set -x SECRET_KEY_BASE KL6jdYa8VzDIg1TjqQcGZsaGSnd43grQYWrl95dYjn/SJB7KABj7N4BWgaCxSF81
+
 # alias
 alias b='bat'
 alias bi='brew install'
@@ -21,6 +24,7 @@ alias cdg='cd ~/Documents/Github'
 alias cdr='cd -'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias d='docker'
+alias dra='docker rm -f `docker ps -a -q`'
 alias docc='docker-compose'
 alias l='exa -a'
 alias v='vim'
