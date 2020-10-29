@@ -14,6 +14,7 @@ Plugin 'mileszs/ack.vim'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
 Plugin 'elixir-editors/vim-elixir'
+Plugin 'slashmili/alchemist.vim'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'

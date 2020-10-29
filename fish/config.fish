@@ -8,6 +8,8 @@ set -x GOENV_ROOT $HOME/.goenv
 set -x PATH $PATH $GOENV_ROOT/bin
 eval (goenv init - | source)
 
+set fish_greeting Blacks are humble, sit down.
+
 set -x CC clang
 set -x CFLAGS -02 -g -Wno-error=implicit-function-declaration
 set -x KERL_BUILD_DOCS no
@@ -15,6 +17,7 @@ set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 
 set -x DATABASE_URL localhost://postgres:postgres@localhost:5432/milka
 set -x SECRET_KEY_BASE KL6jdYa8VzDIg1TjqQcGZsaGSnd43grQYWrl95dYjn/SJB7KABj7N4BWgaCxSF81
+set -x RUST_BACKTRACE 1
 
 # alias
 alias b='bat'
@@ -41,4 +44,5 @@ set -x PYTHON_CONFIGURE_OPTS "--with-tcltk-includes='-I/usr/local/opt/tcl-tk/inc
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc' ]; . '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc'; end
+
 source ~/.asdf/asdf.fish
