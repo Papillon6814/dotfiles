@@ -15,7 +15,6 @@ Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
 Plugin 'elixir-editors/vim-elixir'
 Plugin 'slashmili/alchemist.vim'
-Plugin 'tyru/caw.vim.git'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
@@ -37,10 +36,6 @@ inoremap { {}<Left>
 inoremap {<Enter> {}<Left><CR><ESC><S-o>
 inoremap ( ()<ESC>i
 inoremap (<Enter> ()<Left><CR><ESC><S-o>
-
-#caw:hatpos:toggle
-#nmap <C-K> <Plug>(caw:i:toggle)
-#vmap <C-K> <Plug>(caw:i:toggle)
 
 set shell=/bin/bash
 
