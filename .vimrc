@@ -38,9 +38,9 @@ inoremap {<Enter> {}<Left><CR><ESC><S-o>
 inoremap ( ()<ESC>i
 inoremap (<Enter> ()<Left><CR><ESC><S-o>
 
-caw:hatpos:toggle
-nmap <C-K> <Plug>(caw:i:toggle)
-vmap <C-K> <Plug>(caw:i:toggle)
+#caw:hatpos:toggle
+#nmap <C-K> <Plug>(caw:i:toggle)
+#vmap <C-K> <Plug>(caw:i:toggle)
 
 set shell=/bin/bash
 
