@@ -11,7 +11,6 @@ eval (goenv init - | source)
 set fish_greeting Blacks are humble, sit down.
 
 set -x CC clang
-set -x CFLAGS -02 -g -Wno-error=implicit-function-declaration
 set -x KERL_BUILD_DOCS no
 set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 
@@ -28,6 +27,7 @@ alias cdr='cd -'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias d='docker'
 alias docc='docker-compose'
+alias k='kubectl'
 alias l='exa -a'
 alias v='vim'
 
