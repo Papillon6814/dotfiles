@@ -1,0 +1,58 @@
+{
+	"name": "firefox-devtools-theme",
+	"displayName": "Firefox Theme",
+	"description": "A VS Code theme based on the Mozilla Firefox' developer tools colors",
+	"version": "4.10.1",
+	"publisher": "Heron",
+	"author": {
+		"name": "Heron Silva",
+		"email": "heron.code@outlook.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/firefox-theme/visual-studio-code"
+	},
+	"icon": "images/icon.png",
+	"badges": [
+		{
+			"url": "https://vsmarketplacebadge.apphb.com/version/Heron.firefox-devtools-theme.svg?label=Release&style=flat-square&colorA=434346&colorB=B98EFF",
+			"description": "Current version",
+			"href": "https://marketplace.visualstudio.com/items?itemName=Heron.firefox-devtools-theme"
+		},
+		{
+			"url": "https://vsmarketplacebadge.apphb.com/installs/Heron.firefox-devtools-theme.svg?label=Installs&style=flat-square&colorA=434346&colorB=B98EFF",
+			"description": "Installs",
+			"href": "https://marketplace.visualstudio.com/items?itemName=Heron.firefox-devtools-theme"
+		},
+		{
+			"url": "https://vsmarketplacebadge.apphb.com/rating/Heron.firefox-devtools-theme.svg?label=Rating&style=flat-square&colorA=434346&colorB=B98EFF",
+			"description": "Rating",
+			"href": "https://marketplace.visualstudio.com/items?itemName=Heron.firefox-devtools-theme#review-details"
+		}
+	],
+	"engines": {
+		"vscode": "^1.10.0"
+	},
+	"categories": [
+		"Themes"
+	],
+	"contributes": {
+		"themes": [
+			{
+				"label": "Firefox Dark",
+				"uiTheme": "vs-dark",
+				"path": "./themes/dark.json"
+			},
+			{
+				"label": "Firefox Light",
+				"uiTheme": "vs",
+				"path": "./themes/light.json"
+			}
+		]
+	},
+	"__metadata": {
+		"id": "e2fefca0-b32c-431f-bb7d-8adf78b5af20",
+		"publisherId": "c4734ea2-6dbb-4064-a16e-bea982f34dbe",
+		"publisherDisplayName": "Heron Silva"
+	}
+}

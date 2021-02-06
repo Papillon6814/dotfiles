@@ -31,4 +31,4 @@ SETUVAR fish_pager_color_completion:\x1d
 SETUVAR fish_pager_color_description:B3A06D\x1eyellow
 SETUVAR fish_pager_color_prefix:white\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
-SETUVAR fish_user_paths:/Users/kunosouichirou/papillon\x2dbin/\x1e/Users/kunosouichirou/gocode/\x1e/Users/kunosouichirou/\x2eanyenv/envs/goenv/bin\x1e/Users/kunosouichirou/\x2eanyenv/bin\x1e/Users/kunosouichirou/Documents/google\x2dcloud\x2dsdk/path\x2efish\x2einc\x1e/Users/kunosouichirou/\x2epyenv/bin\x1e/Users/kunosouichirou/\x2ecargo/bin\x1e/Users/kunosouichirou/\x2ecargo/bin
+SETUVAR fish_user_paths:/usr/local/opt/binutils/bin\x1e/Users/kunosouichirou/papillon\x2dbin/\x1e/Users/kunosouichirou/gocode/\x1e/Users/kunosouichirou/\x2eanyenv/envs/goenv/bin\x1e/Users/kunosouichirou/\x2eanyenv/bin\x1e/Users/kunosouichirou/Documents/google\x2dcloud\x2dsdk/path\x2efish\x2einc\x1e/Users/kunosouichirou/\x2epyenv/bin\x1e/Users/kunosouichirou/\x2ecargo/bin\x1e/Users/kunosouichirou/\x2ecargo/bin

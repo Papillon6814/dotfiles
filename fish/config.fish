@@ -10,7 +10,7 @@ eval (goenv init - | source)
 
 set fish_greeting Blacks are humble, sit down.
 
-set -x CC clang
+#set -x CC clang
 set -x KERL_BUILD_DOCS no
 set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 
@@ -46,3 +46,6 @@ set -x PYTHON_CONFIGURE_OPTS "--with-tcltk-includes='-I/usr/local/opt/tcl-tk/inc
 if [ -f '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc' ]; . '/Users/kunosouichirou/google-cloud-sdk/path.fish.inc'; end
 
 source ~/.asdf/asdf.fish
+
+test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
+
