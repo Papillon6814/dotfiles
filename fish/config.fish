@@ -3,6 +3,7 @@ eval (anyenv init - | source)
 
 set -x GOPATH $HOME/go
 set -x PATH $PATH $GOPATH/bin
+set PATH /usr/local/opt/php@7.4/bin $PATH
 
 set -x GOENV_ROOT $HOME/.goenv
 set -x PATH $PATH $GOENV_ROOT/bin
@@ -49,3 +50,4 @@ source ~/.asdf/asdf.fish
 
 test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
 
+alias medis '/bin/bash ~/papillon-bin/medis'
