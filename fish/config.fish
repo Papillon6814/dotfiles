@@ -51,3 +51,4 @@ source ~/.asdf/asdf.fish
 test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
 
 alias medis '/bin/bash ~/papillon-bin/medis'
+set -g fish_user_paths "/usr/local/opt/llvm/bin" $fish_user_paths
