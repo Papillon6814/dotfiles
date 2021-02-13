@@ -1,3 +1,3 @@
 # dotfiles
 
-設定ちょっと入れておいたんすよ
+Just Papillon6814's dotfiles. 
