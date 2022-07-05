@@ -6,15 +6,18 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'airblade/vim-gitgutter'
+Plugin 'junegunn/fzf.vim'
 Plugin 'mileszs/ack.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'rust-lang/rust.vim'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
+" Enable to resite easily
 Plugin 'simeji/winresizer'
 Plugin 'tpope/vim-commentary'
 " Enable to run git commands as vim commands
 Plugin 'tpope/vim-fugitive'
+Plugin 'unblevable/quick-scope'
 
 " Elixir
 Plugin 'elixir-editors/vim-elixir'
@@ -32,14 +35,14 @@ call vundle#end()
 filetype plugin indent on
 
 set termguicolors
-let ayucolor="mirage"
 colorscheme tender
 
 set number
 set clipboard+=unnamed
+" Do not break line
+set wrap
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
-nnoremap <silent><C-t> :vsplit<CR>
 
 set shell=/bin/bash
 
