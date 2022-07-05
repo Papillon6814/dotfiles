@@ -13,32 +13,33 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
 Plugin 'tpope/vim-commentary'
+" Enable to run git commands as vim commands
+Plugin 'tpope/vim-fugitive'
 
 " Elixir
 Plugin 'elixir-editors/vim-elixir'
 Plugin 'c-brenn/phoenix.vim'
 Plugin 'slashmili/alchemist.vim'
+Plugin 'mhinz/vim-mix-format'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
 Plugin 'dracula/vim'
+Plugin 'sickill/vim-monokai'
+Plugin 'jacoborus/tender.vim'
 
 call vundle#end()
 filetype plugin indent on
 
 set termguicolors
 let ayucolor="mirage"
-colorscheme ayu
+colorscheme tender
 
 set number
 set clipboard+=unnamed
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
 nnoremap <silent><C-t> :vsplit<CR>
-inoremap { {}<Left>
-inoremap {<Enter> {}<Left><CR><ESC><S-o>
-inoremap ( ()<ESC>i
-inoremap (<Enter> ()<Left><CR><ESC><S-o>
 
 set shell=/bin/bash
 
@@ -48,8 +49,26 @@ let g:racer_experimental_completer = 1
 
 set cursorline
 
-:syntax on
 syntax on
+
+" Settings about tender colorscheme
+" If you have vim >=8.0 or Neovim >= 0.1.5
+if (has("termguicolors"))
+ set termguicolors
+endif
+
+" For Neovim 0.1.3 and 0.1.4
+let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+
+" Settings about tender colorscheme ends
+
+" If you have vim >=8.0 or Neovim >= 0.1.5
+if (has("termguicolors"))
+ set termguicolors
+endif
+
+" For Neovim 0.1.3 and 0.1.4
+let $NVIM_TUI_ENABLE_TRUE_COLOR=1
 
 if has("autocmd")
     filetype plugin on
