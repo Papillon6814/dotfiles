@@ -6,15 +6,18 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'airblade/vim-gitgutter'
-Plugin 'elixir-editors/vim-elixir'
 Plugin 'mileszs/ack.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'rust-lang/rust.vim'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
-Plugin 'slashmili/alchemist.vim'
 Plugin 'tpope/vim-commentary'
+
+" Elixir
+Plugin 'elixir-editors/vim-elixir'
+Plugin 'c-brenn/phoenix.vim'
+Plugin 'slashmili/alchemist.vim'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
