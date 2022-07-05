@@ -5,16 +5,16 @@ call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
 
-Plugin 'rust-lang/rust.vim'
 Plugin 'airblade/vim-gitgutter'
-Plugin 'scrooloose/nerdtree'
-Plugin 'tpope/vim-commentary'
-Plugin 'racer-rust/vim-racer'
+Plugin 'elixir-editors/vim-elixir'
 Plugin 'mileszs/ack.vim'
+Plugin 'racer-rust/vim-racer'
+Plugin 'rust-lang/rust.vim'
+Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'simeji/winresizer'
-Plugin 'elixir-editors/vim-elixir'
 Plugin 'slashmili/alchemist.vim'
+Plugin 'tpope/vim-commentary'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
