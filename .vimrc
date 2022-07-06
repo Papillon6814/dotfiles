@@ -7,6 +7,7 @@ Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'airblade/vim-gitgutter'
 Plugin 'junegunn/fzf.vim'
+Plugin 'junegunn/fzf'
 Plugin 'mileszs/ack.vim'
 Plugin 'racer-rust/vim-racer'
 Plugin 'rust-lang/rust.vim'
@@ -32,6 +33,8 @@ Plugin 'sickill/vim-monokai'
 Plugin 'jacoborus/tender.vim'
 
 call vundle#end()
+
+let mapleader = "\<Space>"
 filetype plugin indent on
 
 set termguicolors
@@ -40,9 +43,10 @@ colorscheme tender
 set number
 set clipboard+=unnamed
 " Do not break line
-set wrap
+set nowrap
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
+nnoremap <Leader>p :Files<CR>
 
 set shell=/bin/bash
 
