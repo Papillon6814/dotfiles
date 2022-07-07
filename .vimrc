@@ -25,6 +25,7 @@ Plugin 'elixir-editors/vim-elixir'
 Plugin 'c-brenn/phoenix.vim'
 Plugin 'slashmili/alchemist.vim'
 Plugin 'mhinz/vim-mix-format'
+Plugin 'mattreduce/vim-mix'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
@@ -44,9 +45,11 @@ set number
 set clipboard+=unnamed
 " Do not break line
 set nowrap
+set redrawtime=10000
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
 nnoremap <Leader>p :Files<CR>
+nnoremap <Leader>u :redo<CR>
 
 set shell=/bin/bash
 
@@ -66,6 +69,12 @@ endif
 
 " For Neovim 0.1.3 and 0.1.4
 let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+
+" Elixir
+au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
+au BufRead,BufNewFile *.eex,*.heex,*.leex,*.sface,*.lexs set filetype=eelixir
+au BufRead,BufNewFile mix.lock set filetype=elixir
+
 
 " Settings about tender colorscheme ends
 
@@ -102,6 +111,21 @@ func! STL()
   let stl_right = ' %<%F %m%r%h%w%=[%{&fenc},%{&ff},%Y] (%03l/%03L,%03v) '
   return stl_left.bar.stl_right
 endfunc
+
+"" vim grep
+""" ignored files in vimgrep
+let s:ignore_list  = ',.git/**,.svn/**,obj/**'
+let s:ignore_list .= ',tags,GTAGS,GRTAGS,GPATH'
+let s:ignore_list .= ',*.o,*.obj,*.exe,*.dll,*.bin,*.so,*.a,*.out,*.jar,*.pak'
+let s:ignore_list .= ',*.zip,*gz,*.xz,*.bz2,*.7z,*.lha,*.lzh,*.deb,*.rpm,*.iso'
+let s:ignore_list .= ',*.pdf,*.png,*.jp*,*.gif,*.bmp,*.mp*'
+let s:ignore_list .= ',*.od*,*.doc*,*.xls*,*.ppt*'
+let s:ignore_list .= ',deps/**,_build/**,cover/**'
+
+if exists('+wildignore')
+  autocmd QuickFixCmdPre  * execute 'setlocal wildignore+=' . s:ignore_list
+  autocmd QuickFixCmdPost * execute 'setlocal wildignore-=' . s:ignore_list
+endif
 
 set laststatus=2
 set statusline=%!STL()
