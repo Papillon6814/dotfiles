@@ -46,6 +46,7 @@ set clipboard+=unnamed
 " Do not break line
 set nowrap
 set redrawtime=10000
+set re=0
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
 nnoremap <Leader>p :Files<CR>
