@@ -60,6 +60,8 @@ let g:racer_experimental_completer = 1
 
 set cursorline
 
+let NERDTreeShowHidden=1
+
 syntax on
 
 " Settings about tender colorscheme
