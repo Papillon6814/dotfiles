@@ -62,6 +62,9 @@ nnoremap <silent><C-r> :NERDTreeToggle<CR>
 nnoremap <Leader>p :Files<CR>
 nnoremap <Leader>u :redo<CR>
 
+set showmatch
+hi MatchParen cterm=none ctermbg=green ctermfg=blue
+
 set shell=/bin/bash
 
 set hidden
