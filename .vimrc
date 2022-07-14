@@ -27,19 +27,29 @@ Plugin 'slashmili/alchemist.vim'
 Plugin 'mhinz/vim-mix-format'
 Plugin 'mattreduce/vim-mix'
 
+" React
+Plugin 'pangloss/vim-javascript'
+Plugin 'MaxMEllon/vim-jsx-pretty'
+
 " Colors
 Plugin 'ayu-theme/ayu-vim'
 Plugin 'dracula/vim'
 Plugin 'sickill/vim-monokai'
 Plugin 'jacoborus/tender.vim'
+Plugin 'sainnhe/sonokai'
 
 call vundle#end()
 
 let mapleader = "\<Space>"
 filetype plugin indent on
 
+" Important!! sonokai
+" The configuration options should be placed before `colorscheme sonokai`.
+let g:sonokai_style = 'shusia'
+let g:sonokai_better_performance = 1
+
 set termguicolors
-colorscheme tender
+colorscheme sonokai
 
 set number
 set clipboard+=unnamed
@@ -130,6 +140,7 @@ if exists('+wildignore')
   autocmd QuickFixCmdPre  * execute 'setlocal wildignore+=' . s:ignore_list
   autocmd QuickFixCmdPost * execute 'setlocal wildignore-=' . s:ignore_list
 endif
+
 
 set laststatus=2
 set statusline=%!STL()
