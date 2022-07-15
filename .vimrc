@@ -5,6 +5,7 @@ call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
 
+Plugin 'dense-analysis/ale'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'junegunn/fzf.vim'
 Plugin 'junegunn/fzf'
@@ -30,6 +31,7 @@ Plugin 'mattreduce/vim-mix'
 " React
 Plugin 'pangloss/vim-javascript'
 Plugin 'MaxMEllon/vim-jsx-pretty'
+Plugin 'heavenshell/vim-tslint'
 
 " Colors
 Plugin 'ayu-theme/ayu-vim'
@@ -95,8 +97,28 @@ set completeopt=menuone,noinsert
 inoremap <expr><C-n> pumvisible() ? "<Down>" : "<C-n>"
 inoremap <expr><C-p> pumvisible() ? "<Up>" : "<C-p>"
 
+" Lint with ALE
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'typescriptreact': ['eslint'],
+\   'typescript': ['prettier'],
+\   'javascript': ['prettier'],
+\   'javascriptreact': ['prettier'],
+\   'css': ['prettier'],
+\}
 
-" Settings about tender colorscheme ends
+let g:ale_sign_error = 'P>'
+let g:ale_sign_warning = 'P-'
+let g:ale_echo_msg_format = '[%linter%] %code: %%s'
+let g:ale_statusline_format = ['E%d', 'W%d', 'OK']
+
+let g:ale_linters = {
+\   'javascript': ['eslint'],
+\}
+
+let g:ale_fix_on_save = 1
+let g:ale_completion_enabled = 1
+let g:ale_javascript_prettier_use_local_config = 1
 
 " If you have vim >=8.0 or Neovim >= 0.1.5
 if (has("termguicolors"))
