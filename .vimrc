@@ -5,6 +5,7 @@ call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
 
+Plugin 'bronson/vim-trailing-whitespace'
 Plugin 'dense-analysis/ale'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'junegunn/fzf.vim'
@@ -14,6 +15,7 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'rust-lang/rust.vim'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
+
 " Enable to resite easily
 Plugin 'simeji/winresizer'
 Plugin 'tpope/vim-commentary'
@@ -40,6 +42,10 @@ Plugin 'sickill/vim-monokai'
 Plugin 'jacoborus/tender.vim'
 Plugin 'sainnhe/sonokai'
 
+" Vim LSP
+Plugin 'prabirshrestha/vim-lsp'
+Plugin 'mattn/vim-lsp-settings'
+
 call vundle#end()
 
 let mapleader = "\<Space>"
@@ -59,6 +65,8 @@ set clipboard+=unnamed
 set nowrap
 set redrawtime=10000
 set re=0
+set encoding=utf-8
+scriptencoding utf-8
 
 nnoremap <silent><C-r> :NERDTreeToggle<CR>
 nnoremap <Leader>p :Files<CR>
@@ -100,7 +108,7 @@ inoremap <expr><C-p> pumvisible() ? "<Up>" : "<C-p>"
 " Lint with ALE
 let g:ale_fixers = {
 \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-\   'typescriptreact': ['eslint'],
+\   'typescriptreact': ['prettier', 'eslint'],
 \   'typescript': ['prettier'],
 \   'javascript': ['prettier'],
 \   'javascriptreact': ['prettier'],
@@ -114,11 +122,20 @@ let g:ale_statusline_format = ['E%d', 'W%d', 'OK']
 
 let g:ale_linters = {
 \   'javascript': ['eslint'],
+\   'elixir': ['elixir-ls'],
 \}
 
 let g:ale_fix_on_save = 1
 let g:ale_completion_enabled = 1
 let g:ale_javascript_prettier_use_local_config = 1
+
+let g:ale_set_loclist = 0
+let g:ale_set_quickfix = 1
+
+let g:ale_open_list = 1
+
+" エラーと警告がなくなっても開いたままにする
+let g:ale_keep_list_window_open = 1
 
 " If you have vim >=8.0 or Neovim >= 0.1.5
 if (has("termguicolors"))
