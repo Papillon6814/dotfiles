@@ -15,6 +15,7 @@ Plugin 'racer-rust/vim-racer'
 Plugin 'rust-lang/rust.vim'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
+Plugin 'APZelos/blamer.nvim'
 
 " Enable to resite easily
 Plugin 'simeji/winresizer'
@@ -97,6 +98,10 @@ endif
 au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
 au BufRead,BufNewFile *.eex,*.heex,*.leex,*.sface,*.lexs set filetype=eelixir
 au BufRead,BufNewFile mix.lock set filetype=elixir
+
+" GitLens
+let g:blamer_enabled = 1
+let g:blamer_delay = 500
 
 " Auto completion
 inoremap <expr><CR>  pumvisible() ? "<C-y>" : "<CR>"
