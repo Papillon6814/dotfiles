@@ -175,7 +175,7 @@ endfunc
 
 "" vim grep
 """ ignored files in vimgrep
-set wildignore=*/node_modules/*,*/target/*,*/tmp/*, */_build/*
+set wildignore=*/node_modules/*,*/target/*,*/tmp/*,*/_build/*
 
 set laststatus=2
 set statusline=%!STL()
