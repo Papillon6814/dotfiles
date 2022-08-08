@@ -69,7 +69,7 @@ set re=0
 set encoding=utf-8
 scriptencoding utf-8
 
-nnoremap <silent><C-r> :NERDTreeToggle<CR>
+nnoremap <Leader>r :NERDTreeToggle<CR>
 nnoremap <Leader>p :Files<CR>
 nnoremap <Leader>u :redo<CR>
 
@@ -175,7 +175,7 @@ endfunc
 
 "" vim grep
 """ ignored files in vimgrep
-set wildignore=*/node_modules/*,*/target/*,*/tmp/*,*/_build/*,*/deps/*
+set wildignore=*/node_modules/*,*/target/*,*/tmp/*,*/_build/*,*/deps/*,*/cover/*
 
 set laststatus=2
 set statusline=%!STL()
