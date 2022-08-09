@@ -58,6 +58,7 @@ let g:sonokai_style = 'shusia'
 let g:sonokai_better_performance = 1
 
 set termguicolors
+set shortmess-=S
 colorscheme sonokai
 
 set number
