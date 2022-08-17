@@ -30,6 +30,7 @@ Plugin 'c-brenn/phoenix.vim'
 Plugin 'slashmili/alchemist.vim'
 Plugin 'mhinz/vim-mix-format'
 Plugin 'mattreduce/vim-mix'
+Plugin 'GrzegorzKozub/vim-elixirls'
 
 " React
 Plugin 'pangloss/vim-javascript'
@@ -128,7 +129,7 @@ let g:ale_statusline_format = ['E%d', 'W%d', 'OK']
 
 let g:ale_linters = {
 \   'javascript': ['eslint'],
-\   'elixir': ['elixir-ls'],
+\   'elixir': ['elixir-ls', 'credo'],
 \}
 
 let g:ale_fix_on_save = 1
