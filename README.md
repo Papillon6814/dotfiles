@@ -6,4 +6,5 @@ Just Papillon6814's dotfiles.
 
 ```
 npm i -g typescript-language-server
+brew install tree-sitter
 ```

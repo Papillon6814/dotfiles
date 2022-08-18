@@ -20,4 +20,19 @@ packer.startup(function(use)
   }
   -- LSP config
   use 'neovim/nvim-lspconfig'
+  -- Highlight Parser
+  use 'nvim-treesitter/nvim-treesitter'
+  -- Autotag
+  use 'windwp/nvim-ts-autotag'
+  -- Auto pair brackets
+  use 'windwp/nvim-autopairs'
+  -- Fuzzy Finder
+  use {
+    'nvim-telescope/telescope.nvim',
+    requires = { {'nvim-lua/plenary.nvim'} }
+  }
+  -- Fuzzy Finder as a file browser
+  use { "nvim-telescope/telescope-file-browser.nvim" }
+  -- Iconset for Fuzzy Finder
+  use 'kyazdani42/nvim-web-devicons'
 end)
