@@ -11,3 +11,13 @@ vim.o.cursorline = true
 vim.o.showmatch = true
 
 vim.opt.clipboard:append{'unnamedplus'}
+
+-- Indent Size
+local my_filetype = require('filetype')
+
+vim.api.nvim_create_augroup('vimrc_augroup', {})
+vim.api.nvim_create_autocmd('FileType', {
+  group = 'vimrc_augroup',
+  pattern = '*',
+  callback = function(args) my_filetype[args.match]() end
+})

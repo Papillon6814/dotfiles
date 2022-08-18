@@ -16,9 +16,16 @@ M.help = function()
   vim.api.nvim_buf_set_keymap(0, 'n', 'q', 'ZZ', { noremap = true })
 end
 
-M.java = function()
-  set_indent(4, false)
-end
+M.java            = function() set_indent(4, false) end
+M.javascript      = function() set_indent(2, false) end
+M.typescript      = function() set_indent(2, false) end
+M.javascriptreact = function() set_indent(2, false) end
+M.typescriptreact = function() set_indent(2, false) end
+M.lua             = function() set_indent(2, false) end
+M.rust            = function() set_indent(4, true) end
+M.c               = function() set_indent(4, true) end
+M.cpp             = function() set_indent(4, true) end
+M.elixir          = function() set_indent(2, false) end
 
 return setmetatable(M, {
   __index = function()
