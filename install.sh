@@ -36,6 +36,10 @@ for f in ~/dotfiles/nvim/lua/*.lua; do
     ln "$f" ~/.config/nvim/lua
 done
 
+for f in ~/dotfiles/nvim/plugin/*.lua; do
+    ln "$f" ~/.config/nvim/plugin
+done
+
 ln ~/dotfiles/nvim/init.lua ~/.config/nvim/init.lua
 
 for f in ~/dotfiles/nvim/after/plugin/*.rc.lua; do
