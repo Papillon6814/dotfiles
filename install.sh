@@ -31,8 +31,12 @@ mkdir ~/.config/nvim/plugin
 mkdir ~/.config/nvim/lua
 mkdir ~/.config/nvim/after
 mkdir ~/.config/nvim/after/plugin
+
+for f in ~/dotfiles/nvim/lua/*.lua; do
+    ln "$f" ~/.config/nvim/lua
+done
+
 ln ~/dotfiles/nvim/init.lua ~/.config/nvim/init.lua
-ln ~/dotfiles/nvim/lua/plugins.lua ~/.config/nvim/lua/plugins.lua
 
 for f in ~/dotfiles/nvim/after/plugin/*.rc.lua; do
     ln "$f" ~/.config/nvim/after/plugin
