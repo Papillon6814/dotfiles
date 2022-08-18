@@ -22,7 +22,10 @@ packer.startup(function(use)
   use 'neovim/nvim-lspconfig'
   use { "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" }
   -- Highlight Parser
-  use 'nvim-treesitter/nvim-treesitter'
+  use {
+    'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate'
+  }
   -- Autotag
   use 'windwp/nvim-ts-autotag'
   -- Auto pair brackets
@@ -36,7 +39,11 @@ packer.startup(function(use)
   }
   -- Fuzzy Finder as a file browser
   use { "nvim-telescope/telescope-file-browser.nvim" }
-  
+  -- Prettier
+  use 'MunifTanjim/prettier.nvim'
+  -- Git Change indicator
+  use 'lewis6991/gitsigns.nvim'
+
   -- Settings for each language
   -- Elixir
   use "elixir-editors/vim-elixir"
