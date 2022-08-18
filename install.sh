@@ -9,17 +9,29 @@ cd $THIS_DIR
 git submodule init
 git submodule update
 
-echo "start setup..."
+echo "Setting up symbolic link..."
 for f in .??*; do
     [ "$f" = ".git" ] && continue
     ln -snfv ~/dotfiles/"$f" ~/
 done
+echo "DONE"
 
-echo "fish系"
+echo "fishの設定"
 ln -sf ~/dotfiles/fish ~/.config/fish
+echo "DONE"
 
-echo "fishパッケージマネージャーfisherで管理されているもの"
+echo "fisherで管理されているものの"
 ln -sf ~/dotfiles/fisher ~/.config/fisher
+echo "DONE"
+
+echo "Neovimの設定"
+cd ~
+mkdir ~/.config/nvim/
+mkdir ~/.config/nvim/plugin
+mkdir ~/.config/nvim/lua
+ln ~/dotfiles/nvim/init.lua ~/.config/nvim/init.lua
+ln ~/dotfiles/nvim/lua/plugins.lua ~/.config/nvim/lua/plugins.lua
+echo "DONE"
 
 cat << END
 
