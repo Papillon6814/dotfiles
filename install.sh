@@ -35,7 +35,7 @@ ln ~/dotfiles/nvim/init.lua ~/.config/nvim/init.lua
 ln ~/dotfiles/nvim/lua/plugins.lua ~/.config/nvim/lua/plugins.lua
 
 for f in ~/dotfiles/nvim/after/plugin/*.rc.lua; do
-    ln ~/dotfiles/nvim/after/plugin/"$f" ~/.config/nvim/after/plugin
+    ln "$f" ~/.config/nvim/after/plugin
 done
 echo "DONE"
 
