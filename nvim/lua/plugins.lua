@@ -41,6 +41,7 @@ packer.startup(function(use)
   use { "nvim-telescope/telescope-file-browser.nvim" }
   -- Prettier
   use 'MunifTanjim/prettier.nvim'
+  use 'prettier/vim-prettier'
   -- Git Change indicator
   use 'lewis6991/gitsigns.nvim'
 
