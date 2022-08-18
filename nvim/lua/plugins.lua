@@ -26,6 +26,8 @@ packer.startup(function(use)
   use 'windwp/nvim-ts-autotag'
   -- Auto pair brackets
   use 'windwp/nvim-autopairs'
+  -- Iconset for Fuzzy Finder
+  use 'kyazdani42/nvim-web-devicons'
   -- Fuzzy Finder
   use {
     'nvim-telescope/telescope.nvim',
@@ -33,6 +35,4 @@ packer.startup(function(use)
   }
   -- Fuzzy Finder as a file browser
   use { "nvim-telescope/telescope-file-browser.nvim" }
-  -- Iconset for Fuzzy Finder
-  use 'kyazdani42/nvim-web-devicons'
 end)
