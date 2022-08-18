@@ -24,3 +24,11 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = '*',
   callback = function(args) my_filetype[args.match]() end
 })
+
+local null_ls = require("null-ls")
+
+null_ls.setup({
+	sources = {
+		null_ls.builtins.diagnostics.credo
+	},
+})

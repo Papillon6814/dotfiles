@@ -20,3 +20,10 @@ nvim_lsp.tsserver.setup {
   filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
   cmd = { "typescript-language-server", "--stdio" }
 }
+
+-- Elixir
+nvim_lsp.elixirls.setup {
+  on_attach = on_attach,
+  filetypes = { "elixir" },
+  cmd = { "elixir-ls" }
+}

@@ -20,6 +20,7 @@ packer.startup(function(use)
   }
   -- LSP config
   use 'neovim/nvim-lspconfig'
+  use { "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" }
   -- Highlight Parser
   use 'nvim-treesitter/nvim-treesitter'
   -- Autotag
@@ -35,4 +36,9 @@ packer.startup(function(use)
   }
   -- Fuzzy Finder as a file browser
   use { "nvim-telescope/telescope-file-browser.nvim" }
+  
+  -- Settings for each language
+  -- Elixir
+  use "elixir-editors/vim-elixir"
+  use { "mhanberg/elixir.nvim", requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" }}
 end)
