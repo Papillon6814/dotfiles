@@ -12,6 +12,8 @@ vim.o.number = true
 vim.o.wrap = false
 vim.o.cursorline = true
 vim.o.showmatch = true
+vim.o.encoding = 'utf-8'
+vim.g.airline_powerline_fonts = 1
 
 vim.opt.clipboard:append{'unnamedplus'}
 

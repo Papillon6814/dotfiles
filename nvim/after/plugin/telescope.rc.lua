@@ -49,7 +49,7 @@ vim.keymap.set('n', '<Leader>p',
       hidden = true
     })
   end)
-vim.keymap.set('n', '<Leader>v', function()
+vim.keymap.set('n', '<Leader>g', function()
   builtin.live_grep()
 end)
 vim.keymap.set('n', '\\\\', function()
