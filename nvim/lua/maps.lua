@@ -7,4 +7,4 @@ keymap.set('n', 'ss', ':split<Return><C-w>w')
 keymap.set('n', 'sv', ':vsplit<Return><C-w>w')
 
 -- Terminal mode
-keymap.set('t', '<Esc>', '<C-\><C-n>')
+keymap.set('t', '<Esc>', '<C-_><C-n>')
