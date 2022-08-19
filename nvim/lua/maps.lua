@@ -1,10 +1,13 @@
 local keymap = vim.keymap
 
--- New tab
-keymap.set('n', 'te', ':tabedit')
+-- Tab
+keymap.set('n', 'te', ':tabedit<Return>')
+keymap.set('n', 'tc', ':tabc<Return>')
 -- Split window
 keymap.set('n', 'ss', ':split<Return><C-w>w')
 keymap.set('n', 'sv', ':vsplit<Return><C-w>w')
-
--- Terminal mode
-keymap.set('t', '<Esc>', '<C-_><C-n>')
+-- Move Window
+keymap.set('', 'sh', '<C-w>h')
+keymap.set('', 'sk', '<C-w>k')
+keymap.set('', 'sj', '<C-w>j')
+keymap.set('', 'sl', '<C-w>l')
