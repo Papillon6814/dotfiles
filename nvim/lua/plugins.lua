@@ -11,6 +11,8 @@ packer.startup(function(use)
   -- Your plugins go here
   -- Color Theme
   use 'tanvirtin/monokai.nvim'
+  use 'sainnhe/sonokai'
+
   -- Indent Indicator
   use "lukas-reineke/indent-blankline.nvim"
   -- Status line decorator
