@@ -52,6 +52,8 @@ packer.startup(function(use)
     requires = "nvim-lua/plenary.nvim",
     config = function() require("todo-comments").setup{} end
   }
+  -- Search a first unique character in line
+  use 'unblevable/quick-scope'
 
   -- Settings for each language
   -- Elixir
