@@ -7,6 +7,7 @@ vim.api.nvim_exec('language en_US', true)
 vim.api.nvim_exec('colorscheme sonokai', true)
 vim.api.nvim_exec('syntax on', true)
 vim.api.nvim_exec('autocmd TermOpen * startinsert', true)
+vim.api.nvim_exec('set clipboard=unnamed', true)
 
 vim.o.termguicolors = true
 vim.o.number = true
@@ -20,7 +21,7 @@ vim.g.airline_powerline_fonts = 1
 vim.g.sonokai_style = 'shusia'
 vim.g.sonokai_better_performance = 1
 
-vim.opt.clipboard:append{'unnamedplus'}
+--vim.opt.clipboard:append{'unnamedplus'}
 
 -- Indent Size
 local my_filetype = require('filetype')
