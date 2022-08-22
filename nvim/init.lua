@@ -46,5 +46,5 @@ null_ls.setup({
 
 vim.api.nvim_exec('augroup fmt', true)
 vim.api.nvim_exec('autocmd!', true)
-vim.api.nvim_exec('autocmd BufWritePre,TextChanged *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html Prettier', true)
+vim.api.nvim_exec('autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html Prettier', true)
 vim.api.nvim_exec('augroup END', true)
