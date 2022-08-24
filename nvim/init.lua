@@ -29,6 +29,8 @@ local my_filetype = require('filetype')
 -- GitSign
 require('gitsigns').setup()
 
+require('colorizer').setup()
+
 vim.api.nvim_create_augroup('vimrc_augroup', {})
 vim.api.nvim_create_autocmd('FileType', {
   group = 'vimrc_augroup',
