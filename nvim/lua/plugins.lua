@@ -54,6 +54,8 @@ packer.startup(function(use)
   }
   -- Search a first unique character in line
   use 'unblevable/quick-scope'
+  -- Visible color
+  use 'norcalli/nvim-colorizer.lua'
 
   -- Settings for each language
   -- Elixir
