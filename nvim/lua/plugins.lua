@@ -57,7 +57,25 @@ packer.startup(function(use)
   -- Visible color
   use 'norcalli/nvim-colorizer.lua'
 
+  -- GoToDefinition
+  use({
+    "glepnir/lspsaga.nvim",
+    branch = "main",
+    config = function()
+        local saga = require("lspsaga")
+
+        saga.init_lsp_saga({
+            -- your configuration
+        })
+    end,
+})
+
+
+  -- ==========================================================
   -- Settings for each language
+  -- ==========================================================
+
+
   -- Elixir
   use "elixir-editors/vim-elixir"
   use { "mhanberg/elixir.nvim", requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" }}
