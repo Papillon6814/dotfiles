@@ -16,4 +16,4 @@ keymap.set('n', 'sK', '<C-w>K')
 keymap.set('n', 'sJ', '<C-w>J')
 keymap.set('n', 'sL', '<C-w>L')
 -- Control Window
-keymap.set('n', 'wq', '<C-w>q')
+keymap.set('n', 'swq', '<C-w>q')
