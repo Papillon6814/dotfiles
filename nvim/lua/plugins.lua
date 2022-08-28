@@ -23,6 +23,8 @@ packer.startup(function(use)
   -- LSP config
   use 'neovim/nvim-lspconfig'
   use { "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" }
+  use 'williamboman/mason.nvim'
+  use 'williamboman/mason-lspconfig.nvim'
   -- Highlight Parser
   use {
     'nvim-treesitter/nvim-treesitter',

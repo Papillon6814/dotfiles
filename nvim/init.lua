@@ -47,6 +47,17 @@ null_ls.setup({
 	},
 })
 
+local mason = require('mason')
+mason.setup({
+ ui = {
+   icons = {
+     package_installed = "✓",
+     package_pending = "➜",
+     package_uninstalled = "✗"
+   }
+ }
+})
+
 vim.api.nvim_exec('augroup fmt', true)
 vim.api.nvim_exec('autocmd!', true)
 vim.api.nvim_exec('autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html Prettier', true)
