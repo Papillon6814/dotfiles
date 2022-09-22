@@ -70,7 +70,11 @@ packer.startup(function(use)
             -- your configuration
         })
     end,
-})
+  })
+
+  -- Snippet
+  use 'honza/vim-snippets'
+  use 'SirVer/ultisnips'
 
 
   -- ==========================================================

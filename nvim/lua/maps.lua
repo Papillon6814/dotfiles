@@ -17,3 +17,8 @@ keymap.set('n', 'sJ', '<C-w>J')
 keymap.set('n', 'sL', '<C-w>L')
 -- Control Window
 keymap.set('n', 'swq', '<C-w>q')
+
+-- Snippets
+keymap.set('i',' <C-j>', ':UltiSnipsExpandTrigger')
+keymap.set('i',' <C-b>', ':UltiSnipsJumpForwardTrigger')
+keymap.set('i',' <C-z>', ':UltiSnipsJumpBackwardTrigger')
