@@ -9,7 +9,6 @@ vim.api.nvim_exec('syntax on', true)
 vim.api.nvim_exec('autocmd TermOpen * startinsert', true)
 vim.api.nvim_exec('set clipboard=unnamed', true)
 vim.api.nvim_exec('lang en_US.UTF-8', true)
-
 vim.o.termguicolors = true
 vim.o.number = true
 vim.o.wrap = false
