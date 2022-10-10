@@ -21,8 +21,6 @@ vim.g.airline_powerline_fonts = 1
 vim.g.sonokai_style = 'shusia'
 vim.g.sonokai_better_performance = 1
 
---vim.opt.clipboard:append{'unnamedplus'}
-
 -- Indent Size
 local my_filetype = require('filetype')
 
@@ -38,14 +36,16 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function(args) my_filetype[args.match]() end
 })
 
+-- Null-LS
 local null_ls = require("null-ls")
 
 null_ls.setup({
-	sources = {
-		null_ls.builtins.diagnostics.credo
-	},
+  sources = {
+    null_ls.builtins.diagnostics.credo
+  },
 })
 
+-- Mason
 local mason = require('mason')
 mason.setup({
  ui = {
@@ -67,13 +67,12 @@ saga.init_lsp_saga {
 }
 
 local opts = { noremap = true, silent = true }
-vim.keymap.set('n', '<C-j>', '<Cmd>Lspsaga diagnostic_jump_next<CR>', opts)
-vim.keymap.set('n', 'K', '<Cmd>Lspsaga hover_doc<CR>', opts)
-vim.keymap.set('n', 'gd', '<Cmd>Lspsaga lsp_finder<CR>', opts)
-vim.keymap.set('i', '<C-k>', '<Cmd>Lspsaga signature_help<CR>', opts)
-vim.keymap.set('n', 'gp', '<Cmd>Lspsaga preview_definition<CR>', opts)
-vim.keymap.set('n', 'gr', '<Cmd>Lspsaga rename<CR>', opts)
-
+vim.keymap.set('n', '<c-j>', '<cmd>lspsaga diagnostic_jump_next<cr>', opts)
+vim.keymap.set('n', 'k', '<cmd>lspsaga hover_doc<cr>', opts)
+vim.keymap.set('n', 'gd', '<cmd>lspsaga lsp_finder<cr>', opts)
+vim.keymap.set('i', '<c-k>', '<cmd>lspsaga signature_help<cr>', opts)
+vim.keymap.set('n', 'gp', '<cmd>lspsaga peek_definition<cr>', opts)
+vim.keymap.set('n', 'gr', '<cmd>lspsaga rename<cr>', opts)
 
 vim.api.nvim_exec('augroup fmt', true)
 vim.api.nvim_exec('autocmd!', true)
