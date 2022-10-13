@@ -67,7 +67,7 @@ test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shel
 alias medis '/bin/bash ~/papillon-bin/medis'
 set -g fish_user_paths "/usr/local/opt/llvm/bin" $fish_user_paths
 
-source /opt/homebrew/opt/asdf/asdf.fish
+#source /usr/local/bin/asdf/asdf.fish
 fish_add_path /opt/homebrew/opt/openjdk/bin
 
 # The next line updates PATH for the Google Cloud SDK.

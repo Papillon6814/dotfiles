@@ -69,6 +69,7 @@ set nowrap
 set redrawtime=10000
 set re=0
 set encoding=utf-8
+set mouse-=a
 scriptencoding utf-8
 
 nnoremap <Leader>r :NERDTreeToggle<CR>
