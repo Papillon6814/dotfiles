@@ -6,8 +6,8 @@ set -x PATH $HOME/.local/bin:$PATH
 
 set -x GOROOT /opt/homebrew/Cellar/go/1.18.1/libexec
 set -x GOPATH $HOME/go
-source (pyenv init - | psub)
 eval (anyenv init - | source)
+source (pyenv init - | psub)
 
 set -x PATH /Users/papillon/Library/Android/sdk/platform-tools $PATH
 set -x JAVA_HOME /opt/homebrew/Cellar/openjdk/16.0.1/libexec/openjdk.jdk/Contents/Home
