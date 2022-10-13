@@ -58,23 +58,6 @@ mason.setup({
  }
 })
 
-local status, saga = pcall(require, "lspsaga")
-if (not status) then return end
-
-saga.init_lsp_saga {
-  server_filetype_map = {
-    typescript = 'typescript'
-  }
-}
-
-local opts = { noremap = true, silent = true }
-vim.keymap.set('n', '<c-j>', '<cmd>lspsaga diagnostic_jump_next<cr>', opts)
-vim.keymap.set('n', 'k', '<cmd>lspsaga hover_doc<cr>', opts)
-vim.keymap.set('n', 'gd', '<cmd>lspsaga lsp_finder<cr>', opts)
-vim.keymap.set('i', '<c-k>', '<cmd>lspsaga signature_help<cr>', opts)
-vim.keymap.set('n', 'gp', '<cmd>lspsaga peek_definition<cr>', opts)
-vim.keymap.set('n', 'gr', '<cmd>lspsaga rename<cr>', opts)
-
 vim.api.nvim_exec('augroup fmt', true)
 vim.api.nvim_exec('autocmd!', true)
 vim.api.nvim_exec('autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html Prettier', true)
