@@ -68,6 +68,7 @@ alias medis '/bin/bash ~/papillon-bin/medis'
 set -g fish_user_paths "/usr/local/opt/llvm/bin" $fish_user_paths
 
 #source /usr/local/bin/asdf/asdf.fish
+source /opt/homebrew/opt/asdf/libexec/asdf.fish
 fish_add_path /opt/homebrew/opt/openjdk/bin
 
 # The next line updates PATH for the Google Cloud SDK.
