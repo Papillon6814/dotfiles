@@ -1,5 +1,5 @@
 function fish_prompt --description 'Write out the prompt'
-    printf 'papillon@%s'(fish_git_prompt)'> ' (set_color cyan)(prompt_pwd)
+    printf 'papillon@%s%s> ' (set_color cyan) $PWD (fish_git_prompt)
 end
 
 function fish_right_prompt 
