@@ -69,7 +69,6 @@ packer.startup(function(use)
   use 'honza/vim-snippets'
   use 'SirVer/ultisnips'
 
-
   -- ==========================================================
   -- Settings for each language
   -- ==========================================================
