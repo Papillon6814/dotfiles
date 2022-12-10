@@ -27,3 +27,6 @@ nvim_lsp.elixirls.setup {
   filetypes = { "elixir" },
   cmd = { "elixir-ls" }
 }
+
+-- Rust
+nvim_lsp.rust_analyzer.setup {}
