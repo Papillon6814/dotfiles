@@ -16,7 +16,7 @@ set PATH /opt/homebrew/opt/php@7.4/bin $PATH
 # e-server
 set -x CLOUD_SQL_HOST /tmp/cloudsql/e-server-339914:asia-northeast1:e-server-database/.s.PGSQL.5432
 set -x CLOUD_SQL_PASSWORD EhO9KMjIu?FJuhaP
-set -x DATABASE_URL postgres://postgres:EhO9KMjIu%3FFJuhaP@34.85.0.85:5432/e_server_prod
+#set -x DATABASE_URL postgres://postgres:EhO9KMjIu%3FFJuhaP@34.85.0.85:5432/e_server_prod
 set -x SECRET_KEY_BASE gfjEWDcEOLGjZr8UzMIWb6iu4En+O6h81CMSOHqzIdIss2o5gM4yz3+OJp0wB0uY
 
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -71,6 +71,6 @@ set -g fish_user_paths "/usr/local/opt/llvm/bin" $fish_user_paths
 source /opt/homebrew/opt/asdf/libexec/asdf.fish
 fish_add_path /opt/homebrew/opt/openjdk/bin
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/papillon/google-cloud-sdk/path.fish.inc' ]; . '/Users/papillon/google-cloud-sdk/path.fish.inc'; end
 
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc' ]; . '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc'; end
