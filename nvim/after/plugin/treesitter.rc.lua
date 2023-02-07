@@ -23,7 +23,9 @@ ts.setup {
     "lua",
     "elixir",
     "heex",
-    "eex"
+    "eex",
+    "rust",
+    "markdown"
   },
   autotag = {
     enable = true,

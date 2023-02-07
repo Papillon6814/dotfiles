@@ -30,7 +30,7 @@ M.elixir          = function() set_indent(2, false) end
 return setmetatable(M, {
   __index = function()
     return function()
-      print('Unexpected filetype!')
+      print('Unexpected filetype! (neovim filetype plugin)')
       set_indent(2, false)
     end
   end
