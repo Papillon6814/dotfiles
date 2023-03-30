@@ -35,7 +35,7 @@ set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 set -x RUST_BACKTRACE 1
 
 # alias
-alias cdg='cd ~/Documents/Github'
+alias cdg='cd ~/cd Library/Mobile\ Documents/com\~apple\~CloudDocs/Documents/Github/'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias docc='docker-compose'
 alias l='exa -a'
@@ -74,3 +74,5 @@ fish_add_path /opt/homebrew/opt/openjdk/bin
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc' ]; . '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc'; end
+
+export PATH="$PATH:/Users/kuno-soichiro/.foundry/bin"

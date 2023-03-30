@@ -30,3 +30,9 @@ nvim_lsp.elixirls.setup {
 
 -- Rust
 nvim_lsp.rust_analyzer.setup {}
+
+-- Solidity
+--nvim_lsp.solc.setup {
+--  on_attach = nil
+--}
+

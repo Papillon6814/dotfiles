@@ -26,6 +26,8 @@ M.rust            = function() set_indent(4, true) end
 M.c               = function() set_indent(4, true) end
 M.cpp             = function() set_indent(4, true) end
 M.elixir          = function() set_indent(2, false) end
+M.md              = function() set_indent(2, false) end
+M.markdown        = function() set_indent(2, false) end
 
 return setmetatable(M, {
   __index = function()
