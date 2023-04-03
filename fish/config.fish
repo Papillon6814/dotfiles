@@ -35,7 +35,7 @@ set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 set -x RUST_BACKTRACE 1
 
 # alias
-alias cdg='cd ~/cd Library/Mobile\ Documents/com\~apple\~CloudDocs/Documents/Github/'
+alias cdg='cd ~/Library/Mobile\ Documents/com\~apple\~CloudDocs/Documents/Github/'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias docc='docker-compose'
 alias l='exa -a'
