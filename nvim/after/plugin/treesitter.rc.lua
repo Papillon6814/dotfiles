@@ -25,7 +25,8 @@ ts.setup {
     "heex",
     "eex",
     "rust",
-    "markdown"
+    "markdown",
+    "go"
   },
   autotag = {
     enable = true,

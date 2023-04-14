@@ -2,6 +2,7 @@ local status, nvim_lsp = pcall(require, "lspconfig")
 if (not status) then return end
 
 local protocol = require('vim.lsp.protocol')
+local util = require('lspconfig/util')
 
 local on_attach = function(client, bufnr)
   -- format on save
@@ -30,6 +31,21 @@ nvim_lsp.elixirls.setup {
 
 -- Rust
 nvim_lsp.rust_analyzer.setup {}
+
+-- Go
+nvim_lsp.gopls.setup {
+  cmd = {"gopls", "serve"},
+  filetypes = {"go", "gomod"}
+  root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+  settings = {
+    gopls = {
+      analyses = {
+        unusedparams = true,
+      },
+      staticcheck = true,
+    }
+  }
+}
 
 -- Solidity
 --nvim_lsp.solc.setup {
