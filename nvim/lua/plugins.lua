@@ -59,6 +59,9 @@ packer.startup(function(use)
   -- Visible color
   use 'norcalli/nvim-colorizer.lua'
 
+  -- Auto close brackets
+  use 'rstacruz/vim-closer'
+
   -- GoToDefinition
   use({
     "glepnir/lspsaga.nvim",

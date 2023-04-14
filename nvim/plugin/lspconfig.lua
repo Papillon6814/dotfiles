@@ -35,7 +35,7 @@ nvim_lsp.rust_analyzer.setup {}
 -- Go
 nvim_lsp.gopls.setup {
   cmd = {"gopls", "serve"},
-  filetypes = {"go", "gomod"}
+  filetypes = {"go", "gomod"},
   root_dir = util.root_pattern("go.work", "go.mod", ".git"),
   settings = {
     gopls = {

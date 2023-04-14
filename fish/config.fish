@@ -4,7 +4,7 @@ set -x PYENV_ROOT $HOME/.pyenv
 set -x PATH $PYENV_ROOT/shims $PATH
 set -x PATH $HOME/.local/bin:$PATH
 
-set -x GOROOT /opt/homebrew/Cellar/go/1.19.2/libexec
+set -x GOROOT /opt/homebrew/Cellar/go/1.19.5/libexec
 set -x GOPATH $HOME/go
 eval (anyenv init - | source)
 source (pyenv init - | psub)
