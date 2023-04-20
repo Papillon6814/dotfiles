@@ -84,6 +84,11 @@ _G.packer_plugins = {
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/gitsigns.nvim",
     url = "https://github.com/lewis6991/gitsigns.nvim"
   },
+  ["gomod.vim"] = {
+    loaded = true,
+    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/gomod.vim",
+    url = "https://github.com/johejo/gomod.vim"
+  },
   ["indent-blankline.nvim"] = {
     loaded = true,
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/indent-blankline.nvim",
@@ -196,10 +201,20 @@ _G.packer_plugins = {
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/ultisnips",
     url = "https://github.com/SirVer/ultisnips"
   },
+  ["vim-closer"] = {
+    loaded = true,
+    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-closer",
+    url = "https://github.com/rstacruz/vim-closer"
+  },
   ["vim-elixir"] = {
     loaded = true,
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-elixir",
     url = "https://github.com/elixir-editors/vim-elixir"
+  },
+  ["vim-illuminate"] = {
+    loaded = true,
+    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-illuminate",
+    url = "https://github.com/RRethy/vim-illuminate"
   },
   ["vim-prettier"] = {
     loaded = true,

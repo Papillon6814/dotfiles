@@ -76,6 +76,8 @@ packer.startup(function(use)
   use 'honza/vim-snippets'
   use 'SirVer/ultisnips'
 
+  use 'RRethy/vim-illuminate'
+
   -- ==========================================================
   -- Settings for each language
   -- ==========================================================
@@ -84,4 +86,7 @@ packer.startup(function(use)
   -- Elixir
   use "elixir-editors/vim-elixir"
   use { "mhanberg/elixir.nvim", requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" }}
+
+  -- Go
+  use "johejo/gomod.vim"
 end)
