@@ -76,6 +76,7 @@ packer.startup(function(use)
   use 'honza/vim-snippets'
   use 'SirVer/ultisnips'
 
+  -- Highlight same spell words
   use 'RRethy/vim-illuminate'
 
   -- ==========================================================
