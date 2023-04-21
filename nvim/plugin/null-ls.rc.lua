@@ -47,11 +47,3 @@ null_ls.setup({
     null_ls.builtins.formatting.stylua
   },
 })
-			diagnostics_format = "[eslint] #{m}\n(#{c})",
-		}),
-		null_ls.builtins.diagnostics.fish,
-		null_ls.builtins.formatting.gofmt,
-		null_ls.builtins.formatting.prettier,
-		null_ls.builtins.formatting.stylua,
-	},
-})
