@@ -29,11 +29,12 @@ cd ~
 mkdir ~/.config/nvim/
 mkdir ~/.config/nvim/plugin
 mkdir ~/.config/nvim/lua
+mkdir ~/.config/nvim/lua/papillon6814
 mkdir ~/.config/nvim/after
 mkdir ~/.config/nvim/after/plugin
 
-for f in ~/dotfiles/nvim/lua/*.lua; do
-    ln "$f" ~/.config/nvim/lua
+for f in ~/dotfiles/nvim/lua/papillon6814/*.lua; do
+    ln "$f" ~/.config/nvim/lua/papillon6814
 done
 
 for f in ~/dotfiles/nvim/plugin/*.lua; do

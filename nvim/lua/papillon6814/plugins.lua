@@ -8,13 +8,16 @@ vim.cmd [[packadd packer.nvim]]
 
 packer.startup(function(use)
   use 'wbthomason/packer.nvim'
-  -- Your plugins go here
+
+
+
   -- Color Theme
   use 'tanvirtin/monokai.nvim'
   use 'sainnhe/sonokai'
 
   -- Indent Indicator
   use "lukas-reineke/indent-blankline.nvim"
+
   -- Status line decorator
   use {
     'nvim-lualine/lualine.nvim',
@@ -22,20 +25,29 @@ packer.startup(function(use)
   }
   -- LSP config
   use 'neovim/nvim-lspconfig'
-  use { "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" }
+
+  -- LSP package manager
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
+
+  -- Formatter
+  use { "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" }
+
   -- Highlight Parser
   use {
     'nvim-treesitter/nvim-treesitter',
     run = ':TSUpdate'
   }
+
   -- Autotag
   use 'windwp/nvim-ts-autotag'
+
   -- Auto pair brackets
   use 'windwp/nvim-autopairs'
+
   -- Iconset for Fuzzy Finder
   use 'kyazdani42/nvim-web-devicons'
+
   -- Fuzzy Finder
   use {
     'nvim-telescope/telescope.nvim',
@@ -43,19 +55,24 @@ packer.startup(function(use)
   }
   -- Fuzzy Finder as a file browser
   use { "nvim-telescope/telescope-file-browser.nvim" }
+
   -- Prettier
   use 'MunifTanjim/prettier.nvim'
   use 'prettier/vim-prettier'
+
   -- Git Change indicator
   use 'lewis6991/gitsigns.nvim'
+
   -- Annotaion comments
   use {
     "folke/todo-comments.nvim",
     requires = "nvim-lua/plenary.nvim",
     config = function() require("todo-comments").setup{} end
   }
+
   -- Search a first unique character in line
   use 'unblevable/quick-scope'
+
   -- Visible color
   use 'norcalli/nvim-colorizer.lua'
 
