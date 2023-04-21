@@ -31,8 +31,8 @@ nvim_lsp.rust_analyzer.setup {}
 
 -- Go
 nvim_lsp.gopls.setup {
-  cmd = {"gopls", "serve"},
-  filetypes = {"go", "gomod"},
+  cmd = { "gopls", "serve" },
+  filetypes = { "go", "gomod" },
   root_dir = util.root_pattern("go.work", "go.mod", ".git"),
   settings = {
     gopls = {
@@ -49,8 +49,10 @@ nvim_lsp.gopls.setup {
 --  on_attach = nil
 --}
 
-vim.api.nvim_exec('augroup fmt', true)
-vim.api.nvim_exec('autocmd!', true)
-vim.api.nvim_exec('autocmd BufWritePost *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html !prettier -w "%"', true)
-vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
-vim.api.nvim_exec('augroup END', true)
+--vim.api.nvim_exec('augroup fmt', true)
+--vim.api.nvim_exec('autocmd!', true)
+--vim.api.nvim_exec('autocmd BufWritePost *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html !prettier -w "%"', true)
+--vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
+--vim.api.nvim_exec('augroup END', true)
+--vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
+--vim.api.nvim_exec('augroup END', true)
