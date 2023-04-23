@@ -42,8 +42,10 @@ null_ls.setup({
       diagnostics_format = '[eslint] #{m}\n(#{c})'
     }),
     null_ls.builtins.diagnostics.fish,
+    null_ls.builtins.diagnostics.pylint,
     null_ls.builtins.formatting.gofmt,
     null_ls.builtins.formatting.prettier,
-    null_ls.builtins.formatting.stylua
+    null_ls.builtins.formatting.stylua,
+    null_ls.builtins.formatting.black
   },
 })

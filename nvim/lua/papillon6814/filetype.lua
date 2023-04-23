@@ -16,6 +16,7 @@ M.help = function()
   vim.api.nvim_buf_set_keymap(0, 'n', 'q', 'ZZ', { noremap = true })
 end
 
+M.python          = function() set_indent(4, false) end
 M.java            = function() set_indent(4, false) end
 M.javascript      = function() set_indent(2, false) end
 M.typescript      = function() set_indent(2, false) end
