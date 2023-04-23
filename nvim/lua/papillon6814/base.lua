@@ -13,6 +13,7 @@ vim.o.cursorline = true
 vim.o.showmatch = true
 vim.o.encoding = 'utf-8'
 vim.g.airline_powerline_fonts = 1
+vim.api.nvim_exec('source $VIMRUNTIME/macros/matchit.vim', true)
 
 -- Sonokai
 vim.g.sonokai_style = 'shusia'
