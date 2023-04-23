@@ -14,6 +14,9 @@ nvim_lsp.lua_ls.setup {
   }
 }
 
+-- Python
+nvim_lsp.pyright.setup {}
+
 -- TypeScript
 nvim_lsp.tsserver.setup {
   filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
@@ -52,6 +55,10 @@ nvim_lsp.gopls.setup {
 --vim.api.nvim_exec('augroup fmt', true)
 --vim.api.nvim_exec('autocmd!', true)
 --vim.api.nvim_exec('autocmd BufWritePost *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.svelte,*.yaml,*.html !prettier -w "%"', true)
+--vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
+--vim.api.nvim_exec('augroup END', true)
+--vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
+--vim.api.nvim_exec('augroup END', true)
 --vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
 --vim.api.nvim_exec('augroup END', true)
 --vim.api.nvim_exec('autocmd BufWritePost *.go !gofmt -w %', true)
