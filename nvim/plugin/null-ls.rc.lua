@@ -43,6 +43,7 @@ null_ls.setup({
     }),
     null_ls.builtins.diagnostics.fish,
     null_ls.builtins.diagnostics.pylint,
+    null_ls.builtins.diagnostics.staticcheck,
     null_ls.builtins.formatting.gofmt,
     null_ls.builtins.formatting.prettier,
     null_ls.builtins.formatting.stylua,
