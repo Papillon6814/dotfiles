@@ -4,8 +4,6 @@ set -x PYENV_ROOT $HOME/.pyenv
 set -x PATH $PYENV_ROOT/shims $PATH
 set -x PATH $HOME/.local/bin:$PATH
 
-set -x GOROOT /opt/homebrew/Cellar/go/1.19.5/libexec
-set -x GOPATH $HOME/go
 eval (anyenv init - | source)
 source (pyenv init - | psub)
 
@@ -35,7 +33,8 @@ set -x KERL_CONFIGURE_OPTIONS --with-ssl=(brew --prefix openssl)
 set -x RUST_BACKTRACE 1
 
 # alias
-alias cdg='cd ~/Library/Mobile\ Documents/com\~apple\~CloudDocs/Documents/Github/'
+# alias cdg='cd ~/Library/Mobile\ Documents/com\~apple\~CloudDocs/Documents/Github/'
+alias cdg='cd ~/Documents/Github'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias docc='docker-compose'
 alias l='exa -a'
@@ -60,10 +59,12 @@ set -x PKG_CONFIG_PATH "/usr/local/opt/tcl-tk/lib/pkgconfig"
 set -x PYTHON_CONFIGURE_OPTS "--with-tcltk-includes='-I/usr/local/opt/tcl-tk/include' --with-tcltk-libs='-L/usr/local/opt/tcl-tk/lib -ltcl8.6 -ltk8.6'"
 
 # Golang
-set -x GOENV_ROOT $HOME/.goenv
-set -x PATH $GOENV_ROOT/1.19.6/bin $PATH
-eval "$(goenv init -)"
+set -x GOBIN /opt/homebrew/bin
+set -x PATH $GOBIN $PATH
+#eval "$(goenv init -)"
 
+#set -x GOROOT /opt/homebrew/Cellar/go/1.20.3/libexec
+#set -x GOPATH /opt/homebrew/Cellar/go/1.20.3/
 # source ~/.asdf/asdf.fish
 
 test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish

@@ -1,0 +1,593 @@
+{
+	"name": "elixir-ls",
+	"displayName": "ElixirLS: Elixir support and debugger",
+	"homepage": "https://github.com/elixir-lsp/elixir-ls",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/elixir-lsp/vscode-elixir-ls.git"
+	},
+	"icon": "images/logo.png",
+	"description": "Elixir support with debugger, autocomplete, and more. Powered by ElixirLS.",
+	"author": "The Elixir community",
+	"license": "MIT",
+	"publisher": "JakeBecker",
+	"version": "0.14.5",
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"sponsor": {
+		"url": "https://github.com/sponsors/elixir-lsp"
+	},
+	"categories": [
+		"Programming Languages",
+		"Debuggers",
+		"Linters",
+		"Testing",
+		"Formatters"
+	],
+	"keywords": [
+		"elixir",
+		"mix",
+		"dialyzer",
+		"multi-root ready"
+	],
+	"activationEvents": [
+		"onLanguage:phoenix-heex",
+		"onLanguage:surface",
+		"workspaceContains:mix.exs",
+		"onDebugResolve:elixir"
+	],
+	"main": "./out/extension",
+	"contributes": {
+		"configurationDefaults": {
+			"[elixir]": {
+				"editor.insertSpaces": true,
+				"editor.tabSize": 2,
+				"editor.wordBasedSuggestions": false,
+				"editor.formatOnType": true,
+				"editor.trimAutoWhitespace": false,
+				"files.trimTrailingWhitespace": true,
+				"files.insertFinalNewline": true,
+				"files.trimFinalNewlines": true
+			},
+			"[html-eex]": {
+				"editor.trimAutoWhitespace": false,
+				"files.trimTrailingWhitespace": true,
+				"files.insertFinalNewline": true,
+				"files.trimFinalNewlines": true
+			}
+		},
+		"configuration": {
+			"title": "ElixirLS",
+			"properties": {
+				"elixirLS.autoBuild": {
+					"scope": "resource",
+					"type": "boolean",
+					"default": true,
+					"description": "Trigger ElixirLS build when code is saved"
+				},
+				"elixirLS.dialyzerEnabled": {
+					"scope": "resource",
+					"type": "boolean",
+					"default": true,
+					"description": "Run ElixirLS's rapid Dialyzer when code is saved"
+				},
+				"elixirLS.dialyzerWarnOpts": {
+					"scope": "resource",
+					"description": "Dialyzer options to enable or disable warnings. See Dialyzer's documentation for options. Note that the \"race_conditions\" option is unsupported",
+					"type": "array",
+					"uniqueItems": true,
+					"items": {
+						"type": "string",
+						"enum": [
+							"error_handling",
+							"extra_return",
+							"missing_return",
+							"no_behaviours",
+							"no_contracts",
+							"no_fail_call",
+							"no_fun_app",
+							"no_improper_lists",
+							"no_match",
+							"no_missing_calls",
+							"no_opaque",
+							"no_return",
+							"no_undefined_callbacks",
+							"no_unused",
+							"underspecs",
+							"unknown",
+							"unmatched_returns",
+							"overspecs",
+							"specdiffs",
+							"no_underspecs",
+							"no_extra_return",
+							"no_missing_return"
+						]
+					},
+					"default": []
+				},
+				"elixirLS.dialyzerFormat": {
+					"scope": "resource",
+					"description": "Formatter to use for Dialyzer warnings",
+					"type": "string",
+					"enum": [
+						"dialyzer",
+						"dialyxir_short",
+						"dialyxir_long"
+					],
+					"markdownEnumDescriptions": [
+						"Original Dialyzer format",
+						"Same as `mix dialyzer --format short`",
+						"Same as `mix dialyzer --format long`"
+					],
+					"default": "dialyxir_long"
+				},
+				"elixirLS.envVariables": {
+					"scope": "resource",
+					"type": "object",
+					"description": "Environment variables to use for compilation",
+					"minLength": 0
+				},
+				"elixirLS.mixEnv": {
+					"scope": "resource",
+					"type": "string",
+					"description": "Mix environment to use for compilation",
+					"default": "test",
+					"minLength": 1
+				},
+				"elixirLS.mixTarget": {
+					"scope": "resource",
+					"type": "string",
+					"description": "Mix target to use for compilation",
+					"minLength": 0
+				},
+				"elixirLS.projectDir": {
+					"scope": "resource",
+					"type": "string",
+					"description": "Subdirectory containing Mix project if not in the project root",
+					"minLength": 0,
+					"default": ""
+				},
+				"elixirLS.fetchDeps": {
+					"scope": "resource",
+					"type": "boolean",
+					"description": "Automatically fetch project dependencies when compiling",
+					"default": false
+				},
+				"elixirLS.suggestSpecs": {
+					"scope": "resource",
+					"type": "boolean",
+					"description": "Suggest @spec annotations inline using Dialyzer's inferred success typings (Requires Dialyzer)",
+					"default": true
+				},
+				"elixirLS.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the Elixir language server."
+				},
+				"elixirLS.signatureAfterComplete": {
+					"scope": "resource",
+					"type": "boolean",
+					"description": "Show signature help after confirming autocomplete",
+					"default": true
+				},
+				"elixirLS.enableTestLenses": {
+					"scope": "resource",
+					"type": "boolean",
+					"description": "Show code lenses to run tests in terminal",
+					"default": false
+				},
+				"elixirLS.additionalWatchedExtensions": {
+					"scope": "resource",
+					"type": "array",
+					"description": "Additional file types capable of triggering a build on change",
+					"uniqueItems": true,
+					"items": {
+						"type": "string"
+					},
+					"default": []
+				},
+				"elixirLS.languageServerOverridePath": {
+					"scope": "resource",
+					"type": "string",
+					"description": "Absolute path to alternative ElixirLS release that will override packaged release.",
+					"minLength": 0
+				}
+			}
+		},
+		"languages": [
+			{
+				"id": "elixir",
+				"aliases": [
+					"Elixir",
+					"elixir"
+				],
+				"extensions": [
+					".ex",
+					".exs"
+				],
+				"filenames": [
+					"mix.lock"
+				],
+				"configuration": "./elixir-language-configuration.json"
+			},
+			{
+				"id": "eex",
+				"aliases": [
+					"Embedded Elixir",
+					"EEx",
+					"eex"
+				],
+				"extensions": [
+					".eex",
+					".leex",
+					".heex"
+				],
+				"configuration": "./eex-language-configuration.json"
+			},
+			{
+				"id": "html-eex",
+				"aliases": [
+					"HTML (Embedded Elixir)",
+					"HTML (EEx)"
+				],
+				"extensions": [
+					".html.eex",
+					".html.leex",
+					".html.heex"
+				],
+				"configuration": "./eex-language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "elixir",
+				"scopeName": "source.elixir",
+				"path": "./syntaxes/elixir.json"
+			},
+			{
+				"language": "eex",
+				"scopeName": "text.elixir",
+				"path": "./syntaxes/eex.json"
+			},
+			{
+				"language": "html-eex",
+				"scopeName": "text.html.elixir",
+				"path": "./syntaxes/html-eex.json"
+			}
+		],
+		"breakpoints": [
+			{
+				"language": "elixir"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "mix_task",
+				"label": "Mix Task",
+				"windows": {
+					"program": "elixir-ls-release/debugger.bat"
+				},
+				"linux": {
+					"program": "elixir-ls-release/debugger.sh"
+				},
+				"osx": {
+					"program": "elixir-ls-release/debugger.sh"
+				},
+				"languages": [
+					"elixir"
+				],
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"projectDir"
+						],
+						"properties": {
+							"task": {
+								"type": "string",
+								"description": "Mix task name (without arguments)",
+								"default": "run"
+							},
+							"taskArgs": {
+								"type": "array",
+								"description": "List of arguments for task",
+								"default": [],
+								"items": {
+									"type": "string"
+								}
+							},
+							"env": {
+								"type": "object",
+								"description": "Environment variables to set before debugging. You may want to set MIX_ENV in here."
+							},
+							"debugExpressionTimeoutMs": {
+								"type": "number",
+								"description": "The timeout (in milliseconds) used in debugging when waiting for a code expression to complete"
+							},
+							"debugAutoInterpretAllModules": {
+								"type": "boolean",
+								"description": "When debugging, intepret all files. Note: Only interpreted files will be part of debugging stack traces. However this has a performance impact on large repositories, so if debugging is too slow, disable debugAutoInterpretFiles and use debugInterpretModulesPatterns to specify which files to interpret.",
+								"default": true
+							},
+							"debugInterpretModulesPatterns": {
+								"type": "array",
+								"description": "The modules to interpret when debugging. For details of interpreting see the :int module in Erlang. Only modules that are interpreted will show up in the debugger stacktrace. An example of a pattern is: \"MyApp.*\", which will interpret all modules that begin with \"MyApp.\"",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"projectDir": {
+								"type": "string",
+								"description": "Project root directory (usually the workspace root)",
+								"default": "${workspaceRoot}"
+							},
+							"startApps": {
+								"type": "boolean",
+								"description": "Run apps.start before requiring files. This should be set to true for Phoenix tests, but false in most other cases"
+							},
+							"excludeModules": {
+								"type": "array",
+								"description": "Names of modules not to interpret. If a module contains NIFs, you should exclude it. Examples: Some.Module, :erlang_module",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								},
+								"uniqueItems": true
+							},
+							"requireFiles": {
+								"type": "array",
+								"description": "Paths for any .exs files to interpret before debugging in the order they should be loaded. Accepts path wildcards",
+								"items": {
+									"type": "string"
+								}
+							},
+							"stackTraceMode": {
+								"type": "string",
+								"description": ":int.stack_trace/1 option",
+								"enum": [
+									"all",
+									"no_tail",
+									"false"
+								],
+								"default": "no_tail"
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
+						"type": "mix_task",
+						"name": "mix (Default task)",
+						"request": "launch",
+						"projectDir": "${workspaceRoot}"
+					},
+					{
+						"type": "mix_task",
+						"name": "mix test",
+						"request": "launch",
+						"task": "test",
+						"taskArgs": [
+							"--trace"
+						],
+						"startApps": true,
+						"projectDir": "${workspaceRoot}",
+						"requireFiles": [
+							"test/**/test_helper.exs",
+							"test/**/*_test.exs"
+						]
+					}
+				],
+				"configurationSnippets": [
+					{
+						"label": "Elixir Mix",
+						"description": "Launch a Mix task",
+						"body": {
+							"type": "mix_task",
+							"request": "launch",
+							"name": "mix ${1:task}",
+							"task": "${1:task}",
+							"taskArgs": [],
+							"projectDir": "^\"\\${workspaceRoot}\""
+						}
+					}
+				]
+			}
+		],
+		"problemMatchers": [
+			{
+				"name": "mixCompileError",
+				"owner": "elixir",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}"
+				],
+				"severity": "error",
+				"pattern": {
+					"regexp": "^\\*\\* \\((\\w+)\\) (.*):(\\d+): (.*)$",
+					"file": 2,
+					"location": 3,
+					"message": 0
+				}
+			},
+			{
+				"name": "mixCompileWarning",
+				"owner": "elixir",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}"
+				],
+				"severity": "warning",
+				"pattern": [
+					{
+						"regexp": "^warning: (.*)$",
+						"message": 1
+					},
+					{
+						"regexp": "^  (.*):(\\d+)(.*)$",
+						"file": 1,
+						"location": 2,
+						"message": 3
+					}
+				]
+			},
+			{
+				"name": "mixTestFailure",
+				"owner": "elixir",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}"
+				],
+				"severity": "warning",
+				"pattern": [
+					{
+						"regexp": "^\\s*\\d+\\) (.*)$",
+						"message": 1
+					},
+					{
+						"regexp": "^\\s*(.*):(\\d+)$",
+						"file": 1,
+						"location": 2
+					}
+				]
+			}
+		],
+		"commands": [
+			{
+				"category": "Elixir",
+				"command": "extension.copyDebugInfo",
+				"title": "Copy ElixirLS Debug Info"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.expandMacro",
+				"title": "Expand macro"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.restart",
+				"title": "Restart language server"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.mixClean",
+				"title": "Trigger mix clean in language server"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.mixCleanIncludeDeps",
+				"title": "Trigger mix clean --deps in language server"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.toPipe",
+				"title": "Transform function call to pipe operator"
+			},
+			{
+				"category": "Elixir",
+				"command": "extension.fromPipe",
+				"title": "Transform pipe operator to function call"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"category": "Elixir",
+					"command": "extension.copyDebugInfo",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.expandMacro",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.restart",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.mixClean",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.mixCleanIncludeDeps",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.toPipe",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				},
+				{
+					"category": "Elixir",
+					"command": "extension.fromPipe",
+					"when": "editorLangId == elixir || editorLangId == eex || editorLangId == html-eex"
+				}
+			]
+		},
+		"taskDefinitions": [
+			{
+				"type": "mix",
+				"required": [
+					"task"
+				],
+				"properties": {
+					"task": {
+						"type": "string",
+						"description": "The Mix task"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"update-vscode": "node ./node_modules/vscode/bin/install",
+		"test": "node ./out/test/runTest.js",
+		"lint": "eslint . --ext .js,.ts",
+		"check-formatting": "prettier --check ./src/ .*.js ",
+		"fix-formatting": "prettier --write ./src/ .*.js "
+	},
+	"devDependencies": {
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^9.1.1",
+		"@types/node": "^16.0.0",
+		"@types/shelljs": "^0.8.11",
+		"@types/vscode": "~1.75.0",
+		"@typescript-eslint/eslint-plugin": "^5.57.1",
+		"@typescript-eslint/parser": "^5.57.1",
+		"eslint": "^8.37.0",
+		"eslint-config-prettier": "^8.8.0",
+		"glob": "^7.2.2",
+		"mocha": "^9.2.2",
+		"prettier": "^2.8.7",
+		"typescript": "~5.0.3",
+		"@vscode/test-electron": "^2.3.0"
+	},
+	"dependencies": {
+		"shelljs": "^0.8.5",
+		"vscode-languageclient": "^8.1.0"
+	},
+	"__metadata": {
+		"id": "bc64531a-9b98-46f5-8ef9-88334d02cd60",
+		"publisherId": "2f3a247e-1ebf-49ce-b306-5d527dabd8bc",
+		"publisherDisplayName": "ElixirLS",
+		"targetPlatform": "undefined",
+		"isApplicationScoped": false,
+		"updated": true,
+		"isPreReleaseVersion": false,
+		"installedTimestamp": 1683025853395,
+		"preRelease": false
+	}
+}
