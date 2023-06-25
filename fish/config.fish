@@ -8,6 +8,7 @@ eval (anyenv init - | source)
 source (pyenv init - | psub)
 
 set -x PATH /Users/papillon/Library/Android/sdk/platform-tools $PATH
+set -x PATH /Users/kuno-soichiro/.rover/bin $PATH
 set -x JAVA_HOME /opt/homebrew/Cellar/openjdk/16.0.1/libexec/openjdk.jdk/Contents/Home
 set PATH /opt/homebrew/opt/php@7.4/bin $PATH
 
