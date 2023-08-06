@@ -1,0 +1,707 @@
+{
+	"name": "novel-writer",
+	"version": "1.9.8",
+	"publisher": "TaiyoFujii",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ttrace/vscode-language-japanese-novel.git"
+	},
+	"icon": "resource/icon.png",
+	"engines": {
+		"vscode": "^1.78.0"
+	},
+	"main": "dist/extension.js",
+	"dependencies": {
+		"@types/kuromoji": "^0.1.1",
+		"fastest-levenshtein": "^1.0.16",
+		"http": "^0.0.1-security",
+		"http-server": "^14.1.1",
+		"kuromoji": "github:ttrace/kuromoji.js",
+		"simple-git": "^3.18.0",
+		"tree-model": "^1.0.7",
+		"ws": "^8.13.0"
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run package-webpack",
+		"lint": "eslint . --ext ts",
+		"compile": "tsc -p ./",
+		"pretest": "npm run compile",
+		"vscode:pretest": "npm run compile",
+		"watch": "tsc -watch -p ./",
+		"test": "node ./dist/test/runTest.js",
+		"compile-webpack": "webpack",
+		"debug-webpack": "webpack --mode development",
+		"test-webpack": "webpack --watch",
+		"package-webpack": "webpack --mode production --devtool hidden-source-map",
+		"watch-web": "webpack --watch"
+	},
+	"activationEvents": [
+		"onLanguage:markdown",
+		"onLanguage:plaintext"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "Novel.vertical-preview",
+				"title": "Novel:縦書きプレビュー"
+			},
+			{
+				"command": "Novel.change-tenseAspect",
+				"title": "Novel:文末辞入れ替え"
+			},
+			{
+				"command": "Novel.add-ruby",
+				"title": "Novel:ルビ挿入"
+			},
+			{
+				"command": "Novel.launch-preview-server",
+				"title": "Novel:プレビューサーバー起動"
+			},
+			{
+				"command": "Novel.preview-pdf",
+				"title": "Novel:PDFプレビュー"
+			},
+			{
+				"command": "Novel.export-pdf",
+				"title": "Novel:PDF出力"
+			},
+			{
+				"command": "Novel.compile-draft",
+				"title": "Novel:原稿のコンパイル"
+			},
+			{
+				"command": "Novel.set-counter",
+				"title": "Novel:締め切りフォルダー"
+			},
+			{
+				"command": "draftTree.refresh",
+				"title": "再表示",
+				"icon": "$(refresh)"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "Novel.add-ruby",
+				"key": "ctrl+r",
+				"mac": "cmd+r",
+				"when": "editorTextFocus"
+			}
+		],
+		"languages": [
+			{
+				"id": "novel",
+				"extensions": [
+					".txt"
+				],
+				"configuration": "./novel.language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "novel",
+				"scopeName": "source.novel",
+				"path": "./syntaxes/novel.tmGrammar.json"
+			}
+		],
+		"configuration": {
+			"title": "Novel-writer設定",
+			"properties": {
+				"Novel.preview.writingDirection": {
+					"type": "string",
+					"default": "縦",
+					"enum": [
+						"縦",
+						"横"
+					],
+					"description": "プレビューの行方向を指定できます"
+				},
+				"Novel.preview.fontFamily": {
+					"type": "string",
+					"default": "serif",
+					"description": "プレビュー用のフォント名を入力してください。 \ne.g. \"UD Digi Kyokasho NK-R\",\"ヒラギノ明朝 ProN W3\", \"HiraMinProN-W3\", serif, sans-serif;"
+				},
+				"Novel.preview.lineLength": {
+					"type": "number",
+					"default": "40",
+					"description": "一行の文字数を指定してください\n行数はプレビュー、印刷どちらも有効です"
+				},
+				"Novel.preview.linesPerPage": {
+					"type": "number",
+					"default": "16",
+					"description": "PDF作成時の印刷時の1ページの行数を指定してください"
+				},
+				"Novel.preview.pageStarting": {
+					"type": "string",
+					"default": "左",
+					"enum": [
+						"右",
+						"左"
+					],
+					"description": "PDFがどちらのページから始まるか指定してください"
+				},
+				"Novel.preview.originPageNumber": {
+					"type": "number",
+					"default": 1,
+					"description": "ページ番号の開始番号を指定してください"
+				},
+				"Novel.preview.numberFormatR": {
+					"type": "string",
+					"default": "${projectTitle} ${typesettingInformation} ${pageNumber}"
+				},
+				"Novel.preview.numberFormatL": {
+					"type": "string",
+					"default": "${pageNumber} ${projectTitle} ${typesettingInformation}",
+					"description": "ページ番号のフォーマットを指定してください\n利用できる変数は以下を参照してください\nページ数：${pageNumber}／組版情報：${typesettingInformation}／プロジェクト名：${projectTitle}　（フォルダーの名称）\np${pageNumber}と設定すると、p123のように表示されます"
+				},
+				"Novel.preview.animate": {
+					"type": "boolean",
+					"default": true,
+					"description": "縦書きプレビューのスクロールをアニメーション表示する"
+				},
+				"Novel.preview.semanticHighligting": {
+					"type": "boolean",
+					"default": true,
+					"description": "品詞ハイライトを行う\n設定は再読み込み後に有効になります"
+				},
+				"Novel.editor.sceneNavigator": {
+					"type": "boolean",
+					"default": true,
+					"description": "次のシーン、前のシーンを開くためのナビゲーターを表示する"
+				},
+				"Novel.compile.separator": {
+					"type": "string",
+					"default": "＊",
+					"enum": [
+						"*"
+					],
+					"description": "テキストファイルを結合する際に、フォルダーの区切り文字を指定してください（実装中）"
+				},
+				"Novel.preview.userRegex": {
+					"type": "array",
+					"default": [],
+					"description": "正規表現でHTML出力を調整することができます。複数の処理を行う場合は配列を増やしてください。\n（例） [\"い\", \"<span class='small'>ゐ</span>]\",[\"<p>[^「](.+?)</p>\",\"<p>　$1</p>\"], [ RegExp , Str ]）"
+				}
+			}
+		},
+		"menus": {
+			"explorer/context": [
+				{
+					"when": "explorerResourceIsFolder == true",
+					"command": "Novel.set-counter",
+					"group": "YourGroup@1"
+				}
+			],
+			"view/title": [
+				{
+					"command": "draftTree.refresh",
+					"when": "view == draftTreePanel",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "Novel.set-counter",
+					"when": "view == draftTreePanel && viewItem == folder"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "novelPanel",
+					"title": "ノベルライター",
+					"icon": "resource/icon.png"
+				}
+			]
+		},
+		"views": {
+			"novelPanel": [
+				{
+					"id": "draftTreePanel",
+					"name": "原稿ツリー"
+				}
+			]
+		},
+		"semanticTokenTypes": [
+			{
+				"id": "noun",
+				"superType": "type",
+				"description": "A template type."
+			}
+		],
+		"semanticTokenModifiers": [
+			{
+				"id": "native",
+				"description": "Annotates a symbol that is implemented natively"
+			}
+		],
+		"configurationDefaults": {
+			"editor.semanticTokenColorCustomizations": {
+				"[Default Light+]": {
+					"enabled": true,
+					"rules": {
+						"noun": {
+							"foreground": "#4e549a"
+						},
+						"noun.dialogue": {
+							"foreground": "#20a23a"
+						},
+						"proper_noun": {
+							"foreground": "#0041cc"
+						},
+						"proper_noun.dialogue": {
+							"foreground": "#004b70"
+						},
+						"enum": {
+							"foreground": "#001c78"
+						},
+						"enum.dialogue": {
+							"foreground": "#00b4a8"
+						},
+						"suffix": {
+							"foreground": "#676767"
+						},
+						"suffix.dialogue": {
+							"foreground": "#58adc0"
+						},
+						"personal_pronoun": {
+							"foreground": "#580000"
+						},
+						"personal_pronoun.dialogue": {
+							"foreground": "#005772"
+						},
+						"pronoun": {
+							"foreground": "#34009b"
+						},
+						"pronoun.dialogue": {
+							"foreground": "#0068f0"
+						},
+						"punctuation": {
+							"foreground": "#000000"
+						},
+						"punctuation.dialogue": {
+							"foreground": "#284080"
+						},
+						"bracket": {
+							"foreground": "#d43c00d3"
+						},
+						"bracket.dialogue": {
+							"foreground": "#9a0b0bd3"
+						},
+						"bracket.quote": {
+							"foreground": "#0b1e9ad3"
+						},
+						"adverb": {
+							"foreground": "#b04d02"
+						},
+						"adverb.dialogue": {
+							"foreground": "#30be91"
+						},
+						"auailiary_verb": {
+							"foreground": "#da05ff"
+						},
+						"auailiary_verb.dialogue": {
+							"foreground": "#567387"
+						},
+						"verb": {
+							"foreground": "#8800ff"
+						},
+						"verb.dialogue": {
+							"foreground": "#7fad00"
+						},
+						"particle": {
+							"foreground": "#0000ff"
+						},
+						"particle.dialogue": {
+							"foreground": "#059f2e"
+						},
+						"adjective": {
+							"foreground": "#0771a7"
+						},
+						"interjection": {
+							"foreground": "#ac6404"
+						},
+						"interjection.dialogue": {
+							"foreground": "#20b336"
+						},
+						"*.quote": {},
+						"*.aozora": {
+							"foreground": "#9d9d9d"
+						},
+						"bracket.aozora": {
+							"foreground": "#4b4b4b"
+						},
+						"*.comment": {
+							"foreground": "#4b4b4b"
+						}
+					}
+				},
+				"[Default Light Modern]": {
+					"enabled": true,
+					"rules": {
+						"noun": {
+							"foreground": "#4e549a"
+						},
+						"noun.dialogue": {
+							"foreground": "#20a23a"
+						},
+						"proper_noun": {
+							"foreground": "#0041cc"
+						},
+						"proper_noun.dialogue": {
+							"foreground": "#004b70"
+						},
+						"enum": {
+							"foreground": "#001c78"
+						},
+						"enum.dialogue": {
+							"foreground": "#00b4a8"
+						},
+						"suffix": {
+							"foreground": "#676767"
+						},
+						"suffix.dialogue": {
+							"foreground": "#58adc0"
+						},
+						"personal_pronoun": {
+							"foreground": "#580000"
+						},
+						"personal_pronoun.dialogue": {
+							"foreground": "#005772"
+						},
+						"pronoun": {
+							"foreground": "#34009b"
+						},
+						"pronoun.dialogue": {
+							"foreground": "#0068f0"
+						},
+						"punctuation": {
+							"foreground": "#000000"
+						},
+						"punctuation.dialogue": {
+							"foreground": "#284080"
+						},
+						"bracket": {
+							"foreground": "#d43c00d3"
+						},
+						"bracket.dialogue": {
+							"foreground": "#9a0b0bd3"
+						},
+						"bracket.quote": {
+							"foreground": "#0b1e9ad3"
+						},
+						"adverb": {
+							"foreground": "#b04d02"
+						},
+						"adverb.dialogue": {
+							"foreground": "#30be91"
+						},
+						"auailiary_verb": {
+							"foreground": "#da05ff"
+						},
+						"auailiary_verb.dialogue": {
+							"foreground": "#567387"
+						},
+						"verb": {
+							"foreground": "#8800ff"
+						},
+						"verb.dialogue": {
+							"foreground": "#7fad00"
+						},
+						"particle": {
+							"foreground": "#0000ff"
+						},
+						"particle.dialogue": {
+							"foreground": "#059f2e"
+						},
+						"adjective": {
+							"foreground": "#0771a7"
+						},
+						"interjection": {
+							"foreground": "#ac6404"
+						},
+						"interjection.dialogue": {
+							"foreground": "#20b336"
+						},
+						"*.quote": {},
+						"*.aozora": {
+							"foreground": "#9d9d9d"
+						},
+						"bracket.aozora": {
+							"foreground": "#4b4b4b"
+						},
+						"*.comment": {
+							"foreground": "#4b4b4b"
+						}
+					}
+				},
+				"[Default Dark Modern]": {
+					"enabled": true,
+					"rules": {
+						"noun": {
+							"foreground": "#77c4fc"
+						},
+						"noun.dialogue": {
+							"foreground": "#1dfcbd"
+						},
+						"proper_noun": {
+							"foreground": "#5d8ffb"
+						},
+						"proper_noun.dialogue": {
+							"foreground": "#0efd52",
+							"fontStyle": ""
+						},
+						"enum": {
+							"foreground": "#8fa4e9"
+						},
+						"enum.dialogue": {
+							"foreground": "#02d4c6"
+						},
+						"suffix": {
+							"foreground": "#9489db"
+						},
+						"suffix.dialogue": {
+							"foreground": "#4efab0"
+						},
+						"personal_pronoun": {
+							"foreground": "#83c1ff"
+						},
+						"personal_pronoun.dialogue": {
+							"foreground": "#00aade"
+						},
+						"pronoun": {
+							"foreground": "#6767ff"
+						},
+						"pronoun.dialogue": {
+							"foreground": "#00c0f0"
+						},
+						"punctuation": {
+							"foreground": "#ffffff"
+						},
+						"punctuation.dialogue": {
+							"foreground": "#c7ffca"
+						},
+						"bracket": {
+							"foreground": "#d43c00d3"
+						},
+						"bracket.dialogue": {
+							"foreground": "#ff9900d3"
+						},
+						"bracket.quote": {
+							"foreground": "#5469f1d3"
+						},
+						"adverb": {
+							"foreground": "#ff882d"
+						},
+						"adverb.dialogue": {
+							"foreground": "#30be80"
+						},
+						"auailiary_verb": {
+							"foreground": "#fdb5ff"
+						},
+						"auailiary_verb.dialogue": {
+							"foreground": "#22ca73"
+						},
+						"verb": {
+							"foreground": "#fc50ff"
+						},
+						"verb.dialogue": {
+							"foreground": "#29ff9b"
+						},
+						"particle": {
+							"foreground": "#03cccf"
+						},
+						"particle.dialogue": {
+							"foreground": "#b7f0bc"
+						},
+						"adjective": {
+							"foreground": "#0771a7"
+						},
+						"adjective.dialogue": {
+							"foreground": "#07a74c"
+						},
+						"interjection": {
+							"foreground": "#ac6404"
+						},
+						"interjection.dialogue": {
+							"foreground": "#22c54b"
+						},
+						"*.quote": {},
+						"*.aozora": {
+							"foreground": "#807e7e"
+						},
+						"bracket.aozora": {
+							"foreground": "#8b8b8b"
+						},
+						"*.comment": {
+							"foreground": "#8b8b8b"
+						},
+						"bracket.comment": {
+							"foreground": "#8b8b8b"
+						}
+					}
+				},
+				"[Default Dark+]": {
+					"enabled": true,
+					"rules": {
+						"noun": {
+							"foreground": "#77c4fc"
+						},
+						"noun.dialogue": {
+							"foreground": "#1dfcbd"
+						},
+						"proper_noun": {
+							"foreground": "#5d8ffb"
+						},
+						"proper_noun.dialogue": {
+							"foreground": "#0efd52",
+							"fontStyle": ""
+						},
+						"enum": {
+							"foreground": "#8fa4e9"
+						},
+						"enum.dialogue": {
+							"foreground": "#02d4c6"
+						},
+						"suffix": {
+							"foreground": "#9489db"
+						},
+						"suffix.dialogue": {
+							"foreground": "#4efab0"
+						},
+						"personal_pronoun": {
+							"foreground": "#83c1ff"
+						},
+						"personal_pronoun.dialogue": {
+							"foreground": "#00aade"
+						},
+						"pronoun": {
+							"foreground": "#6767ff"
+						},
+						"pronoun.dialogue": {
+							"foreground": "#00c0f0"
+						},
+						"punctuation": {
+							"foreground": "#ffffff"
+						},
+						"punctuation.dialogue": {
+							"foreground": "#c7ffca"
+						},
+						"bracket": {
+							"foreground": "#d43c00d3"
+						},
+						"bracket.dialogue": {
+							"foreground": "#ff9900d3"
+						},
+						"bracket.quote": {
+							"foreground": "#5469f1d3"
+						},
+						"adverb": {
+							"foreground": "#ff882d"
+						},
+						"adverb.dialogue": {
+							"foreground": "#30be80"
+						},
+						"auailiary_verb": {
+							"foreground": "#fdb5ff"
+						},
+						"auailiary_verb.dialogue": {
+							"foreground": "#22ca73"
+						},
+						"verb": {
+							"foreground": "#fc50ff"
+						},
+						"verb.dialogue": {
+							"foreground": "#29ff9b"
+						},
+						"particle": {
+							"foreground": "#03cccf"
+						},
+						"particle.dialogue": {
+							"foreground": "#b7f0bc"
+						},
+						"adjective": {
+							"foreground": "#0771a7"
+						},
+						"adjective.dialogue": {
+							"foreground": "#07a74c"
+						},
+						"interjection": {
+							"foreground": "#ac6404"
+						},
+						"interjection.dialogue": {
+							"foreground": "#22c54b"
+						},
+						"*.quote": {},
+						"*.aozora": {
+							"foreground": "#807e7e"
+						},
+						"bracket.aozora": {
+							"foreground": "#8b8b8b"
+						},
+						"*.comment": {
+							"foreground": "#8b8b8b"
+						},
+						"bracket.comment": {
+							"foreground": "#8b8b8b"
+						}
+					}
+				}
+			}
+		}
+	},
+	"devDependencies": {
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.1",
+		"@types/node": "^20.1.1",
+		"@types/sinon": "^10.0.14",
+		"@types/text-encoding": "^0.0.36",
+		"@types/vscode": "^1.78.0",
+		"@types/webpack-env": "^1.18.0",
+		"@types/ws": "^8.5.4",
+		"@typescript-eslint/eslint-plugin": "^5.59.5",
+		"@typescript-eslint/parser": "^5.59.5",
+		"@vscode/test-web": "^0.0.43",
+		"bufferutil": "^4.0.7",
+		"child_process": "^1.0.2",
+		"eslint": "^8.40.0",
+		"fs": "^0.0.1-security",
+		"glob": "^10.2.2",
+		"http": "^0.0.1-security",
+		"http-server": "^14.1.1",
+		"mocha": "^10.2.0",
+		"net": "^1.0.2",
+		"node-levenshtein": "^3.0.7",
+		"path": "^0.12.7",
+		"sinon": "^15.0.4",
+		"ts-loader": "^9.4.2",
+		"typescript": "^5.0.4",
+		"utf-8-validate": "^6.0.3",
+		"util": "^0.12.5",
+		"vscode-test": "^1.5.2",
+		"webpack": "^5.82.0",
+		"webpack-cli": "^5.1.1",
+		"webpack-env": "^0.8.0",
+		"xhr2": "^0.2.1"
+	},
+	"description": "VS Codeの小説執筆を支援する機能拡張です",
+	"bugs": {
+		"url": "https://github.com/ttrace/vscode-language-japanese-novel/issues"
+	},
+	"homepage": "https://github.com/ttrace/vscode-language-japanese-novel#readme",
+	"directories": {
+		"test": "test"
+	},
+	"author": "",
+	"license": "MIT",
+	"__metadata": {
+		"id": "95c615f5-008e-4f61-ac23-83b5019d1478",
+		"publisherId": "c70638e9-6b5b-4a02-a014-311b2ce86cf8",
+		"publisherDisplayName": "Taiyo Fujii",
+		"targetPlatform": "undefined",
+		"updated": false,
+		"isPreReleaseVersion": false,
+		"installedTimestamp": 1691249256612,
+		"preRelease": false
+	}
+}
