@@ -48,6 +48,10 @@ for f in ~/dotfiles/nvim/after/plugin/*.rc.lua; do
 done
 echo "DONE"
 
+echo "alacrittyの設定"
+ln -sf ~/dotfiles/alacritty ~/.config/alacritty
+echo "DONE"
+
 cat << END
 
 **************************************************

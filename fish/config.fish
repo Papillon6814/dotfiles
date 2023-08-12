@@ -82,3 +82,6 @@ fish_add_path /opt/homebrew/opt/openjdk/bin
 if [ -f '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc' ]; . '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc'; end
 
 export PATH="$PATH:/Users/kuno-soichiro/.foundry/bin"
+export STARSHIP_CONFIG=~/.starship.toml
+
+#starship init fish | source

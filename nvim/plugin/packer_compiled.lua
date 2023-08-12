@@ -79,11 +79,6 @@ _G.packer_plugins = {
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/elixir.nvim",
     url = "https://github.com/mhanberg/elixir.nvim"
   },
-  ["git.nvim"] = {
-    loaded = true,
-    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/git.nvim",
-    url = "https://github.com/dinhhuy258/git.nvim"
-  },
   ["gitsigns.nvim"] = {
     loaded = true,
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/gitsigns.nvim",
@@ -216,6 +211,11 @@ _G.packer_plugins = {
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-elixir",
     url = "https://github.com/elixir-editors/vim-elixir"
   },
+  ["vim-fugitive"] = {
+    loaded = true,
+    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-fugitive",
+    url = "https://github.com/tpope/vim-fugitive"
+  },
   ["vim-illuminate"] = {
     loaded = true,
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-illuminate",
@@ -230,18 +230,23 @@ _G.packer_plugins = {
     loaded = true,
     path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/vim-snippets",
     url = "https://github.com/honza/vim-snippets"
+  },
+  ["ya-seiya.nvim"] = {
+    loaded = true,
+    path = "/Users/kuno-soichiro/.local/share/nvim/site/pack/packer/start/ya-seiya.nvim",
+    url = "https://github.com/orumin/ya-seiya.nvim"
   }
 }
 
 time([[Defining packer_plugins]], false)
--- Config for: lspsaga.nvim
-time([[Config for lspsaga.nvim]], true)
-try_loadstring("\27LJ\2\n9\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\flspsaga\frequire\0", "config", "lspsaga.nvim")
-time([[Config for lspsaga.nvim]], false)
 -- Config for: todo-comments.nvim
 time([[Config for todo-comments.nvim]], true)
 try_loadstring("\27LJ\2\n?\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\18todo-comments\frequire\0", "config", "todo-comments.nvim")
 time([[Config for todo-comments.nvim]], false)
+-- Config for: lspsaga.nvim
+time([[Config for lspsaga.nvim]], true)
+try_loadstring("\27LJ\2\n9\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\flspsaga\frequire\0", "config", "lspsaga.nvim")
+time([[Config for lspsaga.nvim]], false)
 
 _G._packer.inside_compile = false
 if _G._packer.needs_bufread == true then
