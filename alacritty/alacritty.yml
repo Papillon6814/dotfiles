@@ -3,6 +3,9 @@ window:
     columns: 200
     lines: 60
   opacity: 0.85
+  padding:
+    x: 8
+    y: 4
 
 padding:
   x: 8
@@ -23,3 +26,9 @@ faux_multiplier: 0
 cursor:
   style: Beam
 
+key_bindings:
+  - { key: T, mods: Command, chars: "\x11\x63" }
+  - { key: D, mods: Command, chars: "\x11\x25" }
+  - { key: D, mods: Command|Shift, chars: "\x11\x22" }
+  - { key: W, mods: Command, chars: "\x11\x78" } # Cmd+wでペインを削除する
+  - { key: Yen, chars: "\x5c" } # ¥を\に変更
