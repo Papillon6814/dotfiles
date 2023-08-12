@@ -43,9 +43,6 @@ packer.startup(function(use)
   -- Auto pair brackets
   use("windwp/nvim-autopairs")
 
-  -- Iconset for Fuzzy Finder
-  use("kyazdani42/nvim-web-devicons")
-
   -- Fuzzy Finder
   use({
     "nvim-telescope/telescope.nvim",
