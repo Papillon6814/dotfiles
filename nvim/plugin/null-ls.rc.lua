@@ -52,9 +52,11 @@ null_ls.setup({
 		null_ls.builtins.diagnostics.fish,
 		null_ls.builtins.diagnostics.pylint,
 		null_ls.builtins.diagnostics.staticcheck,
+    null_ls.builtins.diagnostics.ltrs,
 		null_ls.builtins.formatting.goimports,
 		null_ls.builtins.formatting.prettier,
 		null_ls.builtins.formatting.stylua,
 		null_ls.builtins.formatting.black,
+    null_ls.builtins.formatting.rustfmt
 	},
 })
