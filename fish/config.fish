@@ -63,6 +63,7 @@ set -x PYTHON_CONFIGURE_OPTS "--with-tcltk-includes='-I/usr/local/opt/tcl-tk/inc
 set -x GOBIN /opt/homebrew/bin
 set -x PATH $GOBIN $PATH
 #eval "$(goenv init -)"
+set -x GOROOT /opt/homebrew/opt/go@1.20/libexec
 
 #set -x GOROOT /opt/homebrew/Cellar/go/1.20.3/libexec
 #set -x GOPATH /opt/homebrew/Cellar/go/1.20.3/
