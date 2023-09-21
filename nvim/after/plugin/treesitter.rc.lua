@@ -32,6 +32,8 @@ ts.setup({
     "go",
     "prisma",
     "graphql",
+    "hcl",
+    "terraform"
   },
   autotag = {
     enable = true,
