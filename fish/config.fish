@@ -107,3 +107,11 @@ end
 if test -z $TMUX && status --is-login
     attach_tmux_session_if_needed
 end
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+if test -f /Users/kuno-souichiro/.anyenv/envs/pyenv/versions/anaconda3-2023.07-2/bin/conda
+    eval /Users/kuno-souichiro/.anyenv/envs/pyenv/versions/anaconda3-2023.07-2/bin/conda "shell.fish" "hook" $argv | source
+end
+# <<< conda initialize <<<
+
