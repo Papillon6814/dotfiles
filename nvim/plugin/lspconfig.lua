@@ -48,15 +48,3 @@ nvim_lsp.gopls.setup({
     },
   },
 })
-
--- Terraform LS
---nvim_lsp.terraformls.setup({
---	cmd = { "terraform-ls", "serve" },
---	filetypes = { "terraform" },
---	root_dir = require("lspconfig").util.root_pattern(".terraform", ".git"),
---})
-
--- Solidity
---nvim_lsp.solc.setup {
---  on_attach = nil
---}
