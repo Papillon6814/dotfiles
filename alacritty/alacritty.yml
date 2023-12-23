@@ -39,3 +39,5 @@ key_bindings:
   - { key: D, mods: Command|Shift, chars: "\x11\x22" }
   - { key: W, mods: Command, chars: "\x11\x78" } # Cmd+wでペインを削除する
   - { key: Yen, chars: "\x5c" } # ¥を\に変更
+
+live_config_reload: true

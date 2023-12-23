@@ -9,6 +9,9 @@ vim.cmd([[packadd packer.nvim]])
 packer.startup(function(use)
   use("wbthomason/packer.nvim")
 
+  -- Measure startup time
+  use("dstein64/vim-startuptime")
+
   -- Color Theme
   use("tanvirtin/monokai.nvim")
   use("sainnhe/sonokai")
@@ -16,11 +19,15 @@ packer.startup(function(use)
   -- Indent Indicator
   use("lukas-reineke/indent-blankline.nvim")
 
+  -- Icons
+  use("kyazdani42/nvim-web-devicons")
+
   -- Status line decorator
   use({
     "nvim-lualine/lualine.nvim",
     requires = { "kyazdani42/nvim-web-devicons", opt = true },
   })
+
   -- LSP config
   use("neovim/nvim-lspconfig")
 
@@ -51,15 +58,11 @@ packer.startup(function(use)
   -- Fuzzy Finder as a file browser
   use({ "nvim-telescope/telescope-file-browser.nvim" })
 
-  -- Prettier
-  use("MunifTanjim/prettier.nvim")
-  use("prettier/vim-prettier")
-
   -- Git Change indicator
   use("lewis6991/gitsigns.nvim")
 
-  -- Git commands in neovim
-  use("tpope/vim-fugitive")
+  -- Git Blamer
+  use("f-person/git-blame.nvim")
 
   -- Annotaion comments
   use({
@@ -100,10 +103,17 @@ packer.startup(function(use)
   -- Settings for each language
   -- ==========================================================
 
+  -- Prettier
+  use({ "MunifTanjim/prettier.nvim", ft = { "typescript", "javascript", "javascriptreact", "typescriptreact" } })
+
   -- Elixir
-  use("elixir-editors/vim-elixir")
-  use({ "mhanberg/elixir.nvim", requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" } })
+  use({ "elixir-editors/vim-elixir", ft = { "elixir", "eelixir" } })
+  use({
+    "mhanberg/elixir.nvim",
+    requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" },
+    ft = { "elixir", "eelixir" },
+  })
 
   -- Go
-  use("johejo/gomod.vim")
+  use({ "johejo/gomod.vim", ft = { "go" } })
 end)

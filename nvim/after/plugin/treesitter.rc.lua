@@ -4,6 +4,9 @@ if not status then
 end
 
 ts.setup({
+  autotag = {
+    enable = true,
+  },
   highlight = {
     enable = true,
     disable = {},
@@ -33,12 +36,6 @@ ts.setup({
     "prisma",
     "graphql",
     "hcl",
-    "terraform"
-  },
-  autotag = {
-    enable = true,
+    "terraform",
   },
 })
-
-local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-parser_config.tsx.filetype_to_parsername = { "javascript", "typescript.tsx" }
