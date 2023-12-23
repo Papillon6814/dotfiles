@@ -24,6 +24,7 @@ keymap.set("n", "sL", "<C-w>L")
 
 -- Control Window
 keymap.set("n", "swq", "<C-w>q")
+keymap.set("n", "swe", ":wincmd =<Return>")
 
 vim.g.UltiSnipsExpandTrigger = "<c-j>"
 vim.g.UltiSnipsJumpForwardTrigger = "<c-b>"
