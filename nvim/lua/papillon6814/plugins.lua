@@ -12,6 +12,9 @@ packer.startup(function(use)
   -- Measure startup time
   use("dstein64/vim-startuptime")
 
+  -- Startify
+  use("goolord/alpha-nvim")
+
   -- Color Theme
   use("tanvirtin/monokai.nvim")
   use("sainnhe/sonokai")
@@ -98,6 +101,9 @@ packer.startup(function(use)
 
   -- Highlight same spell words
   use("RRethy/vim-illuminate")
+
+  -- Faster start up
+  use("lewis6991/impatient.nvim")
 
   -- ==========================================================
   -- Settings for each language
