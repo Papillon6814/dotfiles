@@ -1,125 +1,128 @@
 local status, packer = pcall(require, "packer")
 if not status then
-  print("Packer is not installed")
-  return
+	print("Packer is not installed")
+	return
 end
 
 vim.cmd([[packadd packer.nvim]])
 
 packer.startup(function(use)
-  use("wbthomason/packer.nvim")
+	use("wbthomason/packer.nvim")
 
-  -- Measure startup time
-  use("dstein64/vim-startuptime")
+	-- Measure startup time
+	use("dstein64/vim-startuptime")
 
-  -- Startify
-  use("goolord/alpha-nvim")
+	-- Startify
+	use("goolord/alpha-nvim")
 
-  -- Color Theme
-  use("tanvirtin/monokai.nvim")
-  use("sainnhe/sonokai")
+	-- Color Theme
+	use("tanvirtin/monokai.nvim")
+	use("sainnhe/sonokai")
 
-  -- Indent Indicator
-  use("lukas-reineke/indent-blankline.nvim")
+	-- Indent Indicator
+	use("lukas-reineke/indent-blankline.nvim")
 
-  -- Icons
-  use("kyazdani42/nvim-web-devicons")
+	-- Icons
+	use("kyazdani42/nvim-web-devicons")
 
-  -- Status line decorator
-  use({
-    "nvim-lualine/lualine.nvim",
-    requires = { "kyazdani42/nvim-web-devicons", opt = true },
-  })
+	-- Status line decorator
+	use({
+		"nvim-lualine/lualine.nvim",
+		requires = { "kyazdani42/nvim-web-devicons", opt = true },
+	})
 
-  -- LSP config
-  use("neovim/nvim-lspconfig")
+	-- LSP config
+	use("neovim/nvim-lspconfig")
 
-  -- LSP package manager
-  use("williamboman/mason.nvim")
-  use("williamboman/mason-lspconfig.nvim")
+	-- LSP package manager
+	use("williamboman/mason.nvim")
+	use("williamboman/mason-lspconfig.nvim")
 
-  -- Formatter
-  use({ "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" })
+	-- Formatter
+	use({ "jose-elias-alvarez/null-ls.nvim", requires = "nvim-lua/plenary.nvim" })
 
-  -- Highlight Parser
-  use({
-    "nvim-treesitter/nvim-treesitter",
-    run = ":TSUpdate",
-  })
+	-- Highlight Parser
+	use({
+		"nvim-treesitter/nvim-treesitter",
+		run = ":TSUpdate",
+	})
 
-  -- Autotag
-  use("windwp/nvim-ts-autotag")
+	-- Autotag
+	use("windwp/nvim-ts-autotag")
 
-  -- Auto pair brackets
-  use("windwp/nvim-autopairs")
+	-- Auto pair brackets
+	use("windwp/nvim-autopairs")
 
-  -- Fuzzy Finder
-  use({
-    "nvim-telescope/telescope.nvim",
-    requires = { { "nvim-lua/plenary.nvim" } },
-  })
-  -- Fuzzy Finder as a file browser
-  use({ "nvim-telescope/telescope-file-browser.nvim" })
+	-- Fuzzy Finder
+	use({
+		"nvim-telescope/telescope.nvim",
+		requires = { { "nvim-lua/plenary.nvim" } },
+	})
+	-- Fuzzy Finder as a file browser
+	use({ "nvim-telescope/telescope-file-browser.nvim" })
 
-  -- Git Change indicator
-  use("lewis6991/gitsigns.nvim")
+	-- Git Change indicator
+	use("lewis6991/gitsigns.nvim")
 
-  -- Git Blamer
-  use("f-person/git-blame.nvim")
+	-- Git Blamer
+	use("f-person/git-blame.nvim")
 
-  -- Annotaion comments
-  use({
-    "folke/todo-comments.nvim",
-    requires = "nvim-lua/plenary.nvim",
-    config = function()
-      require("todo-comments").setup({})
-    end,
-  })
+	-- Annotaion comments
+	use({
+		"folke/todo-comments.nvim",
+		requires = "nvim-lua/plenary.nvim",
+		config = function()
+			require("todo-comments").setup({})
+		end,
+	})
 
-  -- Search a first unique character in line
-  use("unblevable/quick-scope")
+	-- Search a first unique character in line
+	use("unblevable/quick-scope")
 
-  -- Visible color
-  use("norcalli/nvim-colorizer.lua")
+	-- Visible color
+	use("norcalli/nvim-colorizer.lua")
 
-  -- Auto close brackets
-  use("rstacruz/vim-closer")
+	-- Auto close brackets
+	use("rstacruz/vim-closer")
 
-  -- GoToDefinition
-  use({
-    "glepnir/lspsaga.nvim",
-    branch = "main",
-    config = function()
-      require("lspsaga").setup({})
-    end,
-    requires = { { "nvim-tree/nvim-web-devicons" } },
-  })
+	-- GoToDefinition
+	use({
+		"glepnir/lspsaga.nvim",
+		branch = "main",
+		config = function()
+			require("lspsaga").setup({})
+		end,
+		requires = { { "nvim-tree/nvim-web-devicons" } },
+	})
 
-  -- Snippet
-  use("honza/vim-snippets")
-  use("SirVer/ultisnips")
+	-- Snippet
+	use("honza/vim-snippets")
+	use("SirVer/ultisnips")
 
-  -- Highlight same spell words
-  use("RRethy/vim-illuminate")
+	-- Highlight same spell words
+	use("RRethy/vim-illuminate")
 
-  -- Faster start up
-  use("lewis6991/impatient.nvim")
+	-- Faster start up
+	use("lewis6991/impatient.nvim")
 
-  -- ==========================================================
-  -- Settings for each language
-  -- ==========================================================
+	-- Quickfix Replacement
+	use("thinca/vim-qfreplace")
 
-  -- Prettier
-  use({ "MunifTanjim/prettier.nvim", ft = { "typescript", "javascript", "javascriptreact", "typescriptreact" } })
+	-- ==========================================================
+	-- Settings for each language
+	-- ==========================================================
 
-  -- Elixir
-  use({ "elixir-editors/vim-elixir", ft = { "elixir", "eelixir" } })
-  use({
-    "mhanberg/elixir.nvim",
-    requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" },
-    ft = { "elixir", "eelixir" },
-  })
+	-- Prettier
+	use({ "MunifTanjim/prettier.nvim", ft = { "typescript", "javascript", "javascriptreact", "typescriptreact" } })
 
-  -- Go
-  use({ "johejo/gomod.vim", ft = { "go" } })
+	-- Elixir
+	use({ "elixir-editors/vim-elixir", ft = { "elixir", "eelixir" } })
+	use({
+		"mhanberg/elixir.nvim",
+		requires = { "neovim/nvim-lspconfig", "nvim-lua/plenary.nvim" },
+		ft = { "elixir", "eelixir" },
+	})
+
+	-- Go
+	use({ "johejo/gomod.vim", ft = { "go" } })
 end)

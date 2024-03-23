@@ -14,3 +14,9 @@ vim.api.nvim_create_autocmd("FileType", {
     my_filetype[args.match]()
   end,
 })
+
+-- Podfile as Ruby file
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = "Podfile",
+  command = "set filetype=ruby"
+})

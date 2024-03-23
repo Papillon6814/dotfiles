@@ -1,14 +1,17 @@
-set PATH /opt/homebrew/bin /opt/homebrew/sbin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $PATH
-
+set PATH /opt/homebrew/bin /opt/homebrew/sbin /usr/local/bin /usr/bin /bin /usr/sbin /sbin  $PATH
 set -x PYENV_ROOT $HOME/.pyenv
 set -x PATH $PYENV_ROOT/shims $PATH
-set -x PATH $HOME/.local/bin:$PATH
+set -x PATH $HOME/.local/bin $PATH
+set -x PATH $HOME/.rbenv/bin $PATH
+
+set -x ANDROID_SDK /Users/papillon/Library/Android/sdk
+set -x PATH $ANDROID_SDK/platform-tools $PATH 
 
 source (pyenv init - | psub)
 
 set -x PATH /Users/papillon/Library/Android/sdk/platform-tools $PATH
 set -x PATH /Users/kuno-soichiro/.rover/bin $PATH
-set -x JAVA_HOME /opt/homebrew/Cellar/openjdk/16.0.1/libexec/openjdk.jdk/Contents/Home
+set -x JAVA_HOME /opt/homebrew/opt/openjdk
 export PATH="$HOME/.cargo/bin:$PATH"
 
 set fish_greeting Blacks are humble, sit down.
@@ -57,4 +60,7 @@ end
 if test -z $TMUX && status --is-login
     attach_tmux_session_if_needed
 end
-status --is-interactive; and ~/.rbenv/bin/rbenv init - fish | source
+
+status --is-interactive; and source (rbenv init -|psub)
+
+source ~/.asdf/plugins/java/set-java-home.fish
