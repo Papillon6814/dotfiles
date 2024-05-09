@@ -49,8 +49,8 @@ local function save_profiles(threshold)
 end
 
 time([[Luarocks path setup]], true)
-local package_path_str = "/Users/papillon/.cache/nvim/packer_hererocks/2.1.1700008891/share/lua/5.1/?.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1700008891/share/lua/5.1/?/init.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1700008891/lib/luarocks/rocks-5.1/?.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1700008891/lib/luarocks/rocks-5.1/?/init.lua"
-local install_cpath_pattern = "/Users/papillon/.cache/nvim/packer_hererocks/2.1.1700008891/lib/lua/5.1/?.so"
+local package_path_str = "/Users/papillon/.cache/nvim/packer_hererocks/2.1.1713773202/share/lua/5.1/?.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1713773202/share/lua/5.1/?/init.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1713773202/lib/luarocks/rocks-5.1/?.lua;/Users/papillon/.cache/nvim/packer_hererocks/2.1.1713773202/lib/luarocks/rocks-5.1/?/init.lua"
+local install_cpath_pattern = "/Users/papillon/.cache/nvim/packer_hererocks/2.1.1713773202/lib/lua/5.1/?.so"
 if not string.find(package.path, package_path_str, 1, true) then
   package.path = package.path .. ';' .. package_path_str
 end
@@ -74,10 +74,22 @@ end
 time([[try_loadstring definition]], false)
 time([[Defining packer_plugins]], true)
 _G.packer_plugins = {
-  ["elixir.nvim"] = {
+  ["alpha-nvim"] = {
     loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/elixir.nvim",
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/alpha-nvim",
+    url = "https://github.com/goolord/alpha-nvim"
+  },
+  ["elixir.nvim"] = {
+    loaded = false,
+    needs_bufread = true,
+    only_cond = false,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/opt/elixir.nvim",
     url = "https://github.com/mhanberg/elixir.nvim"
+  },
+  ["git-blame.nvim"] = {
+    loaded = true,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/git-blame.nvim",
+    url = "https://github.com/f-person/git-blame.nvim"
   },
   ["gitsigns.nvim"] = {
     loaded = true,
@@ -85,9 +97,16 @@ _G.packer_plugins = {
     url = "https://github.com/lewis6991/gitsigns.nvim"
   },
   ["gomod.vim"] = {
-    loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/gomod.vim",
+    loaded = false,
+    needs_bufread = true,
+    only_cond = false,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/opt/gomod.vim",
     url = "https://github.com/johejo/gomod.vim"
+  },
+  ["impatient.nvim"] = {
+    loaded = true,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/impatient.nvim",
+    url = "https://github.com/lewis6991/impatient.nvim"
   },
   ["indent-blankline.nvim"] = {
     loaded = true,
@@ -151,9 +170,8 @@ _G.packer_plugins = {
     url = "https://github.com/windwp/nvim-ts-autotag"
   },
   ["nvim-web-devicons"] = {
-    loaded = false,
-    needs_bufread = false,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/opt/nvim-web-devicons",
+    loaded = true,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/nvim-web-devicons",
     url = "https://github.com/kyazdani42/nvim-web-devicons"
   },
   ["packer.nvim"] = {
@@ -167,8 +185,10 @@ _G.packer_plugins = {
     url = "https://github.com/nvim-lua/plenary.nvim"
   },
   ["prettier.nvim"] = {
-    loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/prettier.nvim",
+    loaded = false,
+    needs_bufread = false,
+    only_cond = false,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/opt/prettier.nvim",
     url = "https://github.com/MunifTanjim/prettier.nvim"
   },
   ["quick-scope"] = {
@@ -208,29 +228,31 @@ _G.packer_plugins = {
     url = "https://github.com/rstacruz/vim-closer"
   },
   ["vim-elixir"] = {
-    loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-elixir",
+    loaded = false,
+    needs_bufread = true,
+    only_cond = false,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/opt/vim-elixir",
     url = "https://github.com/elixir-editors/vim-elixir"
-  },
-  ["vim-fugitive"] = {
-    loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-fugitive",
-    url = "https://github.com/tpope/vim-fugitive"
   },
   ["vim-illuminate"] = {
     loaded = true,
     path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-illuminate",
     url = "https://github.com/RRethy/vim-illuminate"
   },
-  ["vim-prettier"] = {
+  ["vim-qfreplace"] = {
     loaded = true,
-    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-prettier",
-    url = "https://github.com/prettier/vim-prettier"
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-qfreplace",
+    url = "https://github.com/thinca/vim-qfreplace"
   },
   ["vim-snippets"] = {
     loaded = true,
     path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-snippets",
     url = "https://github.com/honza/vim-snippets"
+  },
+  ["vim-startuptime"] = {
+    loaded = true,
+    path = "/Users/papillon/.local/share/nvim/site/pack/packer/start/vim-startuptime",
+    url = "https://github.com/dstein64/vim-startuptime"
   }
 }
 
@@ -243,6 +265,27 @@ time([[Config for todo-comments.nvim]], false)
 time([[Config for lspsaga.nvim]], true)
 try_loadstring("\27LJ\2\n9\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\flspsaga\frequire\0", "config", "lspsaga.nvim")
 time([[Config for lspsaga.nvim]], false)
+vim.cmd [[augroup packer_load_aucmds]]
+vim.cmd [[au!]]
+  -- Filetype lazy-loads
+time([[Defining lazy-load filetype autocommands]], true)
+vim.cmd [[au FileType javascriptreact ++once lua require("packer.load")({'prettier.nvim'}, { ft = "javascriptreact" }, _G.packer_plugins)]]
+vim.cmd [[au FileType typescriptreact ++once lua require("packer.load")({'prettier.nvim'}, { ft = "typescriptreact" }, _G.packer_plugins)]]
+vim.cmd [[au FileType go ++once lua require("packer.load")({'gomod.vim'}, { ft = "go" }, _G.packer_plugins)]]
+vim.cmd [[au FileType eelixir ++once lua require("packer.load")({'elixir.nvim', 'vim-elixir'}, { ft = "eelixir" }, _G.packer_plugins)]]
+vim.cmd [[au FileType elixir ++once lua require("packer.load")({'elixir.nvim', 'vim-elixir'}, { ft = "elixir" }, _G.packer_plugins)]]
+vim.cmd [[au FileType typescript ++once lua require("packer.load")({'prettier.nvim'}, { ft = "typescript" }, _G.packer_plugins)]]
+vim.cmd [[au FileType javascript ++once lua require("packer.load")({'prettier.nvim'}, { ft = "javascript" }, _G.packer_plugins)]]
+time([[Defining lazy-load filetype autocommands]], false)
+vim.cmd("augroup END")
+vim.cmd [[augroup filetypedetect]]
+time([[Sourcing ftdetect script at: /Users/papillon/.local/share/nvim/site/pack/packer/opt/gomod.vim/ftdetect/gomod.vim]], true)
+vim.cmd [[source /Users/papillon/.local/share/nvim/site/pack/packer/opt/gomod.vim/ftdetect/gomod.vim]]
+time([[Sourcing ftdetect script at: /Users/papillon/.local/share/nvim/site/pack/packer/opt/gomod.vim/ftdetect/gomod.vim]], false)
+time([[Sourcing ftdetect script at: /Users/papillon/.local/share/nvim/site/pack/packer/opt/vim-elixir/ftdetect/elixir.vim]], true)
+vim.cmd [[source /Users/papillon/.local/share/nvim/site/pack/packer/opt/vim-elixir/ftdetect/elixir.vim]]
+time([[Sourcing ftdetect script at: /Users/papillon/.local/share/nvim/site/pack/packer/opt/vim-elixir/ftdetect/elixir.vim]], false)
+vim.cmd("augroup END")
 
 _G._packer.inside_compile = false
 if _G._packer.needs_bufread == true then

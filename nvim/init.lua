@@ -8,15 +8,15 @@ local my_filetype = require("papillon6814.filetype")
 -- Indent Size
 vim.api.nvim_create_augroup("vimrc_augroup", {})
 vim.api.nvim_create_autocmd("FileType", {
-  group = "vimrc_augroup",
-  pattern = "*",
-  callback = function(args)
-    my_filetype[args.match]()
-  end,
+	group = "vimrc_augroup",
+	pattern = "*",
+	callback = function(args)
+		my_filetype[args.match]()
+	end,
 })
 
 -- Podfile as Ruby file
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = "Podfile",
-  command = "set filetype=ruby"
+	pattern = "Podfile",
+	command = "set filetype=ruby",
 })

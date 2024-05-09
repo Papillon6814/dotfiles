@@ -54,10 +54,23 @@ null_ls.setup({
     null_ls.builtins.diagnostics.terraform_validate,
     null_ls.builtins.diagnostics.tfsec,
     null_ls.builtins.formatting.goimports,
-    null_ls.builtins.formatting.prettier,
+    null_ls.builtins.formatting.prettier.with({
+      filetypes = {
+        "javascript",
+        "typescript",
+        "css",
+        "scss",
+        "html",
+        "json",
+        "markdown",
+        "graphql",
+        "md",
+        "txt",
+      },
+    }),
     null_ls.builtins.formatting.stylua,
     null_ls.builtins.formatting.black,
     null_ls.builtins.formatting.mix,
-    null_ls.builtins.formatting.terraform_fmt
+    null_ls.builtins.formatting.terraform_fmt,
   },
 })

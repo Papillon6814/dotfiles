@@ -21,7 +21,7 @@ set fish_greeting Blacks are humble, sit down.
 alias cdg='cd ~/Documents/Github'
 alias clrcache='sudo rm /var/log/asl/*.asl'
 alias docc='docker-compose'
-alias l='exa -a'
+alias l='eza -a'
 alias kali='docker exec -it (docker run -itd --name kali --net=host papillon6814/kali /bin/bash) /bin/bash'
 alias gce='gcloud compute instances create example-instance --image-family=ubuntu-1804-lts-arm64 --image-project=ubuntu-os-cloud --zone asia-east1-a'
 alias gcessh='gcloud compute ssh example-instance --zone asia-east1-a'
@@ -62,5 +62,3 @@ if test -z $TMUX && status --is-login
 end
 
 status --is-interactive; and source (rbenv init -|psub)
-
-source ~/.asdf/plugins/java/set-java-home.fish

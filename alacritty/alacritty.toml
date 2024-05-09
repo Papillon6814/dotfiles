@@ -1,0 +1,65 @@
+#faux_multiplier = 0
+live_config_reload = true
+
+[cursor]
+style = "Beam"
+unfocused_hollow = true
+
+[font]
+size = 12.0
+
+[font.bold]
+family = "Hack Nerd Font"
+
+[font.italic]
+family = "Hack Nerd Font"
+
+#[font.non_ascii]
+#family = "Hack Nerd Font"
+#offset = 0
+
+[font.normal]
+family = "Hack Nerd Font"
+
+[[keyboard.bindings]]
+chars = "\u0011c"
+key = "T"
+mods = "Command"
+
+[[keyboard.bindings]]
+chars = "\u0011%"
+key = "D"
+mods = "Command"
+
+[[keyboard.bindings]]
+chars = "\u0011\""
+key = "D"
+mods = "Command|Shift"
+
+[[keyboard.bindings]]
+chars = "\u0011x"
+key = "W"
+mods = "Command"
+
+[[keyboard.bindings]]
+chars = '\'
+key = "Yen"
+
+#[padding]
+#x = 8
+#y = 4
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[window]
+opacity = 0.85
+
+[window.dimensions]
+columns = 200
+lines = 60
+
+[window.padding]
+x = 8
+y = 4
