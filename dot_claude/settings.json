@@ -1,0 +1,136 @@
+{
+  "cleanupPeriodDays": 30,
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "MCP_TIMEOUT": "600000",
+    "MCP_TOOL_TIMEOUT": "600000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(git worktree *)",
+      "Bash(git show *)",
+      "Bash(git ls-tree *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(npm test *)",
+      "Bash(npx *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(ps *)",
+      "Bash(pgrep *)",
+      "Bash(lsof *)",
+      "Bash(which *)",
+      "Bash(command -v *)",
+      "Bash(echo *)",
+      "Bash(pwd)",
+      "Bash(uname *)",
+      "Bash(env *)",
+      "Bash(bc *)",
+      "Bash(date *)",
+      "Bash(sysctl *)",
+      "Bash(vm_stat)",
+      "Bash(vm_stat *)",
+      "Bash(memory_pressure *)",
+      "Bash(top -l *)",
+      "Bash(df *)",
+      "Bash(du *)",
+      "Bash(node *)",
+      "Bash(gh *)",
+      "Bash(tsc *)",
+      "Bash(cat *)",
+      "Bash(tail *)",
+      "Bash(head *)",
+      "Bash(file *)",
+      "Bash(stat *)",
+      "Bash(tree *)",
+      "Bash(realpath *)",
+      "Bash(basename *)",
+      "Bash(dirname *)",
+      "Bash(diff *)",
+      "Bash(id *)",
+      "Bash(id)",
+      "Bash(whoami)",
+      "Bash(hostname)",
+      "Bash(jq *)",
+      "Bash(textutil *)",
+      "Bash(openclaw *)",
+      "mcp__blender__*",
+      "mcp__claude-in-chrome__*",
+      "mcp__claude_ai_Notion__*",
+      "WebFetch",
+      "WebSearch",
+      "Read",
+      "Edit(~/Documents/**)",
+      "Edit(~/Downloads/**)",
+      "Write(~/Documents/**)",
+      "Write(~/Downloads/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f *)",
+      "Bash(chmod -R 777 *)",
+      "Bash(> *)"
+    ]
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true
+}
