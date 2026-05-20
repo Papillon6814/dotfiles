@@ -1,0 +1,44 @@
+{
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-6",
+  "packages": [
+    "npm:claude-agent-sdk-pi",
+    "npm:pi-ask-user",
+    "npm:pi-mcp-adapter",
+    "npm:@coctostan/pi-exa-gh-web-tools",
+    "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
+    "https://github.com/obra/superpowers",
+    "git:github.com/leblancfg/pi-ansi-themes",
+    "npm:pi-poly-notify",
+    "npm:pi-plan-mode",
+    "~/.my-pi",
+    "~/.my-pi/extensions/pi-interactive-subagents",
+    "../../Documents/Github/pi-claude-auth"
+  ],
+  "compaction": {
+    "enabled": true
+  },
+  "autocompleteMaxVisible": 5,
+  "theme": "ansi-dark",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+  "quietStartup": true,
+  "collapseChangelog": true,
+  "treeFilterMode": "default",
+  "showHardwareCursor": false,
+  "editorPaddingX": 1,
+  "enabledModels": [
+    "anthropic/claude-opus-4-6",
+    "anthropic/claude-sonnet-4-6",
+    "openrouter/minimax/minimax-m2.7",
+    "openrouter/deepseek/deepseek-v3.2",
+    "openrouter/deepseek/deepseek-r1",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3-flash-preview",
+    "openrouter/z-ai/glm-5.1",
+    "openrouter/qwen/qwen3-coder",
+    "openai/gpt-5.4",
+    "openai/gpt-5.4-pro"
+  ]
+}

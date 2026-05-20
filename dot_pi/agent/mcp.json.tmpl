@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "toolPrefix": "server",
+    "idleTimeout": 10
+  },
+  "mcpServers": {
+    "serena": {
+      "command": "/Users/papillon/.local/bin/serena",
+      "args": [
+        "start-mcp-server"
+      ],
+      "lifecycle": "lazy",
+      "directTools": [
+        "activate_project",
+        "initial_instructions",
+        "find_symbol",
+        "find_referencing_symbols",
+        "get_symbols_overview",
+        "rename_symbol",
+        "replace_symbol_body",
+        "insert_before_symbol",
+        "insert_after_symbol",
+        "list_memories",
+        "read_memory"
+      ]
+    },
+    "codemogger": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "codemogger",
+        "mcp"
+      ],
+      "lifecycle": "lazy"
+    },
+    "notion_local": {
+      "command": "node",
+      "args": [
+        "/Users/papillon/Documents/Github/mcp-notion-server/notion/build/index.js"
+      ],
+      "lifecycle": "lazy",
+      "debug": true,
+      "env": {
+        "NOTION_API_TOKEN": "{{ onepasswordRead "op://Personal/Notion API Token/credential" }}"
+      }
+    },
+    "Roblox_Studio": {
+      "command": "/Applications/RobloxStudioMCP.app/Contents/MacOS/rbx-studio-mcp",
+      "args": [
+        "--stdio"
+      ],
+      "lifecycle": "lazy"
+    },
+    "exa": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.exa.ai/mcp"
+      ],
+      "lifecycle": "lazy"
+    }
+  }
+}

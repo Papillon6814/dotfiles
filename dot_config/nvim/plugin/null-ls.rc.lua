@@ -1,0 +1,107 @@
+--local status, null_ls = pcall(require, "null-ls")
+--if not status then
+--  return
+--end
+--
+--local async_formatting = function(bufnr)
+--  bufnr = bufnr or vim.api.nvim_get_current_buf()
+--
+--  vim.lsp.buf_request(
+--    bufnr,
+--    "textDocument/formatting",
+--    vim.lsp.util.make_formatting_params({}),
+--    function(err, res, ctx)
+--      if err then
+--        return
+--      end
+--      if not vim.api.nvim_buf_is_loaded(bufnr) or vim.api.nvim_buf_get_option(bufnr, "modified") then
+--        return
+--      end
+--
+--      if res then
+--        local client = vim.lsp.get_client_by_id(ctx.client_id)
+--        vim.lsp.util.apply_text_edits(res, bufnr, client and client.offset_encoding or "utf-16")
+--        vim.api.nvim_buf_call(bufnr, function()
+--          vim.cmd("silent noautocmd update")
+--        end)
+--      end
+--    end
+--  )
+--end
+--
+---- null-lsのソースを表示する関数を定義
+--local function show_null_ls_sources()
+--  local sources = null_ls.get_sources()
+--  local source_names = {}
+--
+--  for _, source in ipairs(sources) do
+--    table.insert(source_names, source.name)
+--  end
+--
+--  local message = "null-ls sources: " .. table.concat(source_names, ", ")
+--  vim.notify(message, vim.log.levels.INFO)
+--end
+--
+---- コマンドを作成
+--vim.api.nvim_create_user_command("NullLsSources", show_null_ls_sources, {})
+--
+--local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+--
+--local function has_prettierrc()
+--  local cwd = vim.fn.getcwd()
+--  local prettierrc = cwd .. "/.prettierrc"
+--  local prettierrc_json = cwd .. "/.prettierrc.json"
+--
+--  local has_prettierrc_file = vim.fn.filereadable(prettierrc) == 1
+--  local has_prettierrc_json_file = vim.fn.filereadable(prettierrc_json) == 1
+--
+--  return has_prettierrc_file or has_prettierrc_json_file
+--end
+--
+--null_ls.setup({
+--  on_attach = function(client, bufnr)
+--    if client.supports_method("textDocument/formatting") then
+--      vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+--      vim.api.nvim_create_autocmd("BufWritePost", {
+--        group = augroup,
+--        buffer = bufnr,
+--        callback = function()
+--          async_formatting(bufnr)
+--        end,
+--      })
+--    end
+--  end,
+--  sources = {
+--    null_ls.builtins.diagnostics.credo,
+--    null_ls.builtins.diagnostics.eslint_d,
+--    --null_ls.builtins.diagnostics.tsc,
+--    null_ls.builtins.diagnostics.fish,
+--    --null_ls.builtins.diagnostics.pylint,
+--    null_ls.builtins.diagnostics.staticcheck,
+--    null_ls.builtins.diagnostics.ltrs,
+--    null_ls.builtins.diagnostics.terraform_validate,
+--    null_ls.builtins.diagnostics.tfsec,
+--    null_ls.builtins.formatting.goimports,
+--    has_prettierrc() and null_ls.builtins.formatting.prettier.with({
+--      filetypes = {
+--        "javascript",
+--        "typescript",
+--        "javascriptreact",
+--        "typescriptreact",
+--        "css",
+--        "scss",
+--        "html",
+--        "json",
+--        "markdown",
+--        "graphql",
+--        "md",
+--        "txt",
+--      },
+--    }) or null_ls.builtins.formatting.eslint,
+--    null_ls.builtins.formatting.stylua,
+--    null_ls.builtins.formatting.black,
+--    null_ls.builtins.formatting.mix,
+--    null_ls.builtins.formatting.terraform_fmt,
+--    null_ls.builtins.formatting.hclfmt
+--  },
+--})

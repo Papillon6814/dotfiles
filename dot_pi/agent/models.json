@@ -1,0 +1,16 @@
+{
+  "providers": {
+    "ollama": {
+      "baseUrl": "http://localhost:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "compat": {
+        "thinkingFormat": "qwen-chat-template"
+      },
+      "models": [
+        { "id": "qwen2.5-coder:14b", "name": "Qwen 2.5 Coder 14B", "contextWindow": 32768 },
+        { "id": "qwen2.5-coder:32b", "name": "Qwen 2.5 Coder 32B", "contextWindow": 32768 }
+      ]
+    }
+  }
+}

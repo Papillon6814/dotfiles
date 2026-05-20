@@ -1,0 +1,97 @@
+shell-integration = fish
+
+font-family = "iosevka"
+font-size = 14
+font-thicken = true
+bold-is-bright = true
+
+background-opacity = 0.85
+
+cursor-style-blink = false
+cursor-style = bar
+mouse-hide-while-typing = true
+
+window-decoration = false
+
+confirm-close-surface = false
+
+# Disable all default Command key shortcuts
+keybind = super+shift+d=unbind
+keybind = super+enter=text:\x19
+keybind = super+alt+shift+j=unbind
+keybind = super+2=unbind
+keybind = super+digit_6=unbind
+keybind = super+k=unbind
+keybind = super+page_down=unbind
+keybind = super+4=unbind
+keybind = super+shift+z=unbind
+keybind = super+shift+v=unbind
+keybind = super+w=unbind
+keybind = super+7=unbind
+keybind = super+bracket_left=unbind
+keybind = super+5=unbind
+keybind = super+3=unbind
+keybind = super+a=unbind
+keybind = super+arrow_left=unbind
+keybind = super+0=unbind
+keybind = super+digit_2=unbind
+keybind = super+shift+bracket_left=unbind
+keybind = super+shift+,=unbind
+keybind = super+,=unbind
+keybind = super+ctrl+shift+j=unbind
+keybind = super+bracket_right=unbind
+keybind = super+alt+arrow_up=unbind
+keybind = super+ctrl+arrow_right=unbind
+keybind = super+equal=unbind
+keybind = super+digit_4=unbind
+keybind = super+shift+arrow_up=unbind
+keybind = super+alt+arrow_right=unbind
+keybind = super+ctrl+equal=unbind
+keybind = super+digit_7=unbind
+keybind = super+ctrl+f=unbind
+keybind = super+backspace=unbind
+keybind = super+6=unbind
+keybind = super+page_up=unbind
+keybind = super+1=unbind
+keybind = super+alt+w=unbind
+keybind = super+end=unbind
+keybind = super+-=unbind
+keybind = super+arrow_up=unbind
+keybind = super+shift+t=unbind
+keybind = super+alt+arrow_left=unbind
+keybind = super+z=unbind
+keybind = super+digit_8=unbind
+keybind = super+9=unbind
+keybind = super+home=unbind
+keybind = super+digit_1=unbind
+keybind = super+shift+w=unbind
+keybind = super+alt+shift+w=unbind
+keybind = super+ctrl+arrow_down=unbind
+keybind = super+t=unbind
+keybind = super+ctrl+arrow_left=unbind
+keybind = super+shift+enter=unbind
+keybind = super+arrow_right=unbind
+keybind = super++=unbind
+keybind = super+shift+p=unbind
+keybind = super+8=unbind
+keybind = super+shift+arrow_down=unbind
+keybind = super+alt+arrow_down=unbind
+keybind = super+shift+j=unbind
+keybind = super+shift+bracket_right=unbind
+keybind = super+arrow_down=unbind
+keybind = super+n=unbind
+keybind = super+alt+i=unbind
+keybind = super+digit_5=unbind
+keybind = super+digit_3=unbind
+keybind = super+ctrl+arrow_up=unbind
+keybind = super+d=unbind
+
+# Custom keybindings
+keybind = cmd+w=esc:.
+
+command = /opt/homebrew/bin/tmux new-session -A -s main
+
+clipboard-paste-protection = false
+clipboard-paste-bracketed-safe = true
+
+desktop-notifications = true

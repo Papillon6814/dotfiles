@@ -1,0 +1,36 @@
+{
+  "enabled": true,
+  "minDurationSeconds": 10,
+  "sound": "random",
+  "showPopup": true,
+  "sounds": [
+    {
+      "alias": "silent"
+    },
+    {
+      "alias": "random"
+    },
+    {
+      "alias": "Glass",
+      "path": "/System/Library/Sounds/Glass.aiff"
+    },
+    {
+      "alias": "Hero",
+      "path": "/System/Library/Sounds/Hero.aiff"
+    },
+    {
+      "alias": "Submarine",
+      "path": "/System/Library/Sounds/Submarine.aiff"
+    }
+  ],
+  "volume": {
+    "mode": "timeScaled",
+    "max": 1,
+    "min": 0.1
+  },
+  "pushover": {
+    "enabled": true,
+    "userKey": "{{ onepasswordRead "op://Personal/Pushover/user key" }}",
+    "apiToken": "{{ onepasswordRead "op://Personal/Pushover/api token" }}"
+  }
+}

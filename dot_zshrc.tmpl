@@ -1,0 +1,30 @@
+# Added by ForgeCode installer
+export PATH="/Users/papillon/.local/bin:$PATH"
+# tmux: disable C-s/C-q flow control so tmux can use these keys
+stty -ixon -ixoff
+
+# Neovim wrapper to prevent socket address conflicts
+# Each instance gets a unique socket using mktemp
+nvim() {
+    # If --listen is not already specified, add a unique one
+    local has_listen=0
+    for arg in "$@"; do
+        if [[ "$arg" == --listen* ]]; then
+            has_listen=1
+            break
+        fi
+    done
+
+    if [[ $has_listen -eq 0 ]]; then
+        # Create unique socket name using mktemp
+        local socket_name=$(mktemp -u /tmp/nvim.XXXXXX)
+        command nvim --listen "$socket_name" "$@"
+    else
+        # If --listen is already specified, don't interfere
+        command nvim "$@"
+    fi
+}
+
+# Load cargo environment
+. "$HOME/.cargo/env"
+export EXA_API_KEY="{{ onepasswordRead "op://Personal/Exa API Key/credential" }}"
