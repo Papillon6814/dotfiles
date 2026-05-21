@@ -235,7 +235,7 @@ indicators:
     busy:
         enabled: true
         icon: ◐
-        color: '#f38ba8'
+        color: '#d4af37'
         frames:
             - ◐
             - ◓
@@ -421,6 +421,7 @@ busy_detection:
         - aider
         - cursor
         - copilot
+        - node
     idle_timeout: 10
 terminal_title:
     enabled: false
