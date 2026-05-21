@@ -8,116 +8,8 @@ overflow:
     mode: scroll
     indicator: ›
 groups:
-    - name: Dev
-      pattern: ^DEV\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: Ops
-      pattern: ^OPS\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: AI
-      pattern: ^AI\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: "\U000F09D1"
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: sidebar
-      pattern: ^sidebar\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: SES
-      pattern: ^SES\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: TestCheck
-      pattern: ^TestCheck\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: newone
-      pattern: ^newone\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: system
-      pattern: ^system\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: •
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: ses
-      pattern: ^ses\|
-      theme:
-        bg: '#1e1e2e'
-        fg: '#d4c4b0'
-        active_bg: '#B0201E'
-        active_fg: '#d4af37'
-        inactive_bg: ""
-        inactive_fg: ""
-        icon: ""
-        active_indicator_bg: ""
-      working_dir: ""
-    - name: Settings
-      pattern: ^Settings\|
+    - name: newses
+      pattern: ^newses\|
       theme:
         bg: '#1e1e2e'
         fg: '#cdd6f4'
@@ -129,7 +21,7 @@ groups:
         active_indicator_bg: ""
       working_dir: ""
     - name: Default
-      pattern: ".*"
+      pattern: .*
       theme:
         bg: '#1e1e2e'
         fg: '#d4c4b0'
