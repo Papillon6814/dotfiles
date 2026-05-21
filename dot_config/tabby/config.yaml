@@ -225,7 +225,7 @@ pane_header:
     resize_vertical_grow_icon: ↓
     resize_vertical_shrink_icon: ↑
     resize_separator: ¦
-    terminal_bg: '#0a0507'
+    terminal_bg: default
 indicators:
     activity:
         enabled: false

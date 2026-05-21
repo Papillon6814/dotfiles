@@ -1599,7 +1599,8 @@ func (c *Coordinator) getHandleColor() string {
 	return c.bgDetector.GetDefaultHandleColor()
 }
 
-// GetTerminalBg returns terminal background color from config, theme, or detector
+// GetTerminalBg returns terminal background color from config, theme, or detector.
+// Returns "default" when the user wants terminal transparency (no bg override).
 func (c *Coordinator) GetTerminalBg() string {
 	if c.config.PaneHeader.TerminalBg != "" {
 		return c.config.PaneHeader.TerminalBg
@@ -1608,6 +1609,12 @@ func (c *Coordinator) GetTerminalBg() string {
 		return c.theme.TerminalBg
 	}
 	return c.bgDetector.GetDefaultTerminalBg()
+}
+
+// isTerminalBgTransparent returns true when the terminal bg is "default",
+// meaning the user wants the terminal's native background (incl. opacity) to show.
+func isTerminalBgTransparent(bg string) bool {
+	return strings.EqualFold(bg, "default")
 }
 
 // themedStyle returns a lipgloss style pre-populated with the coordinator's
@@ -1628,7 +1635,7 @@ func (c *Coordinator) GetTerminalBg() string {
 // the helper is always safe to use.
 func (c *Coordinator) themedStyle() lipgloss.Style {
 	s := lipgloss.NewStyle()
-	if bg := c.GetTerminalBg(); bg != "" {
+	if bg := c.GetTerminalBg(); bg != "" && !isTerminalBgTransparent(bg) {
 		s = s.Background(lipgloss.Color(bg))
 	}
 	return s
@@ -3568,23 +3575,27 @@ func (c *Coordinator) applyThemeToTmux() {
 	}
 }
 
-// ApplyThemeToPane applies theme-specific styles (like background) to a tmux pane
+// ApplyThemeToPane applies theme-specific styles (like background) to a tmux pane.
+// When terminal_bg is "default", pane bg is left at tmux default so terminal
+// transparency (e.g. Ghostty background-opacity) shows through.
 func (c *Coordinator) ApplyThemeToPane(paneID string) {
 	if c.theme == nil || paneID == "" {
 		return
 	}
 
-	// Use TerminalBg from theme, or fall back to SidebarBg
-	bg := c.theme.TerminalBg
+	// Use config terminal_bg first, then theme TerminalBg, then SidebarBg
+	bg := c.GetTerminalBg()
 	if bg == "" {
 		bg = c.theme.SidebarBg
 	}
 
 	coordinatorDebugLog.Printf("ApplyThemeToPane: pane=%s bg=%s", paneID, bg)
 
-	if bg != "" {
-		// Set pane-specific window-style to match the theme background
-		// This makes transparency in renderers work correctly
+	if isTerminalBgTransparent(bg) {
+		// "default" = let terminal native bg (transparency) through
+		exec.Command("tmux", "set-option", "-p", "-t", paneID, "window-style", "default").Run()
+		exec.Command("tmux", "set-option", "-p", "-t", paneID, "window-active-style", "default").Run()
+	} else if bg != "" {
 		style := fmt.Sprintf("bg=%s", bg)
 		exec.Command("tmux", "set-option", "-p", "-t", paneID, "window-style", style).Run()
 		exec.Command("tmux", "set-option", "-p", "-t", paneID, "window-active-style", style).Run()
@@ -6794,6 +6805,12 @@ func (c *Coordinator) RenderForClient(clientID string, width, height int) *daemo
 		sidebarBg = c.theme.SidebarBg
 		terminalBg = c.theme.TerminalBg
 	}
+	// When terminal_bg is "default", clear bg values so renderer
+	// leaves tmux pane background at default (= terminal transparency)
+	if isTerminalBgTransparent(c.GetTerminalBg()) {
+		sidebarBg = ""
+		terminalBg = ""
+	}
 
 	return &daemon.RenderPayload{
 		Content:       fullContent,
@@ -7590,6 +7607,12 @@ func (c *Coordinator) RenderHeaderForClient(clientID string, width, height int) 
 		sidebarBg = c.theme.SidebarBg
 		terminalBg = c.theme.TerminalBg
 	}
+	// When terminal_bg is "default", clear bg values so renderer
+	// leaves tmux pane background at default (= terminal transparency)
+	if isTerminalBgTransparent(c.GetTerminalBg()) {
+		sidebarBg = ""
+		terminalBg = ""
+	}
 
 	if c.config.PaneHeader.CustomBorder {
 		return &daemon.RenderPayload{
@@ -8083,6 +8106,12 @@ func (c *Coordinator) RenderPaneHeaderForClient(clientID string, width, height i
 		sidebarBg = c.theme.SidebarBg
 		terminalBg = c.theme.TerminalBg
 	}
+	// When terminal_bg is "default", clear bg values so renderer
+	// leaves tmux pane background at default (= terminal transparency)
+	if isTerminalBgTransparent(c.GetTerminalBg()) {
+		sidebarBg = ""
+		terminalBg = ""
+	}
 
 	if c.config.PaneHeader.CustomBorder {
 		return &daemon.RenderPayload{
@@ -8568,7 +8597,7 @@ func (c *Coordinator) generateMainContent(clientID string, width, height int) (s
 	if treeBg == "" {
 		treeBg = c.GetTerminalBg()
 	}
-	if treeBg != "" {
+	if treeBg != "" && !isTerminalBgTransparent(treeBg) {
 		treeStyle = treeStyle.Background(lipgloss.Color(treeBg))
 	}
 
