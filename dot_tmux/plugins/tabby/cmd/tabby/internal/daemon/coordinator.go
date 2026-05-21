@@ -7136,14 +7136,16 @@ func (c *Coordinator) RenderHeaderForClient(clientID string, width, height int) 
 			menuBtn = compactSplitVBtn + " " + compactSplitHBtn + " " + compactCloseBtn
 		}
 	}
-	showMenuButton := compactMode
-	showInlineControls := !compactMode
+	showMenuButton := false  // all pane-header buttons disabled
+	_ = compactMode          // buttons disabled; suppress unused warnings
+	_ = canResizeH
+	_ = canResizeV
 
-	showInlineCollapse := collapseBtn != "" && showInlineControls
-	showInlineSplits := showInlineControls
-	showVerticalResize := contentPaneCount > 1 && showInlineControls && canResizeV
-	showHorizontalResize := contentPaneCount > 1 && showInlineControls && canResizeH
-	showInlineClose := showInlineControls
+	showInlineCollapse := false
+	showInlineSplits := false
+	showVerticalResize := false
+	showHorizontalResize := false
+	showInlineClose := false
 	buttonsStr := "  "
 	if showMenuButton {
 		buttonsStr += menuBtn + "   "
@@ -7821,18 +7823,18 @@ func (c *Coordinator) RenderPaneHeaderForClient(clientID string, width, height i
 		}
 	}
 	isPhone := winContentWidth > 0 && winContentWidth < 100
-	showMenuButton := compactMode && !isPhone
-	showInlineControls := !compactMode && !isPhone
+	showMenuButton := false  // all pane-header buttons disabled
+	_ = compactMode
+	_ = isPhone
+	_ = canResizeV
+	_ = canResizeH
 
-	showInlineCollapse := collapseBtn != "" && showInlineControls
-	showInlineSplits := showInlineControls
-	showVerticalResize := contentPaneCount > 1 && showInlineControls && canResizeV
-	showHorizontalResize := contentPaneCount > 1 && showInlineControls && canResizeH
-	showInlineClose := showInlineControls
+	showInlineCollapse := false
+	showInlineSplits := false
+	showVerticalResize := false
+	showHorizontalResize := false
+	showInlineClose := false
 	buttonsStr := "  "
-	if isPhone {
-		buttonsStr = ""
-	}
 	if showMenuButton {
 		buttonsStr += menuBtn + "   "
 	}
@@ -15613,6 +15615,10 @@ func (c *Coordinator) GetHeaderColorsForPane(paneID string) HeaderColors {
 
 	if bgColor == "" {
 		bgColor = c.getPaneHeaderActiveBg()
+	}
+	// pane_header.active_fg config takes priority over group theme fg
+	if isWindowActive && c.config.PaneHeader.ActiveFg != "" {
+		fgColor = c.config.PaneHeader.ActiveFg
 	}
 	if fgColor == "" {
 		fgColor = c.getPaneHeaderActiveFg()
