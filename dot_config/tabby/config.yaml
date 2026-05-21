@@ -1,0 +1,437 @@
+position: top
+height: 2
+style:
+    rounded: false
+    separator_left: ""
+    separator_right: ""
+overflow:
+    mode: scroll
+    indicator: ›
+groups:
+    - name: Dev
+      pattern: ^DEV\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: Ops
+      pattern: ^OPS\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: AI
+      pattern: ^AI\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: "\U000F09D1"
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: sidebar
+      pattern: ^sidebar\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: SES
+      pattern: ^SES\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: TestCheck
+      pattern: ^TestCheck\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: newone
+      pattern: ^newone\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: system
+      pattern: ^system\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: •
+        active_indicator_bg: ""
+      working_dir: ""
+    - name: ses
+      pattern: ^ses\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#d4c4b0'
+        active_bg: '#B0201E'
+        active_fg: '#d4af37'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
+bindings:
+    toggle_sidebar: ""
+    next_tab: ""
+    prev_tab: ""
+    next_window: ""
+    prev_window: ""
+    new_window: ""
+    kill_window: ""
+    new_window_global: ""
+    kill_window_global: ""
+    next_window_global: ""
+    prev_window_global: ""
+    swap_pane: ""
+sidebar:
+    position: ""
+    mode: ""
+    header:
+        text: ' '
+        height: 1
+        padding_bottom: 1
+        centered: null
+        active_color: true
+        fg: auto
+        bg: auto
+        bold: null
+    pane_headers: true
+    new_tab_button: false
+    close_button: false
+    new_group_button: false
+    show_empty_groups: false
+    sort_by: group
+    debug: false
+    line_height: 0
+    action_zone: ""
+    action_priority: 0
+    prefix_mode: false
+    theme: catppuccin-mocha
+    theme_mode: ""
+    icon_style: ""
+    colors:
+        bg: ""
+        header_fg: ""
+        active_fg: ""
+        inactive_fg: '#f2f2ee'
+        pane_fg: ""
+        disclosure_fg: ""
+        disclosure_expanded: ⊟
+        disclosure_collapsed: ⊞
+        active_indicator: ""
+        active_indicator_frames:
+            - ▶
+            - ▶
+            - ▶
+            - ▶
+            - ▶
+            - ' '
+        active_indicator_fg: ""
+        active_indicator_bg: ""
+        tree_fg: ""
+        tree_bg: ""
+        tree_branch: ├─
+        tree_branch_last: └─
+        tree_connector: ─
+        tree_connector_panes: ┬
+        tree_continue: │
+    hide_predefined_colors: false
+    show_ssh_host: false
+pane_header:
+    active_fg: '#d4af37'
+    active_bg: '#B0201E'
+    inactive_fg: '#9d7d5e'
+    inactive_bg: '#1e1e2e'
+    command_fg: ""
+    button_fg: ""
+    divider_fg: ""
+    border_from_tab: false
+    auto_border: false
+    border_lines: heavy
+    border_fg: ""
+    border_bg: ""
+    active_border_fg: ""
+    active_border_bg: ""
+    dim_inactive: true
+    dim_opacity: 0.6
+    custom_border: true
+    handle_color: ""
+    handle_icon: '...'
+    draggable: true
+    collapse_expanded_icon: ▾
+    collapse_collapsed_icon: ▸
+    resize_grow_icon: '>'
+    resize_shrink_icon: <
+    resize_horizontal_grow_icon: '>'
+    resize_horizontal_shrink_icon: <
+    resize_vertical_grow_icon: ↓
+    resize_vertical_shrink_icon: ↑
+    resize_separator: ¦
+    terminal_bg: '#0a0507'
+indicators:
+    activity:
+        enabled: false
+        icon: '!'
+        color: '#11111b'
+    bell:
+        enabled: true
+        icon: ◆
+        color: '#11111b'
+        bg: '#f9e2af'
+    silence:
+        enabled: true
+        icon: ○
+        color: '#6c7086'
+    last:
+        enabled: false
+        icon: '-'
+        color: '#3498db'
+    busy:
+        enabled: true
+        icon: ◐
+        color: '#f38ba8'
+        frames:
+            - ◐
+            - ◓
+            - ◑
+            - ◒
+    input:
+        enabled: true
+        icon: '?'
+        color: '#cba6f7'
+        bg: '#313244'
+        frames:
+            - '?'
+            - '?'
+prompt:
+    fg: ""
+    bg: ""
+    bold: true
+    shell_integration: true
+    fallback_icon: •
+widgets:
+    clock:
+        enabled: true
+        format: "15:04"
+        show_date: true
+        date_format: Mon Jan 2
+        fg: ""
+        bg: ""
+        position: bottom
+        pin: true
+        priority: 100
+        divider: ─
+        divider_bottom: ""
+        divider_fg: '#313244'
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 1
+        margin_bottom: 0
+    pet:
+        enabled: false
+        name: ""
+        style: ""
+        rows: 0
+        thoughts: false
+        thought_interval: 0
+        thought_speed: 0
+        position: ""
+        pin: false
+        hunger_decay: 0
+        poop_chance: 0
+        action_chance: 0
+        can_die: false
+        debug_bar: false
+        adventure_enabled: false
+        adventure_chance: 0
+        adventure_blood: false
+        adventure_vibe: ""
+        llm_provider: ""
+        llm_model: ""
+        llm_api_key: ""
+        thought_refresh_hours: 0
+        icons:
+            idle: ""
+            walking: ""
+            jumping: ""
+            playing: ""
+            eating: ""
+            sleeping: ""
+            happy: ""
+            hungry: ""
+            yarn: ""
+            food: ""
+            poop: ""
+            thought: ""
+            heart: ""
+            life: ""
+            hunger_icon: ""
+            happy_icon: ""
+            sad_icon: ""
+            ground: ""
+            blood: ""
+        fg: ""
+        bg: ""
+        priority: 0
+        divider: ""
+        divider_bottom: ""
+        divider_fg: ""
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 0
+        margin_bottom: 0
+    git:
+        enabled: false
+        style: ""
+        show_counts: false
+        show_insertions: false
+        show_stash: false
+        update_interval: 0
+        position: ""
+        pin: false
+        priority: 0
+        fg: ""
+        bg: ""
+        branch_fg: ""
+        clean_fg: ""
+        dirty_fg: ""
+        ahead_fg: ""
+        behind_fg: ""
+        divider: ""
+        divider_fg: ""
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 0
+        margin_bottom: 0
+    session:
+        enabled: false
+        style: ""
+        show_clients: false
+        show_windows: false
+        position: ""
+        pin: false
+        priority: 0
+        fg: ""
+        bg: ""
+        session_fg: ""
+        divider: ""
+        divider_fg: ""
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 0
+        margin_bottom: 0
+    stats:
+        enabled: true
+        style: emoji
+        show_cpu: true
+        show_memory: true
+        show_battery: true
+        bar_style: block
+        bar_width: 5
+        update_interval: 0
+        position: ""
+        pin: false
+        priority: 0
+        fg: ""
+        bg: ""
+        cpu_fg: '#9399b2'
+        memory_fg: '#9399b2'
+        battery_fg: '#9399b2'
+        divider: ─
+        divider_fg: '#313244'
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 0
+        margin_bottom: 0
+    claude:
+        enabled: false
+        style: ""
+        show_today: false
+        show_week: false
+        show_month: false
+        show_total: false
+        show_messages: false
+        db_path: ""
+        update_interval: 0
+        position: ""
+        pin: false
+        priority: 0
+        fg: ""
+        bg: ""
+        cost_fg: ""
+        divider: ""
+        divider_fg: ""
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 0
+        margin_bottom: 0
+busy_detection:
+    extra_idle: []
+    ai_tools:
+        - claude
+        - opencode
+        - gemini
+        - codex
+        - aider
+        - cursor
+        - copilot
+    idle_timeout: 10
+terminal_title:
+    enabled: false
+    format: ""
+auto_theme:
+    enabled: false
+    mode: system
+    light: catppuccin-latte
+    dark: catppuccin-mocha
+    time_light: "08:00"
+    time_dark: "20:00"
+ai:
+    tab_summary:
+        max_words: 3
