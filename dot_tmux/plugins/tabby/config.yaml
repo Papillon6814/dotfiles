@@ -1,0 +1,260 @@
+position: top
+height: 2
+
+# Terminal title - passed to terminal emulator
+terminal_title:
+  enabled: true
+  # Format: #{window_index}.#{pane_index} #{window_name} #{pane_current_command}
+  format: "tmux #{window_index}.#{pane_index} #{window_name} #{pane_current_command}"
+
+
+style:
+  rounded: true
+  separator_left: ""
+  separator_right: ""
+
+overflow:
+  mode: scroll
+  indicator: "›"
+
+groups:
+  - name: "StudioDome"
+    pattern: "^SD\\|"
+    working_dir: "~/git/studiodome"
+    theme:
+      bg: "#b4637a"           # Rose Pine Dawn rose
+      active_bg: "#9d4e6a"    # Darker rose
+      icon: "🎬"
+      active_indicator_bg: "#d7827e"  # Rose Pine Dawn love
+
+  - name: "Gunpowder"
+    pattern: "^GP\\|"
+    working_dir: "~/git/gunpowder"
+    theme:
+      bg: "#907aa9"           # Rose Pine Dawn iris
+      active_bg: "#7a6593"    # Darker iris
+      icon: "💥"
+      active_indicator_bg: "#d7827e"  # Rose Pine Dawn love
+
+  - name: "Default"
+    pattern: ".*"
+    theme:
+      bg: "#56949f"           # Rose Pine Dawn foam (teal)
+      active_bg: "#286983"    # Rose Pine Dawn pine
+      icon: "•"
+      active_indicator_bg: "#d7827e"  # Rose Pine Dawn love
+
+bindings:
+  toggle_sidebar: "prefix + Tab"
+  next_tab: "prefix + n"
+  prev_tab: "prefix + p"
+
+  next_window_global: "cmd+]"
+  prev_window_global: "cmd+["
+
+  new_window_global: "cmd+shift+n"
+  kill_window_global: "cmd+shift+w"
+  toggle_minimize_window: "cmd+shift+m"
+  new_window: "prefix + c"
+  kill_pane: "prefix + x"
+  split_horizontal: "prefix + \""
+  split_vertical: "prefix + %"
+  rename_window: "prefix + ,"
+  window_list: "prefix + w"
+  display_panes: "prefix + q"
+  detach: "prefix + d"
+
+  swap_pane: "cmd+`"  # Cycle active pane in window (Cmd+` -> Meta+`)
+
+sidebar:
+  header:
+    fg: "auto"
+    bg: "auto"
+    active_color: true
+  pane_headers: true    # Enable clickable overlay pane headers (replaces native border headers)
+  new_tab_button: false
+  new_group_button: false
+  show_empty_groups: false
+  close_button: false
+  sort_by: "group"  # "group" or "index"
+  hide_predefined_colors: false  # Hide predefined color palette in context menus (keep Custom + Reset)
+  debug: false  # Enable debug logging to /tmp/tabby-debug.log
+  line_height: 0     # Extra lines between items (0=compact, 1+=spaced)
+  mobile_max_percent: 15
+  mobile_min_content_cols: 40
+  mobile_max_window_cols: 110
+  tablet_max_window_cols: 170
+  width_mobile: 15
+  width_tablet: 20
+  width_desktop: 25
+  # Theme presets: rose-pine-dawn, rose-pine, rose-pine-moon, catppuccin-mocha,
+  #   catppuccin-latte, dracula, nord, solarized-dark, solarized-light,
+  #   gruvbox-dark, gruvbox-light, tokyo-night, one-dark, dark
+  # Light terminal (e.g. Ghostty with light background): rose-pine-dawn
+  # Dark terminal: dark, rose-pine, catppuccin-mocha, tokyo-night, etc.
+  theme: rose-pine-dawn
+  colors:
+    # Colors below are only needed to override the theme preset.
+    # Most theme colors are derived automatically — only set values here
+    # when you want to deviate from the chosen theme.
+    disclosure_expanded: "⊟"        # Expanded state icon (boxed minus)
+    disclosure_collapsed: "⊞"       # Collapsed state icon (boxed plus)
+    active_indicator_frames: ["▶", "▶", "▶", "▶", "▶", " "]
+    tree_branch: "├─"               # Branch connector
+    tree_branch_last: "└─"          # Last branch connector
+    tree_connector: "─"             # Horizontal connector
+    tree_connector_panes: "┬"       # Connector when has panes
+    tree_continue: "│"              # Vertical continuation
+
+pane_header:
+  active_fg: "#ffffff"
+  inactive_fg: "#ffffff"
+  terminal_bg: "#faf4ed"  # Rose Pine Dawn background - must match your terminal
+  border_from_tab: true  # Use the tab's color for active pane border
+  auto_border: false     # Auto-set tmux pane-border colors from window's group/custom color
+  dim_inactive: true     # Enable dimming of inactive panes
+  dim_opacity: 0.6       # Opacity for dimmed panes 0.0-1.0 (default: 0.7)
+  border_lines: heavy
+  custom_border: true
+  handle_icon: "..."
+  draggable: true
+  collapse_expanded_icon: "▾"
+  collapse_collapsed_icon: "▸"
+  resize_horizontal_grow_icon: ">"
+  resize_horizontal_shrink_icon: "<"
+  resize_vertical_grow_icon: "↓"
+  resize_vertical_shrink_icon: "↑"
+  resize_separator: "¦"
+
+# Prompt styling (for rename dialogs, etc.)
+prompt:
+  # Colors auto-derived from terminal theme
+  bold: true
+  # Shell prompt integration: sets @tabby_prompt_icon and @tabby_pane_active
+  # on each window so your shell prompt can mirror the window's group color/icon.
+  # See scripts/tabby-prompt.sh for zsh setup instructions.
+  shell_integration: true
+  fallback_icon: "•"  # Icon used when a group has no icon defined
+
+# Terminal app for notifications deep-linking (used by tabby-hook focus-pane)
+# Options: Ghostty, iTerm, Terminal, Alacritty, kitty, WezTerm
+terminal_app: Ghostty
+
+# Busy detection - controls which pane commands trigger the busy indicator.
+# By default, any foreground process that isn't a shell/editor is "busy".
+# AI tools get special treatment: busy when actively outputting, input (?) when idle.
+busy_detection:
+  ai_tools:
+    - opencode
+    - gemini
+    - codex
+    - aider
+    - cursor
+    - copilot
+  idle_timeout: 10   # Seconds of no output before AI tool shows "?" (input needed)
+  # extra_idle: []   # Additional commands to suppress busy (e.g., "make")
+
+indicators:
+  activity:
+    enabled: false  # Requires monitor-activity on (currently off - too noisy)
+    icon: "!"
+    color: "#000000"
+  bell:
+    enabled: true
+    icon: "◆"
+    color: "#000000"
+    bg: "#ffff00"  # Yellow background for visibility
+  silence:
+    enabled: true
+    icon: "○"
+    color: "#000000"
+  busy:
+    enabled: true
+    icon: "◐"
+    color: "#ff0000"  # Bright red for visibility
+    frames: ["◐", "◓", "◑", "◒"]  # Animation frames (cycles through these)
+  input:
+    enabled: true
+    icon: "?"
+    color: "#6a1b9a"  # Dark saturated purple - needs attention
+    frames: ["?", "?"]  # Can add animation frames like ["?", " "] for blinking
+
+# Sidebar widgets
+widgets:
+  clock:
+    enabled: true
+    format: "15:04:05"     # Go time format (with seconds)
+    show_date: true
+    date_format: "Mon Jan 2"
+    #fg: "#ffffff"
+    # bg: "#1a1a1a"        # Optional background
+    position: bottom       # "top" or "bottom"
+    pin: true              # Pin to bottom (stays visible when scrolling)
+    priority: 100          # Order for multiple pinned widgets (lower = closer to bottom)
+    divider: "─"           # Divider line above widget
+    divider_bottom: ""     # Divider line below widget
+    divider_fg: "#444444"
+    margin_top: 1          # Blank lines before top divider
+    margin_bottom: 0       # Blank lines after bottom divider
+    padding_top: 0         # Blank lines between divider and content
+    padding_bottom: 0
+
+  stats:
+    enabled: true
+    show_cpu: true
+    show_memory: true
+    show_battery: true
+    style: "emoji"         # nerd, emoji, ascii, minimal
+    bar_style: "block"     # block, braille, dots, ascii
+    bar_width: 5
+    cpu_fg: "#aaaaaa"
+    memory_fg: "#aaaaaa"
+    battery_fg: "#aaaaaa"
+    divider: "─"
+    divider_fg: "#444444"
+    margin_top: 0
+    margin_bot: 0
+    padding_top: 0
+    padding_bot: 0
+
+  pet:
+    enabled: true
+    name: "Whiskers"
+    style: "emoji"         # emoji, nerd, ascii
+    rows: 2                # 2 rows for play area (Y=0, Y=1, Y=2)
+    thoughts: true         # Enable LLM thoughts
+    thought_interval: 60   # Seconds between thoughts (60s = ~1 API call per 10 min)
+    thought_speed: 3       # Frames per scroll step (1=fast, 5=slow)
+    # llm_api_key: ""      # Set in your local config (not in repo)
+    position: bottom
+    pin: true
+    priority: 50           # Between clock (100) and stats
+    hunger_decay: 1728     # Seconds between hunger ticks (~2 days to starve)
+    poop_chance: 50        # 50% chance to poop after eating
+    debug_bar: true        # Show debug controls below pet widget
+    divider: "─"
+    divider_fg: "#444444"
+    margin_top: 0
+    margin_bottom: 0
+    padding_top: 0
+    padding_bottom: 0
+    # Custom icons (override style preset) - uncomment to customize:
+    # icons:
+    #   idle: "🐱"           # Cat idle state
+    #   walking: "🐱"        # Cat walking
+    #   jumping: "🐱"        # Cat jumping
+    #   playing: "🐱"        # Cat playing with yarn
+    #   eating: "🐱"         # Cat eating
+    #   sleeping: "😺"       # Cat sleeping
+    #   happy: "😻"          # Cat happy
+    #   hungry: "😿"         # Cat hungry
+    #   yarn: "🧶"           # Yarn ball
+    #   food: "🍖"           # Food item
+    #   poop: "💩"           # Poop
+    #   thought: "💭"        # Thought bubble
+    #   heart: "❤"           # Pet/love icon
+    #   life: "💗"           # Life stat icon
+    #   hunger_icon: "🍖"    # Hunger stat icon
+    #   happy_icon: "😸"     # Happy stat icon
+    #   sad_icon: "😿"       # Sad stat icon
+    #   ground: "·"          # Ground character

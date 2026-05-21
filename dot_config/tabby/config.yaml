@@ -116,6 +116,18 @@ groups:
         icon: ""
         active_indicator_bg: ""
       working_dir: ""
+    - name: Settings
+      pattern: ^Settings\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#cdd6f4'
+        active_bg: '#B0201E'
+        active_fg: '#ffffff'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
 bindings:
     toggle_sidebar: ""
     next_tab: ""
@@ -262,11 +274,11 @@ widgets:
         show_date: true
         date_format: Mon Jan 2
         fg: ""
-        bg: ""
+        bg: '#005da8'
         position: bottom
         pin: true
         priority: 100
-        divider: ─
+        divider: ""
         divider_bottom: ""
         divider_fg: '#313244'
         padding_top: 0

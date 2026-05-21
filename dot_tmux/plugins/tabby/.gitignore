@@ -1,0 +1,96 @@
+# Binaries
+bin/
+bin-linux/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+tests/screenshots/current/
+tests/screenshots/diff/
+tabby-web-*.png
+
+# Temp files
+*.tmp
+/tmp/
+
+# Sensitive local files
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.credentials
+credentials.json
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Local binaries (anchored to root to avoid matching source directories)
+/input-logger
+/mousetest
+/sidebar-renderer
+/tabby-daemon
+/tabby-web-bridge
+/test-renderer
+/pane-header
+/cycle-pane
+/manage-group
+
+# Compiled zsh scripts
+*.zwc
+
+# Web
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo
+
+# Local agent/tooling state
+.omc/
+.claude/*
+!.claude/CLAUDE.md
+.claude-flow/
+.mcp.json
+CLAUDE.md
+.swarm/
+.sisyphus/
+.archive/
+.entire/
+.kilo/
+.letta/
+
+# Zellij port (lives in its own repo: github.com/brendandebeasi/tabby-zj)
+tabby-zj/
+tabby-zj-spike/
+
+# Go test coverage artifacts
+coverage.html
+coverage.out
+test_coverage.out
+
+# Local scratch and logs
+tmux-*.log
+*.hup
+log.txt
+Untitled
+todos.md
+
+# Runtime-generated helper scripts
+scripts/apply_new_window_group.sh
+
+# Demo capture artifacts
+tests/demos/out/
