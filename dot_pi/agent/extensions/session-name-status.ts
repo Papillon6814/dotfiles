@@ -2,16 +2,16 @@
  * Custom footer with session name and stats.
  *
  * Replaces the default footer with a 2-line layout:
- *   Line 1: Session name + git branch
- *   Line 2: Token stats + model name
+ *   Line 1: Session name + git branch + extension statuses
+ *   Line 2: Token stats + cost + model name
  *
- * On session start, automatically sets the session name to the current
- * git branch name if no session name is already set.
+ * MBDTF theme-aware: uses gold/cream/bronze for proper contrast
+ * against obsidian background.
  */
 
-import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import type { AssistantMessage } from "@earendil-works/pi-ai";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
@@ -54,22 +54,41 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					// --- Line 1: Session name + git branch ---
+					// --- Line 1: Session name + git branch + extension statuses ---
 					const sessionName = ctx.sessionManager.getSessionName();
 					const namePart = sessionName
 						? theme.fg("accent", `⏻ ${sessionName}`)
-						: theme.fg("dim", "⏻ unnamed");
+						: theme.fg("muted", "⏻ unnamed");
 					const branch = footerData.getGitBranch();
-					const branchPart = branch ? theme.fg("dim", `  ${branch}`) : "";
-					const line1 = truncateToWidth(namePart + branchPart, width);
+					const branchPart = branch ? theme.fg("muted", `  ${branch}`) : "";
+					const line1Left = namePart + branchPart;
 
-					// --- Line 2: Token stats + model ---
+					// Extension statuses on the right
+					const statuses = footerData.getExtensionStatuses();
+					let statusStr = "";
+					for (const [, text] of statuses) {
+						if (text) statusStr += " " + text;
+					}
+					const pad1 = " ".repeat(
+						Math.max(1, width - visibleWidth(line1Left) - visibleWidth(statusStr)),
+					);
+					const line1 = truncateToWidth(line1Left + pad1 + statusStr, width);
+
+					// --- Line 2: Token stats + cost + model ---
 					const fmt = (n: number) => (n < 1000 ? `${n}` : `${(n / 1000).toFixed(1)}k`);
-					const left = theme.fg("dim", `↑${fmt(input)} ↓${fmt(output)} $${cost.toFixed(3)}`);
+					const left =
+						theme.fg("muted", "↑") +
+						theme.fg("text", fmt(input)) +
+						theme.fg("muted", " ↓") +
+						theme.fg("text", fmt(output)) +
+						theme.fg("muted", " ") +
+						theme.fg("accent", `$${cost.toFixed(3)}`);
 					const modelId = ctx.model?.id ?? "no-model";
-					const right = theme.fg("dim", modelId);
-					const pad = " ".repeat(Math.max(1, width - visibleWidth(left) - visibleWidth(right)));
-					const line2 = truncateToWidth(left + pad + right, width);
+					const right = theme.fg("muted", modelId);
+					const pad2 = " ".repeat(
+						Math.max(1, width - visibleWidth(left) - visibleWidth(right)),
+					);
+					const line2 = truncateToWidth(left + pad2 + right, width);
 
 					return [line1, line2];
 				},
