@@ -128,6 +128,18 @@ groups:
         icon: ""
         active_indicator_bg: ""
       working_dir: ""
+    - name: newtab
+      pattern: ^newtab\|
+      theme:
+        bg: '#1e1e2e'
+        fg: '#cdd6f4'
+        active_bg: '#B0201E'
+        active_fg: '#ffffff'
+        inactive_bg: ""
+        inactive_fg: ""
+        icon: ""
+        active_indicator_bg: ""
+      working_dir: ""
 bindings:
     toggle_sidebar: ""
     next_tab: ""
@@ -157,7 +169,7 @@ sidebar:
     new_tab_button: false
     close_button: false
     new_group_button: false
-    show_empty_groups: false
+    show_empty_groups: true
     sort_by: group
     debug: false
     line_height: 0

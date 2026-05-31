@@ -1,0 +1,509 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.5.22",
+    "lastTouchedAt": "2026-05-24T14:30:34.230Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-09T02:45:29.896Z",
+    "lastRunVersion": "2026.3.2",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "browser": {
+    "defaultProfile": "main",
+    "profiles": {
+      "main": {
+        "cdpPort": 18800,
+        "color": "#FF4500"
+      },
+      "knoude": {
+        "cdpPort": 18802,
+        "color": "#0099FF"
+      }
+    },
+    "ssrfPolicy": {
+      "allowedHostnames": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "dangerouslyAllowPrivateNetwork": true
+    }
+  },
+  "auth": {
+    "profiles": {
+      "anthropic:openclawmacmini": {
+        "provider": "anthropic",
+        "mode": "api_key"
+      },
+      "anthropic:manual": {
+        "provider": "anthropic",
+        "mode": "token"
+      },
+      "claude-keychain:default": {
+        "provider": "anthropic",
+        "mode": "oauth"
+      }
+    },
+    "order": {
+      "anthropic": [
+        "claude-keychain:default",
+        "anthropic:manual",
+        "anthropic:openclawmacmini"
+      ]
+    }
+  },
+  "models": {
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "claude-opus-4-6",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 32768
+          },
+          {
+            "id": "claude-sonnet-4-6",
+            "name": "claude-sonnet-4-6",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 32768
+          },
+          {
+            "id": "claude-haiku-4-5-20251001",
+            "name": "claude-haiku-4-5-20251001",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4-pro",
+            "name": "DeepSeek V4 Pro",
+            "api": "openai-completions",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek/deepseek-v3.2",
+            "name": "DeepSeek V3.2",
+            "api": "openai-completions",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/deepseek/deepseek-v4-pro",
+        "fallbacks": [
+          "openrouter/deepseek/deepseek-v3.2",
+          "anthropic/claude-sonnet-4-6",
+          "anthropic/claude-opus-4-6",
+          "anthropic/claude-haiku-4-5-20251001"
+        ]
+      },
+      "models": {
+        "anthropic/claude-opus-4-6": {
+          "alias": "opus"
+        },
+        "anthropic/claude-sonnet-4-6": {
+          "alias": "sonnet"
+        },
+        "anthropic/claude-haiku-4-5-20251001": {
+          "alias": "haiku"
+        },
+        "openrouter/deepseek/deepseek-v4-pro": {
+          "alias": "deepseek"
+        },
+        "openrouter/deepseek/deepseek-v3.2": {
+          "alias": "deepseek32"
+        }
+      },
+      "workspace": "/Users/macmini/.openclaw/workspace",
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "2h"
+      },
+      "compaction": {
+        "mode": "safeguard",
+        "maxHistoryShare": 0.3
+      },
+      "heartbeat": {
+        "every": "30m",
+        "model": "anthropic/claude-haiku-4-5-20251001"
+      },
+      "maxConcurrent": 2,
+      "subagents": {
+        "maxConcurrent": 4,
+        "model": "anthropic/claude-sonnet-4-6"
+      },
+      "memorySearch": {
+        "enabled": true,
+        "provider": "local",
+        "query": {
+          "hybrid": {
+            "vectorWeight": 0.7,
+            "textWeight": 0.3,
+            "mmr": {
+              "enabled": true,
+              "lambda": 0.7
+            },
+            "temporalDecay": {
+              "enabled": true,
+              "halfLifeDays": 30
+            }
+          }
+        },
+        "cache": {
+          "enabled": true,
+          "maxEntries": 20000
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main"
+      },
+      {
+        "id": "knoude",
+        "name": "knoude",
+        "workspace": "/Users/macmini/.openclaw/workspace-knoude",
+        "agentDir": "/Users/macmini/.openclaw/agents/knoude/agent",
+        "model": {
+          "primary": "openrouter/deepseek/deepseek-v4-pro",
+          "fallbacks": [
+            "openrouter/deepseek/deepseek-v3.2"
+          ]
+        }
+      },
+      {
+        "id": "kniokun",
+        "name": "kniokun",
+        "workspace": "/Users/macmini/.openclaw/workspace-kniokun",
+        "agentDir": "/Users/macmini/.openclaw/agents/kniokun/agent"
+      },
+      {
+        "id": "mojaja",
+        "name": "mojaja",
+        "workspace": "/Users/macmini/.openclaw/workspace-mojaja",
+        "agentDir": "/Users/macmini/.openclaw/agents/mojaja/agent"
+      },
+      {
+        "id": "finnion",
+        "name": "finnion",
+        "workspace": "/Users/macmini/.openclaw/workspace-finnion",
+        "agentDir": "/Users/macmini/.openclaw/agents/finnion/agent",
+        "model": {
+          "primary": "openrouter/deepseek/deepseek-v4-pro",
+          "fallbacks": [
+            "openrouter/deepseek/deepseek-v3.2",
+            "anthropic/claude-sonnet-4-6"
+          ]
+        }
+      }
+    ]
+  },
+  "tools": {
+    "profile": "full"
+  },
+  "bindings": [
+    {
+      "agentId": "knoude",
+      "match": {
+        "channel": "slack",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "kniokun",
+      "match": {
+        "channel": "slack",
+        "accountId": "kniokun"
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "line",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "mojaja",
+      "match": {
+        "channel": "telegram",
+        "accountId": "mojaja"
+      }
+    },
+    {
+      "agentId": "finnion",
+      "match": {
+        "channel": "slack",
+        "accountId": "finnion"
+      }
+    }
+  ],
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "accounts": {
+        "default": {
+          "dmPolicy": "pairing",
+          "botToken": "${TELEGRAM_BOT_TOKEN}",
+          "groupPolicy": "open",
+          "streaming": {
+            "mode": "partial"
+          }
+        },
+        "mojaja": {
+          "dmPolicy": "pairing",
+          "botToken": "${TELEGRAM_MOJAJA_BOT_TOKEN}",
+          "groupPolicy": "open",
+          "streaming": {
+            "mode": "partial"
+          }
+        }
+      },
+      "streaming": {
+        "mode": "partial"
+      }
+    },
+    "slack": {
+      "enabled": true,
+      "groupPolicy": "open",
+      "streaming": {
+        "mode": "partial",
+        "nativeTransport": true
+      },
+      "accounts": {
+        "default": {
+          "botToken": "${SLACK_BOT_TOKEN}",
+          "appToken": "${SLACK_APP_TOKEN}",
+          "streaming": {
+            "mode": "partial",
+            "nativeTransport": true
+          }
+        },
+        "kniokun": {
+          "botToken": "${SLACK_KNIOKUN_BOT_TOKEN}",
+          "appToken": "${SLACK_KNIOKUN_APP_TOKEN}",
+          "streaming": {
+            "mode": "partial",
+            "nativeTransport": true
+          }
+        },
+        "finnion": {
+          "botToken": "${SLACK_FINNION_BOT_TOKEN}",
+          "appToken": "${SLACK_FINNION_APP_TOKEN}",
+          "streaming": {
+            "mode": "partial",
+            "nativeTransport": true
+          }
+        }
+      },
+      "typingReaction": "hourglass_flowing_sand",
+      "replyToModeByChatType": {
+        "direct": "off",
+        "group": "first",
+        "channel": "first"
+      },
+      "thread": {
+        "historyScope": "thread",
+        "inheritParent": false,
+        "initialHistoryLimit": 20
+      }
+    },
+    "line": {
+      "enabled": true,
+      "channelSecret": "${LINE_CHANNEL_SECRET}",
+      "channelAccessToken": "${LINE_CHANNEL_ACCESS_TOKEN}",
+      "accounts": {
+        "default": {
+          "dmPolicy": "pairing",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "controlUi": {
+      "allowedOrigins": [
+        "*"
+      ]
+    },
+    "auth": {
+      "mode": "password",
+      "token": "${GATEWAY_TOKEN}",
+      "password": "${GATEWAY_PASSWORD}"
+    },
+    "tailscale": {
+      "mode": "funnel",
+      "resetOnExit": false
+    },
+    "reload": {
+      "mode": "hybrid"
+    },
+    "nodes": {
+      "denyCommands": [
+        "camera.snap",
+        "camera.clip",
+        "contacts.add",
+        "calendar.add",
+        "reminders.add",
+        "sms.send"
+      ]
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "no-email": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "plugins": {
+    "load": {
+      "paths": [
+        "/Users/macmini/Documents/Github/openclaw-claude-auth"
+      ]
+    },
+    "entries": {
+      "line": {
+        "enabled": true
+      },
+      "slack": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "openclaw-claude-auth": {
+        "enabled": true
+      },
+      "memory-core": {
+        "enabled": true,
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "frequency": "0 3 * * *",
+            "model": "anthropic/claude-haiku-4-5-20251001"
+          }
+        }
+      }
+    }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": [
+        "/Users/macmini/.openclaw/workspace-knoude/skills"
+      ]
+    }
+  },
+  "mcp": {
+    "sessionIdleTtlMs": 120000,
+    "servers": {
+      "notion_local": {
+        "command": "/opt/homebrew/bin/notion-mcp-server",
+        "args": [
+          "--transport",
+          "stdio"
+        ],
+        "env": {
+          "NOTION_API_TOKEN": "${NOTION_API_TOKEN}",
+          "NOTION_TOKEN": "${NOTION_API_TOKEN}"
+        }
+      },
+      "notion_remote": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-remote",
+          "https://mcp.notion.com/mcp"
+        ]
+      },
+      "github": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+        }
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "/Users/macmini"
+        ]
+      }
+    }
+  }
+}
