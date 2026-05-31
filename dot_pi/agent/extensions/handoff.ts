@@ -426,7 +426,9 @@ export default function (pi: ExtensionAPI) {
 				result.text +
 				(savedPath ? `\n\n_(Full handoff log: \`${savedPath}\`)_\n` : "");
 
-			// Spawn new session (this will fire session_switch, which preloads the editor)
+			// Spawn new session (this will fire session_switch, which preloads the editor).
+			// NOTE: after ctx.newSession() the original ctx is invalidated. Any post-replacement
+			// work must go inside `withSession`, which receives a fresh ctx bound to the new session.
 			const currentSessionFile = ctx.sessionManager.getSessionFile();
 			if (currentSessionFile) {
 				pendingPromptByParent.set(currentSessionFile, promptForNewSession);
@@ -434,16 +436,17 @@ export default function (pi: ExtensionAPI) {
 
 			const sessionResult = await ctx.newSession({
 				parentSession: currentSessionFile ?? undefined,
+				withSession: async (newCtx) => {
+					if (savedPath) {
+						newCtx.ui.notify(`Handoff saved: ${savedPath}`, "info");
+					}
+				},
 			});
 
 			if (sessionResult.cancelled) {
 				if (currentSessionFile) pendingPromptByParent.delete(currentSessionFile);
-				ctx.ui.notify("New session cancelled (handoff saved to HANDOFF.md)", "info");
+				// ctx is now stale — cannot notify here. Cancellation is already surfaced by pi.
 				return;
-			}
-
-			if (savedPath) {
-				ctx.ui.notify(`Handoff saved: ${savedPath}`, "info");
 			}
 		},
 	});
