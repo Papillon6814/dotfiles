@@ -1,0 +1,18 @@
+#!/bin/bash
+# tabby-rename-group <new-name>
+# Rename the group of the current window (uses tabby's rename-group hook,
+# which updates the config file and all windows' @tabby_group options).
+set -u
+new="${1:-}"
+if [ -z "$new" ]; then
+  tmux display-message "tabby-rename-group: no name given"
+  exit 1
+fi
+
+old=$(tmux display-message -p '#{@tabby_group}')
+if [ -z "$old" ]; then
+  tmux display-message "Current window has no group (Default cannot be renamed)"
+  exit 0
+fi
+
+exec "$HOME/.tmux/plugins/tabby/bin/tabby" hook rename-group "$old" "$new"

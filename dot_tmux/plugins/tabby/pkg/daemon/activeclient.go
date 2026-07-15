@@ -1,12 +1,27 @@
 package daemon
 
 import (
+	"context"
 	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+// electTmuxTimeout bounds the `tmux list-clients` calls below. The elector
+// runs on the daemon loop goroutine (geometry tick, SIGUSR2/client-resized
+// path): an unbounded exec here blocked the loop for minutes when the tmux
+// server stalled, which is what the multi-minute "No heartbeat" gaps in the
+// crash log were. CommandContext SIGKILLs the child on deadline, so the
+// caller can never hang on Wait.
+const electTmuxTimeout = 2 * time.Second
+
+func tmuxOutputBounded(args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), electTmuxTimeout)
+	defer cancel()
+	return exec.CommandContext(ctx, "tmux", args...).Output()
+}
 
 // ElectionResult is what ClientElector.Elect returns: the elected active client
 // plus the raw tmux activity timestamp (useful for dedup keys outside the
@@ -93,8 +108,8 @@ func (e *ClientElector) Pin(tty, reason string) {
 func (e *ClientElector) Elect() ElectionResult {
 	const idleWindow = int64(1500)
 	now := time.Now().Unix()
-	out, err := exec.Command("tmux", "list-clients", "-F",
-		"#{client_tty}|||#{client_width}|||#{client_height}|||#{client_flags}|||#{client_activity}").Output()
+	out, err := tmuxOutputBounded("list-clients", "-F",
+		"#{client_tty}|||#{client_width}|||#{client_height}|||#{client_flags}|||#{client_activity}")
 	if err != nil {
 		return ElectionResult{}
 	}
@@ -227,8 +242,8 @@ func (e *ClientElector) Elect() ElectionResult {
 // when we know we want "whoever just did something" rather than "whoever is
 // active right now" — subtly different after heuristic kicks in.
 func (e *ClientElector) LatestAttachedTTY() string {
-	out, err := exec.Command("tmux", "list-clients", "-F",
-		"#{client_tty}|||#{client_flags}|||#{client_activity}").Output()
+	out, err := tmuxOutputBounded("list-clients", "-F",
+		"#{client_tty}|||#{client_flags}|||#{client_activity}")
 	if err != nil {
 		return ""
 	}

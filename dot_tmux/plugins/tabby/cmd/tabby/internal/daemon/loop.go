@@ -91,8 +91,13 @@ func (e TmuxHookEvent) kind() string { return "hook:" + e.Kind }
 // of those closures (they capture daemonStartTime, crashLog, sigCh, etc.)
 // without forcing those globals onto the Loop type.
 type LoopTickDeps struct {
-	RunLoopTask         func(task string, timeout time.Duration, fn func()) bool
-	RunLoopTaskNonFatal func(task string, timeout time.Duration, fn func())
+	// Both runners pass a context that is cancelled when the task times out.
+	// Task bodies should thread it into exec calls / loop iterations so a
+	// timed-out worker actually unwinds (kills its tmux children) instead of
+	// being abandoned — abandoned workers stuck in Wait4 were the dominant
+	// goroutine leak in the crash dumps.
+	RunLoopTask         func(task string, timeout time.Duration, fn func(ctx context.Context)) bool
+	RunLoopTaskNonFatal func(task string, timeout time.Duration, fn func(ctx context.Context))
 
 	// Off-loop ticker dependencies (idle / socket-check). These were locals
 	// in the idle-monitor goroutine before the migration. SigCh is the
@@ -450,7 +455,7 @@ func (l *Loop) coordinatorActiveWindowID() string {
 func (l *Loop) updateActiveWindow() {
 	status := l.coord.NewWindowStatus()
 	coordActive := l.coordinatorActiveWindowID()
-	logEvent("READY_STATE_TRACE phase=update_active_start state=%s ready=%s age_ms=%d daemon_active=%s coordinator_active=%s", status.State, status.WindowID, time.Since(status.Created).Milliseconds(), l.activeWindowID, coordActive)
+	logEventVerbose("READY_STATE_TRACE phase=update_active_start state=%s ready=%s age_ms=%d daemon_active=%s coordinator_active=%s", status.State, status.WindowID, time.Since(status.Created).Milliseconds(), l.activeWindowID, coordActive)
 	if status.State == "inFlight" {
 		logEvent("UPDATE_ACTIVE_WINDOW_WAIT reason=new_window_inflight daemon_active=%s coordinator_active=%s", l.activeWindowID, coordActive)
 		return
@@ -478,7 +483,7 @@ func (l *Loop) updateActiveWindow() {
 			if hasWindow && status.WindowID != "" && l.activeWindowID != status.WindowID {
 				logEvent("WINDOW_STATE_DRIFT source=new_window_ready tmux_active=unknown daemon_active=%s coordinator_active=%s ready_window=%s", l.activeWindowID, coordActive, status.WindowID)
 			}
-			logEvent("READY_STATE_TRACE phase=update_active_ready_observe state=%s ready=%s age_ms=%d daemon_active=%s coordinator_active=%s hasWindow=%v", status.State, status.WindowID, ageMs, l.activeWindowID, coordActive, hasWindow)
+			logEventVerbose("READY_STATE_TRACE phase=update_active_ready_observe state=%s ready=%s age_ms=%d daemon_active=%s coordinator_active=%s hasWindow=%v", status.State, status.WindowID, ageMs, l.activeWindowID, coordActive, hasWindow)
 		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -493,7 +498,7 @@ func (l *Loop) updateActiveWindow() {
 		if newID != "" {
 			logEvent("UPDATE_ACTIVE_WINDOW_TMUX_QUERY daemon_old=%s tmux_new=%s coordinator_active=%s", l.activeWindowID, newID, coordActive)
 		}
-		logEvent("READY_STATE_TRACE phase=update_active_tmux_query state=%s ready=%s daemon_active=%s tmux_active=%s coordinator_active=%s", status.State, status.WindowID, l.activeWindowID, newID, coordActive)
+		logEventVerbose("READY_STATE_TRACE phase=update_active_tmux_query state=%s ready=%s daemon_active=%s tmux_active=%s coordinator_active=%s", status.State, status.WindowID, l.activeWindowID, newID, coordActive)
 		if newID != "" {
 			if newID != l.activeWindowID || newID != coordActive {
 				logEvent("WINDOW_STATE_DRIFT source=tmux_query tmux_active=%s daemon_active=%s coordinator_active=%s", newID, l.activeWindowID, coordActive)
@@ -530,7 +535,7 @@ func (l *Loop) updateActiveWindow() {
 func (l *Loop) doPaneLayoutOps() {
 	now := time.Now()
 	status := l.coord.NewWindowStatus()
-	logEvent("READY_STATE_TRACE phase=pane_layout_start state=%s ready=%s age_ms=%d active=%s", status.State, status.WindowID, time.Since(status.Created).Milliseconds(), l.activeWindowID)
+	logEventVerbose("READY_STATE_TRACE phase=pane_layout_start state=%s ready=%s age_ms=%d active=%s", status.State, status.WindowID, time.Since(status.Created).Milliseconds(), l.activeWindowID)
 	if status.State == "inFlight" {
 		logEvent("PANE_LAYOUT_SKIP reason=new_window_inflight")
 		return
@@ -593,8 +598,8 @@ func (l *Loop) doPaneLayoutOps() {
 func (l *Loop) handleWindowCheckTick() {
 	l.flags.window.Store(false)
 	// Window check is a polling task — stalls are non-fatal (skip and retry next tick)
-	l.deps.RunLoopTaskNonFatal("window_check", 8*time.Second, func() {
-		logEvent("WINDOW_CHECK_TICK")
+	l.deps.RunLoopTaskNonFatal("window_check", 8*time.Second, func(ctx context.Context) {
+		logEventVerbose("WINDOW_CHECK_TICK")
 		// Use cached window state — signal_refresh keeps it fresh via USR1.
 		// Calling RefreshWindows() here added a redundant ListWindowsWithPanes()
 		// tmux round-trip that caused lock contention and task stalls under load.
@@ -603,7 +608,7 @@ func (l *Loop) handleWindowCheckTick() {
 		for i, w := range windows {
 			windowIDs[i] = w.ID
 		}
-		logEvent("WINDOW_CHECK_LIST count=%d ids=%v", len(windows), windowIDs)
+		logEventVerbose("WINDOW_CHECK_LIST count=%d ids=%v", len(windows), windowIDs)
 
 		spawnRenderersForNewWindows(l.server, l.deps.SessionID, windows, l.coord)
 		cleanupOrphanedSidebars(windows, l.coord)
@@ -633,7 +638,7 @@ func (l *Loop) handleWindowCheckTick() {
 			}
 			l.lastWindowCheck = syncKey
 		} else {
-			logEvent("WIDTH_SYNC_SKIP trigger=window_check reason=stable_context key=%s", syncKey)
+			logEventVerbose("WIDTH_SYNC_SKIP trigger=window_check reason=stable_context key=%s", syncKey)
 		}
 	})
 }
@@ -760,7 +765,7 @@ func (l *Loop) Reconcile(opts ReconcileOpts) ReconcileResult {
 	if len(ops) > 0 {
 		flushOpsBatched(ops, "reconcile:"+opts.Reason)
 	} else {
-		logEvent("RECONCILE_NOOP reason=%s active=%s", opts.Reason, activeWin)
+		logEventVerbose("RECONCILE_NOOP reason=%s active=%s", opts.Reason, activeWin)
 	}
 
 	if !opts.SkipBroadcast {
@@ -780,7 +785,7 @@ func (l *Loop) Reconcile(opts ReconcileOpts) ReconcileResult {
 // handleClientGeomTick is the migrated body of the clientGeometryTicker case.
 func (l *Loop) handleClientGeomTick() {
 	l.flags.geom.Store(false)
-	l.deps.RunLoopTaskNonFatal("client_geometry_tick", 2*time.Second, func() {
+	l.deps.RunLoopTaskNonFatal("client_geometry_tick", 2*time.Second, func(ctx context.Context) {
 		res := l.elector.Elect()
 		if !res.OK {
 			return
@@ -812,17 +817,20 @@ func (l *Loop) handleClientGeomTick() {
 // handleWatchdogTick is the migrated body of the watchdogTicker case.
 func (l *Loop) handleWatchdogTick() {
 	l.flags.watchdog.Store(false)
-	l.deps.RunLoopTask("watchdog", 6*time.Second, func() {
+	l.deps.RunLoopTask("watchdog", 6*time.Second, func(ctx context.Context) {
 		logInput("HEALTH clients=%d", l.server.ClientCount())
-		watchdogCheckRenderers(l.server, l.deps.SessionID, l.coord)
-		panelAudit(l.deps.SessionID, l.coord)
+		watchdogCheckRenderers(ctx, l.server, l.deps.SessionID, l.coord)
+		panelAudit(ctx, l.deps.SessionID, l.coord)
+		// Cap the events log during long daemon lifetimes; startup-only
+		// rotation allowed multi-hundred-MB growth over days.
+		maybeRotateEventLogMidRun(10 * 1024 * 1024) // 10MB
 	})
 }
 
 // handleRefreshTick is the migrated body of the refreshTicker case.
 func (l *Loop) handleRefreshTick() {
 	l.flags.refresh.Store(false)
-	l.deps.RunLoopTask("refresh_tick", 8*time.Second, func() {
+	l.deps.RunLoopTask("refresh_tick", 8*time.Second, func(ctx context.Context) {
 		// Fallback polling: always refresh windows (needed for staleness
 		// detection of stuck @tabby_busy), but only broadcast render and
 		// update header styles if the hash actually changed.
@@ -851,7 +859,7 @@ func (l *Loop) handleAnimationTick() {
 	l.flags.anim.Store(false)
 	// Combined spinner + pet animation tick with timeout protection.
 	// Animation is cosmetic — a stall just skips the frame (non-fatal).
-	l.deps.RunLoopTaskNonFatal("animation_tick", 2*time.Second, func() {
+	l.deps.RunLoopTaskNonFatal("animation_tick", 2*time.Second, func(ctx context.Context) {
 		spinnerVisible, slowFrame := l.coord.IncrementSpinner()
 		petChanged := l.coord.UpdatePetState()
 		indicatorAnimated := l.coord.HasActiveIndicatorAnimation()
@@ -866,7 +874,7 @@ func (l *Loop) handleAnimationTick() {
 			return
 		}
 		l.lastSlowFrame = slowFrame
-		logEvent("ANIMATION_TICK_RENDER spinner=%v pet=%v indicator=%v frame=%d",
+		logEventVerbose("ANIMATION_TICK_RENDER spinner=%v pet=%v indicator=%v frame=%d",
 			spinnerVisible, petChanged, indicatorAnimated, slowFrame)
 		perf.Log("animationTick (render)")
 		l.server.RenderActiveWindowOnly(l.ActiveWindowID())
@@ -876,7 +884,7 @@ func (l *Loop) handleAnimationTick() {
 // handleGitTick is the migrated body of the gitTicker case.
 func (l *Loop) handleGitTick() {
 	l.flags.git.Store(false)
-	l.deps.RunLoopTask("git_tick", 6*time.Second, func() {
+	l.deps.RunLoopTask("git_tick", 6*time.Second, func(ctx context.Context) {
 		// Only broadcast if git state changed
 		currentGitState := l.coord.GetGitStateHash()
 		if currentGitState != l.lastGitState {
@@ -892,7 +900,7 @@ func (l *Loop) handleGitTick() {
 // handleAutoThemeTick is the migrated body of the autoThemeTicker case.
 func (l *Loop) handleAutoThemeTick() {
 	l.flags.autoTheme.Store(false)
-	l.deps.RunLoopTaskNonFatal("auto_theme_tick", 5*time.Second, func() {
+	l.deps.RunLoopTaskNonFatal("auto_theme_tick", 5*time.Second, func(ctx context.Context) {
 		want := l.coord.ResolveAutoTheme()
 		if want != "" && want != l.lastAutoTheme {
 			logEvent("AUTO_THEME_SWITCH from=%s to=%s", l.lastAutoTheme, want)
@@ -982,7 +990,7 @@ func (l *Loop) handleRefreshSignal() {
 		time.AfterFunc(50*time.Millisecond, l.SubmitRefresh)
 		return
 	}
-	l.deps.RunLoopTask("signal_refresh", 20*time.Second, func() {
+	l.deps.RunLoopTask("signal_refresh", 20*time.Second, func(ctx context.Context) {
 		start := time.Now()
 		logEvent("SIGNAL_REFRESH session=%s", l.deps.SessionID)
 
@@ -1109,36 +1117,58 @@ func (l *Loop) handleRefreshSignal() {
 // both paths share the same field so SIGUSR2 and the 250ms geom tick dedup
 // against each other. This is the deliberate behavior change in Step 3.
 func (l *Loop) handleClientResized() {
-	logEvent("SIGNAL_USR2_CLIENT_RESIZED")
-	w, h, tty, _, ok := activeClientGeometry()
-	if !ok {
-		return
-	}
-	key := fmt.Sprintf("%s:%dx%d", tty, w, h)
-	if key == l.lastResizeKey {
-		logEvent("CLIENT_RESIZED_NOOP key=%s", key)
-		return
-	}
-	l.lastResizeKey = key
+	// Wrapped in a non-fatal loop task: this path (SIGUSR2 + client-resized
+	// tmux hook) previously ran unwrapped on the loop goroutine, so a stalled
+	// tmux exec inside activeClientGeometry/Reconcile froze the loop and its
+	// heartbeat with no upper bound. A skipped resize is recovered by the
+	// next geometry tick.
+	l.deps.RunLoopTaskNonFatal("client_resized", 5*time.Second, func(ctx context.Context) {
+		logEvent("SIGNAL_USR2_CLIENT_RESIZED")
+		w, h, tty, _, ok := activeClientGeometry()
+		if !ok {
+			return
+		}
+		key := fmt.Sprintf("%s:%dx%d", tty, w, h)
+		if key == l.lastResizeKey {
+			logEvent("CLIENT_RESIZED_NOOP key=%s", key)
+			return
+		}
+		l.lastResizeKey = key
 
-	l.coord.SetActiveClientWidth(w)
-	logEvent("SIGUSR2_ACTIVE_CLIENT tty=%s size=%dx%d", tty, w, h)
-	ac := daemon.ActiveClient{TTY: tty, Width: w, Height: h}
-	l.Reconcile(ReconcileOpts{
-		Reason:              "client_resized",
-		ForceWidthSync:      true,
-		LockWindowsToActive: &ac,
+		l.coord.SetActiveClientWidth(w)
+		logEvent("SIGUSR2_ACTIVE_CLIENT tty=%s size=%dx%d", tty, w, h)
+		ac := daemon.ActiveClient{TTY: tty, Width: w, Height: h}
+		l.Reconcile(ReconcileOpts{
+			Reason:              "client_resized",
+			ForceWidthSync:      true,
+			LockWindowsToActive: &ac,
+		})
+		logEvent("SIGNAL_USR2_DONE")
 	})
-	logEvent("SIGNAL_USR2_DONE")
 }
 
 // handleIdleTick is the migrated body of the idleTicker case in the
 // idle-monitor goroutine. See handleSocketCheckTick for the goroutine-return
 // vs SIGTERM semantics.
+//
+// The tmux queries here run on the loop goroutine and were previously raw,
+// unbounded execs — when the tmux server stalled they blocked the loop (and
+// its heartbeat) indefinitely, producing the multi-minute "No heartbeat"
+// gaps in the crash log. Both are now deadline-bounded, and a deadline hit
+// is treated as "tmux busy, skip this tick" — NOT as "session gone", which
+// would wrongly self-terminate a healthy daemon.
 func (l *Loop) handleIdleTick() {
 	l.flags.idle.Store(false)
 	// Check if session still exists
-	if _, err := exec.Command("tmux", "has-session", "-t", l.deps.SessionID).Output(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	_, err := exec.CommandContext(ctx, "tmux", "has-session", "-t", l.deps.SessionID).Output()
+	timedOut := ctx.Err() == context.DeadlineExceeded
+	cancel()
+	if timedOut {
+		logEvent("IDLE_TICK_TMUX_TIMEOUT query=has-session (skipping tick)")
+		return
+	}
+	if err != nil {
 		logEvent("SHUTDOWN_REASON session=%s reason=session_gone", l.deps.SessionID)
 		debugLog.Printf("Session %s no longer exists, shutting down", l.deps.SessionID)
 		select {
@@ -1149,7 +1179,14 @@ func (l *Loop) handleIdleTick() {
 	}
 
 	// Check if any windows remain
-	out, err := exec.Command("tmux", "list-windows", "-t", l.deps.SessionID, "-F", "#{window_id}").Output()
+	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	out, err := exec.CommandContext(ctx, "tmux", "list-windows", "-t", l.deps.SessionID, "-F", "#{window_id}").Output()
+	timedOut = ctx.Err() == context.DeadlineExceeded
+	cancel()
+	if timedOut {
+		logEvent("IDLE_TICK_TMUX_TIMEOUT query=list-windows (skipping tick)")
+		return
+	}
 	if err != nil || strings.TrimSpace(string(out)) == "" {
 		logEvent("SHUTDOWN_REASON session=%s reason=no_windows", l.deps.SessionID)
 		debugLog.Printf("No windows remaining, shutting down")

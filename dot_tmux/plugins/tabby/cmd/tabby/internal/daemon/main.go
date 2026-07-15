@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -149,19 +150,95 @@ func initCrashLog(sessionID string) {
 	crashLog = log.New(f, "", log.LstdFlags|log.Lmicroseconds)
 }
 
+// eventLogMu guards eventLog/eventLogFile against the mid-run rotation in
+// maybeRotateEventLogMidRun swapping them out from under a concurrent Printf.
+var eventLogMu sync.Mutex
+var eventLogFile *os.File
+var eventLogPath string
+
 func initEventLog(sessionID string) {
-	eventLogPath := daemon.RuntimePath(sessionID, "-events.log")
+	eventLogMu.Lock()
+	defer eventLogMu.Unlock()
+	eventLogPath = daemon.RuntimePath(sessionID, "-events.log")
 	f, err := os.OpenFile(eventLogPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		eventLog = log.New(os.Stderr, "[EVENT] ", log.LstdFlags)
 		return
 	}
+	eventLogFile = f
 	eventLog = log.New(f, "[event] ", log.LstdFlags|log.Lmicroseconds)
 }
 
+// maybeRotateEventLogMidRun rotates the events log while the daemon is
+// running. Startup-only rotation let the log grow unbounded on long-lived
+// daemons (observed: 478MB after ~3 days). A plain rename is not enough
+// mid-run — the logger keeps writing to the old inode — so the file is
+// closed, renamed to .prev, and reopened atomically under eventLogMu.
+func maybeRotateEventLogMidRun(maxBytes int64) {
+	eventLogMu.Lock()
+	defer eventLogMu.Unlock()
+	if eventLogFile == nil || eventLogPath == "" {
+		return
+	}
+	info, err := eventLogFile.Stat()
+	if err != nil || info.Size() <= maxBytes {
+		return
+	}
+	eventLogFile.Close()
+	prevPath := eventLogPath + ".prev"
+	os.Remove(prevPath)
+	os.Rename(eventLogPath, prevPath)
+	f, err := os.OpenFile(eventLogPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		eventLogFile = nil
+		eventLog = log.New(os.Stderr, "[EVENT] ", log.LstdFlags)
+		return
+	}
+	eventLogFile = f
+	eventLog = log.New(f, "[event] ", log.LstdFlags|log.Lmicroseconds)
+	eventLog.Printf("EVENT_LOG_ROTATED prev_size=%d", info.Size())
+}
+
 func logEvent(format string, args ...interface{}) {
+	eventLogMu.Lock()
+	defer eventLogMu.Unlock()
 	if eventLog != nil {
 		eventLog.Printf(format, args...)
+	}
+}
+
+var eventLogVerboseEnabled bool
+var eventLogVerboseCheckTime time.Time
+var eventLogVerboseMu sync.Mutex
+
+// isEventLogVerbose gates high-frequency diagnostic lines (per-frame render,
+// geometry polling, socket traffic). These accounted for ~9 lines/sec of
+// unconditional writes. Verbose lines are only written when the daemon runs
+// with -debug or when @tabby_event_log is set (checked every 10s, like
+// isInputLogEnabled). Low-frequency forensic lines (crashes, shutdown
+// reasons, cleanup) keep using logEvent unconditionally.
+func isEventLogVerbose() bool {
+	if debugMode != nil && *debugMode {
+		return true
+	}
+	eventLogVerboseMu.Lock()
+	defer eventLogVerboseMu.Unlock()
+	if time.Since(eventLogVerboseCheckTime) > 10*time.Second {
+		out, err := tmuxOutputCtx("show-options", "-gqv", "@tabby_event_log")
+		if err != nil {
+			eventLogVerboseEnabled = false
+		} else {
+			val := strings.TrimSpace(string(out))
+			eventLogVerboseEnabled = val == "on" || val == "1" || val == "true"
+		}
+		eventLogVerboseCheckTime = time.Now()
+	}
+	return eventLogVerboseEnabled
+}
+
+func logEventVerbose(format string, args ...interface{}) {
+	if isEventLogVerbose() {
+		logEvent(format, args...)
 	}
 }
 
@@ -182,7 +259,7 @@ func initInputLog(sessionID string) {
 // Caches result for 10 seconds to avoid excessive tmux calls
 func isInputLogEnabled() bool {
 	if time.Since(inputLogCheckTime) > 10*time.Second {
-		out, err := exec.Command("tmux", "show-options", "-gqv", "@tabby_input_log").Output()
+		out, err := tmuxOutputCtx("show-options", "-gqv", "@tabby_input_log")
 		if err != nil {
 			inputLogEnabled = false
 		} else {
@@ -380,14 +457,14 @@ func spawnRenderersForNewWindows(server *daemon.Server, sessionID string, window
 
 		// Skip if already has a renderer
 		if connectedClients[windowID] {
-			logEvent("SPAWN_CHECK window=%s result=skip_has_client", windowID)
+			logEventVerbose("SPAWN_CHECK window=%s result=skip_has_client", windowID)
 			continue
 		}
 		// Skip if the sidebar for this window is currently stashed off-screen
 		// (user hid it via the hamburger). The stashed sidebar-renderer is
 		// still alive and will be join-pane'd back when the user shows it.
 		if stashedWindows[windowID] {
-			logEvent("SPAWN_CHECK window=%s result=skip_stashed", windowID)
+			logEventVerbose("SPAWN_CHECK window=%s result=skip_stashed", windowID)
 			continue
 		}
 
@@ -438,7 +515,7 @@ func spawnRenderersForNewWindows(server *daemon.Server, sessionID string, window
 			}
 		}
 		if hasRenderer {
-			logEvent("SPAWN_CHECK window=%s result=skip_has_pane", windowID)
+			logEventVerbose("SPAWN_CHECK window=%s result=skip_has_pane", windowID)
 			continue
 		}
 
@@ -1339,9 +1416,11 @@ func cleanupOrphanedHeaders(customBorder bool, coordinator *Coordinator, activeW
 	}
 }
 
-// isWatchdogEnabled checks if the watchdog is enabled via tmux option
+// isWatchdogEnabled checks if the watchdog is enabled via tmux option.
+// Bounded exec: the unbounded variant was the single largest goroutine leak
+// in the crash dumps (300+ workers stuck in Wait4 when tmux stalled).
 func isWatchdogEnabled() bool {
-	out, err := exec.Command("tmux", "show-options", "-gqv", "@tabby_watchdog").Output()
+	out, err := tmuxOutputCtx("show-options", "-gqv", "@tabby_watchdog")
 	if err != nil {
 		return true // default: enabled
 	}
@@ -1353,7 +1432,7 @@ func isWatchdogEnabled() bool {
 // It also detects layout corruption where a left sidebar has been flipped to a full-width
 // top/bottom bar (e.g. after tmux source ~/.tmux.conf) and corrects it by killing and
 // respawning the renderer in the correct horizontal split position.
-func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator *Coordinator) {
+func watchdogCheckRenderers(ctx context.Context, server *daemon.Server, sessionID string, coordinator *Coordinator) {
 	if !isWatchdogEnabled() {
 		return
 	}
@@ -1370,7 +1449,7 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 	}
 	watchdogArgs = append(watchdogArgs, "-F",
 		"#{pane_id}|||#{pane_current_command}|||#{pane_pid}|||#{window_id}|||#{pane_dead}|||#{pane_width}|||#{window_width}|||#{pane_start_command}")
-	out, err := exec.Command("tmux", watchdogArgs...).Output()
+	out, err := exec.CommandContext(ctx, "tmux", watchdogArgs...).Output()
 	if err != nil {
 		return
 	}
@@ -1379,6 +1458,11 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 	globalWidth := coordinator.GetGlobalWidth()
 
 	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		// Bail out promptly once the loop-task deadline has passed — the
+		// remaining pane checks will re-run on the next watchdog tick.
+		if ctx.Err() != nil {
+			return
+		}
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -1414,7 +1498,7 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 		if paneDead == "1" {
 			logEvent("DEAD_PANE pane=%s cmd=%s window=%s -- killing dead pane", paneID, cmd, windowID)
 			markSkipPreserveForWindow(paneID)
-			exec.Command("tmux", "kill-pane", "-t", paneID).Run()
+			exec.CommandContext(ctx, "tmux", "kill-pane", "-t", paneID).Run()
 
 			// Respawn sidebar renderer if it was a sidebar
 			if isSidebar && !sidebarHidden {
@@ -1424,7 +1508,7 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 					debugFlag = "-debug"
 				}
 				cmdStr := fmt.Sprintf("%s -session '%s' -window '%s' %s", rendererBin, sessionID, windowID, debugFlag)
-				exec.Command("tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
+				exec.CommandContext(ctx, "tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
 			}
 			continue
 		}
@@ -1443,7 +1527,7 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 			logEvent("ZOMBIE_PANE pane=%s pid=%d cmd=%s window=%s -- process dead, killing pane",
 				paneID, pid, cmd, windowID)
 			markSkipPreserveForWindow(paneID)
-			exec.Command("tmux", "kill-pane", "-t", paneID).Run()
+			exec.CommandContext(ctx, "tmux", "kill-pane", "-t", paneID).Run()
 
 			if isSidebar && !sidebarHidden {
 				logEvent("RESPAWN_SIDEBAR window=%s after zombie pane cleanup", windowID)
@@ -1452,7 +1536,7 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 					debugFlag = "-debug"
 				}
 				cmdStr := fmt.Sprintf("%s -session '%s' -window '%s' %s", rendererBin, sessionID, windowID, debugFlag)
-				exec.Command("tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
+				exec.CommandContext(ctx, "tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
 			}
 			continue
 		}
@@ -1465,13 +1549,13 @@ func watchdogCheckRenderers(server *daemon.Server, sessionID string, coordinator
 			logEvent("LAYOUT_CORRUPT_SIDEBAR pane=%s window=%s pane_w=%d win_w=%d -- killing flipped sidebar",
 				paneID, windowID, paneWidth, windowWidth)
 			markSkipPreserveForWindow(paneID)
-			exec.Command("tmux", "kill-pane", "-t", paneID).Run()
+			exec.CommandContext(ctx, "tmux", "kill-pane", "-t", paneID).Run()
 			debugFlag := ""
 			if *debugMode {
 				debugFlag = "-debug"
 			}
 			cmdStr := fmt.Sprintf("printf '\\033[?25l\\033[2J\\033[H' && %s -session '%s' -window '%s' %s", rendererBin, sessionID, windowID, debugFlag)
-			exec.Command("tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-f", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
+			exec.CommandContext(ctx, "tmux", "split-window", "-d", "-t", windowID, "-h", "-b", "-f", "-l", fmt.Sprintf("%d", globalWidth), cmdStr).Run()
 		}
 	}
 }
@@ -1493,13 +1577,13 @@ const panelAuditApplyFixes = true
 //   - sidebar width vs. coordinator.globalWidth -> coordinator wins, fix via RunWidthSync
 //   - duplicate header panes                    -> lowest pane_id wins, kill the rest
 //   - missing pane-header on a content pane     -> trigger OnRefreshLayout, do not spawn directly
-func panelAudit(sessionID string, coordinator *Coordinator) {
+func panelAudit(ctx context.Context, sessionID string, coordinator *Coordinator) {
 	if !isWatchdogEnabled() {
 		return
 	}
 
 	// Skip during legitimate state transitions to avoid false positives.
-	if out, err := exec.Command("tmux", "show-option", "-gqv", "@tabby_spawning").Output(); err == nil && strings.TrimSpace(string(out)) == "1" {
+	if out, err := exec.CommandContext(ctx, "tmux", "show-option", "-gqv", "@tabby_spawning").Output(); err == nil && strings.TrimSpace(string(out)) == "1" {
 		return
 	}
 	if status := coordinator.NewWindowStatus(); status.State == "inFlight" {
@@ -1525,7 +1609,7 @@ func panelAudit(sessionID string, coordinator *Coordinator) {
 	}
 	snapArgs = append(snapArgs, "-F",
 		"#{pane_id}|||#{window_id}|||#{pane_current_command}|||#{pane_start_command}|||#{pane_width}|||#{pane_top}|||#{pane_height}|||#{window_height}")
-	out, err := exec.Command("tmux", snapArgs...).Output()
+	out, err := exec.CommandContext(ctx, "tmux", snapArgs...).Output()
 	if err != nil {
 		logEvent("AUDIT_SNAPSHOT_ERR err=%v", err)
 		return
@@ -1537,7 +1621,7 @@ func panelAudit(sessionID string, coordinator *Coordinator) {
 	// request_refresh feedback loop. Build a skip-set of their window IDs
 	// once and exclude them from byWindow.
 	stashWindowIDs := map[string]bool{}
-	if winOut, werr := exec.Command("tmux", "list-windows", "-a", "-F", "#{window_id}|||#{window_name}").Output(); werr == nil {
+	if winOut, werr := exec.CommandContext(ctx, "tmux", "list-windows", "-a", "-F", "#{window_id}|||#{window_name}").Output(); werr == nil {
 		for _, line := range strings.Split(strings.TrimSpace(string(winOut)), "\n") {
 			parts := strings.SplitN(strings.TrimSpace(line), "|||", 2)
 			if len(parts) < 2 {
@@ -2296,14 +2380,19 @@ func Run(args []string) int {
 	// Build the shared active-client elector before the server, so every
 	// downstream component (server callbacks, coordinator, hook handlers)
 	// reads from the same elected tty.
-	activeClientElector = daemon.NewClientElector(logEvent, 0)
+	// Verbose logger: the elector logs CLIENT_GEOM_SELECT on every Elect()
+	// (4x/sec from the geometry ticker) — debug-gated to keep the events
+	// log from growing unbounded.
+	activeClientElector = daemon.NewClientElector(logEventVerbose, 0)
 
 	// Create server
 	server := daemon.NewServer(*sessionID)
 
-	// Set up debug logging for render diagnostics
+	// Set up debug logging for render diagnostics. These fire per render
+	// frame (RENDER_BATCH_FLUSH / RENDER_SEND / SOCKET_*), so they are
+	// verbose-gated — enable with -debug or `tmux set -g @tabby_event_log on`.
 	server.DebugLog = func(format string, args ...interface{}) {
-		logEvent(format, args...)
+		logEventVerbose(format, args...)
 	}
 
 	// Set up render callback using coordinator (with panic recovery)
@@ -2484,7 +2573,7 @@ func Run(args []string) int {
 		defer ticker.Stop()
 		reap := func() {
 			hours := 0
-			if out, err := exec.Command("tmux", "show-option", "-gqv", "@tabby_client_idle_timeout_hours").Output(); err == nil {
+			if out, err := tmuxOutputCtx("show-option", "-gqv", "@tabby_client_idle_timeout_hours"); err == nil {
 				if v, perr := strconv.Atoi(strings.TrimSpace(string(out))); perr == nil && v > 0 {
 					hours = v
 				}
@@ -2494,7 +2583,7 @@ func Run(args []string) int {
 			}
 			threshold := time.Duration(hours) * time.Hour
 			activeTTY := strings.TrimSpace(tmuxOutputTrimmed("display-message", "-p", "#{client_tty}"))
-			out, err := exec.Command("tmux", "list-clients", "-F", "#{client_tty}|#{client_activity}").Output()
+			out, err := tmuxOutputCtx("list-clients", "-F", "#{client_tty}|#{client_activity}")
 			if err != nil {
 				return
 			}
@@ -2545,11 +2634,17 @@ func Run(args []string) int {
 		consecutiveStalls := map[string]int{}
 		const maxConsecutiveStalls = 3
 
-		runLoopTask := func(task string, timeout time.Duration, fn func()) bool {
+		runLoopTask := func(task string, timeout time.Duration, fn func(ctx context.Context)) bool {
+			// The context is cancelled on timeout so the worker can unwind:
+			// ctx-aware exec calls inside fn get SIGKILLed and loops bail at
+			// their next ctx.Err() check, instead of leaking the goroutine
+			// and its tmux child forever.
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				fn()
+				fn(ctx)
 			}()
 
 			select {
@@ -2560,7 +2655,7 @@ func Run(args []string) int {
 				}
 				consecutiveStalls[task] = 0
 				return true
-			case <-time.After(timeout):
+			case <-ctx.Done():
 				uptime := time.Since(daemonStartTime).Truncate(time.Second)
 				consecutiveStalls[task]++
 				stalls := consecutiveStalls[task]
@@ -2593,16 +2688,18 @@ func Run(args []string) int {
 
 		// runLoopTaskNonFatal runs a task with a timeout but only logs on stall (no SIGTERM).
 		// Use for cosmetic tasks like animation where a skipped frame is acceptable.
-		runLoopTaskNonFatal := func(task string, timeout time.Duration, fn func()) {
+		runLoopTaskNonFatal := func(task string, timeout time.Duration, fn func(ctx context.Context)) {
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				fn()
+				fn(ctx)
 			}()
 
 			select {
 			case <-done:
-			case <-time.After(timeout):
+			case <-ctx.Done():
 				uptime := time.Since(daemonStartTime).Truncate(time.Second)
 				logEvent("LOOP_SKIP task=%s timeout_ms=%d uptime=%s clients=%d", task, timeout.Milliseconds(), uptime, server.ClientCount())
 				if crashLog != nil {
@@ -2677,7 +2774,11 @@ func Run(args []string) int {
 			SocketPath:          server.GetSocketPath(),
 			SigCh:               sigCh,
 		})
-		go runTicker(loopCtx, 250*time.Millisecond, func() { loop.submitCoalesced(&loop.flags.geom, ClientGeomTickEvent{}) })
+		// 500ms (was 250ms): each geom tick forks `tmux list-clients`.
+		// Hooks (client-resized/active/focus-in) already signal geometry
+		// changes promptly; this poll is a fallback, so halving the rate
+		// halves constant fork load with minimal responsiveness cost.
+		go runTicker(loopCtx, 500*time.Millisecond, func() { loop.submitCoalesced(&loop.flags.geom, ClientGeomTickEvent{}) })
 		go runTicker(loopCtx, 100*time.Millisecond, func() { loop.submitCoalesced(&loop.flags.anim, AnimationTickEvent{}) })
 		go runTicker(loopCtx, 3*time.Second, func() { loop.submitCoalesced(&loop.flags.window, WindowCheckTickEvent{}) })
 		go runTicker(loopCtx, 30*time.Second, func() { loop.submitCoalesced(&loop.flags.refresh, RefreshTickEvent{}) })

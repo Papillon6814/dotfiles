@@ -462,7 +462,11 @@ SIGNAL_CMD="$CURRENT_DIR/scripts/signal-daemon.sh"
 
 tmux set-hook -g window-linked "run-shell -b '$SIGNAL_CMD; tmux refresh-client -S'"
 tmux set-hook -g window-unlinked "run-shell -b '$SIGNAL_CMD; tmux refresh-client -S; $EXIT_IF_NO_MAIN_WINDOWS_CMD'"
-tmux set-hook -g after-new-window "run-shell -b '$SIGNAL_CMD; tmux refresh-client -S'"
+# Optional user extension: runs after tabby's own new-window handling.
+# (Registered here because this set-hook -g would clobber any hook the user
+# appended in tmux.conf — the deferred phase runs after tmux.conf finishes.)
+USER_NEW_WINDOW_HOOK="$HOME/.config/tabby/scripts/auto-group-window.sh"
+tmux set-hook -g after-new-window "run-shell -b '$SIGNAL_CMD; tmux refresh-client -S; if [ -x \"$USER_NEW_WINDOW_HOOK\" ]; then \"$USER_NEW_WINDOW_HOOK\"; fi'"
 tmux set-hook -g after-resize-pane "run-shell -b '$HOOK_BIN on-pane-resize \"#{hook_pane}\"'"
 tmux set-hook -g after-select-window "run-shell -b '$SIGNAL_CMD; tmux refresh-client -S; $ENSURE_SIDEBAR_CMD \"#{session_id}\" \"#{window_id}\"; $CYCLE_PANE_BIN --ensure-content'"
 

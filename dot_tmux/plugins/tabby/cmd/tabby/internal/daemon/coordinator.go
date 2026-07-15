@@ -6022,7 +6022,7 @@ func (c *Coordinator) capTargetToActiveClient(target int) int {
 func (c *Coordinator) PlanWidthSync(activeWindowID string, force bool) []ResizeOp {
 	start := time.Now()
 	if c.sidebarHidden {
-		logEvent("WIDTH_SYNC_SKIP reason=sidebar_collapsed active=%s force=%v", activeWindowID, force)
+		logEventVerbose("WIDTH_SYNC_SKIP reason=sidebar_collapsed active=%s force=%v", activeWindowID, force)
 		return nil
 	}
 
@@ -6045,7 +6045,7 @@ func (c *Coordinator) PlanWidthSync(activeWindowID string, force bool) []ResizeO
 	c.clientWidthsMu.RUnlock()
 
 	if len(clientSnapshot) == 0 {
-		logEvent("WIDTH_SYNC_SKIP reason=no_clients active=%s force=%v duration_ms=%d", activeWindowID, force, time.Since(start).Milliseconds())
+		logEventVerbose("WIDTH_SYNC_SKIP reason=no_clients active=%s force=%v duration_ms=%d", activeWindowID, force, time.Since(start).Milliseconds())
 		return nil
 	}
 
@@ -6078,7 +6078,7 @@ func (c *Coordinator) PlanWidthSync(activeWindowID string, force bool) []ResizeO
 		sinceLast = time.Since(c.lastWidthSync)
 	}
 	if !force && hasLast && sinceLast < 500*time.Millisecond {
-		logEvent("WIDTH_SYNC_SKIP reason=debounce active=%s force=%v since_last_ms=%d", activeWindowID, force, sinceLast.Milliseconds())
+		logEventVerbose("WIDTH_SYNC_SKIP reason=debounce active=%s force=%v since_last_ms=%d", activeWindowID, force, sinceLast.Milliseconds())
 		c.widthSyncMu.Unlock()
 		return nil
 	}
@@ -6221,7 +6221,7 @@ func (c *Coordinator) PlanWidthSync(activeWindowID string, force bool) []ResizeO
 
 		// If current width already matches the capped target, nothing to do.
 		if currentWidth == targetWidth {
-			logEvent("WIDTH_SYNC_SKIP_NOOP client=%s width=%d", clientID, currentWidth)
+			logEventVerbose("WIDTH_SYNC_SKIP_NOOP client=%s width=%d", clientID, currentWidth)
 			continue
 		}
 
@@ -6266,7 +6266,7 @@ func (c *Coordinator) PlanWidthSync(activeWindowID string, force bool) []ResizeO
 
 	elapsed := time.Since(start)
 	if len(ops) == 0 {
-		logEvent("WIDTH_SYNC_NOOP active=%s force=%v duration_ms=%d since_last_ms=%d", activeWindowID, force, elapsed.Milliseconds(), sinceLast.Milliseconds())
+		logEventVerbose("WIDTH_SYNC_NOOP active=%s force=%v duration_ms=%d since_last_ms=%d", activeWindowID, force, elapsed.Milliseconds(), sinceLast.Milliseconds())
 	} else {
 		logEvent("WIDTH_SYNC_EXEC active=%s force=%v ops=%d duration_ms=%d since_last_ms=%d", activeWindowID, force, len(ops), elapsed.Milliseconds(), sinceLast.Milliseconds())
 	}

@@ -183,7 +183,9 @@ func TestApplyDefaults_SidebarColors(t *testing.T) {
 		})
 	}
 
-	assert.Len(t, cfg.Sidebar.Colors.ActiveIndicatorFrames, 6)
+	// Static single-frame default: a multi-frame (blinking) default kept the
+	// animation ticker rendering the sidebar ~5x/sec even when idle.
+	assert.Equal(t, []string{"▶"}, cfg.Sidebar.Colors.ActiveIndicatorFrames)
 }
 
 func TestApplyDefaults_UserValuesNotOverwritten(t *testing.T) {

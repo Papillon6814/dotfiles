@@ -1,0 +1,42 @@
+#!/bin/bash
+# tabby-group-nav <next|prev>
+# Jump to the first window of the next/previous group.
+# Groups are defined by the @tabby_group window option (tabby's grouping model).
+# Group order matches the sidebar: "Default" first, then others alphabetically.
+set -u
+dir="${1:-next}"
+
+# Collect "index<TAB>group" for all windows (empty group -> Default)
+windows=$(tmux list-windows -F '#{window_index}	#{@tabby_group}')
+[ -z "$windows" ] && exit 0
+
+current_group=$(tmux display-message -p '#{@tabby_group}')
+[ -z "$current_group" ] && current_group="Default"
+
+# Unique group list: Default first (if present), then alphabetical
+all=$(awk -F'\t' '{g=($2==""?"Default":$2); if(!seen[g]++) print g}' <<<"$windows" | sort)
+if grep -qx 'Default' <<<"$all"; then
+  groups=$(printf 'Default\n'; grep -vx 'Default' <<<"$all")
+else
+  groups="$all"
+fi
+
+count=$(wc -l <<<"$groups" | tr -d ' ')
+[ "$count" -le 1 ] && exit 0
+
+# Position of current group (default to 1 if not found)
+pos=$(grep -nx -- "$current_group" <<<"$groups" | cut -d: -f1 | head -1)
+[ -z "$pos" ] && pos=1
+
+if [ "$dir" = "prev" ]; then
+  target_pos=$(( (pos - 2 + count) % count + 1 ))
+else
+  target_pos=$(( pos % count + 1 ))
+fi
+target_group=$(sed -n "${target_pos}p" <<<"$groups")
+
+# First (lowest-index) window in the target group
+target_index=$(awk -F'\t' -v g="$target_group" \
+  '{wg=($2==""?"Default":$2); if(wg==g){print $1; exit}}' <<<"$windows")
+
+[ -n "$target_index" ] && tmux select-window -t ":$target_index"

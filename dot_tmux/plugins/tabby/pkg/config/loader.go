@@ -354,12 +354,17 @@ func applyDefaults(cfg *Config) {
 		cfg.Sidebar.Colors.InactiveFg = "#f2f2ee"
 	}
 
-	// Active indicator animation: blink pattern (5 visible + 1 blank frame).
+	// Active indicator: static by default. A multi-frame (blinking) pattern
+	// forces HasActiveIndicatorAnimation() true forever, which keeps the
+	// 10Hz animation ticker doing a full sidebar re-render ~5x/sec even
+	// when the session is completely idle (constant ~3% CPU + log churn).
+	// Users who want the blink can configure e.g. ["▶","▶","▶","▶","▶"," "]
+	// explicitly and accept the always-on render loop.
 	// Only set if user hasn't configured frames at all — an empty YAML list
 	// (active_indicator_frames: []) is indistinguishable from missing, so
 	// this always fills the default when the slice is nil/empty.
 	if len(cfg.Sidebar.Colors.ActiveIndicatorFrames) == 0 {
-		cfg.Sidebar.Colors.ActiveIndicatorFrames = []string{"▶", "▶", "▶", "▶", "▶", " "}
+		cfg.Sidebar.Colors.ActiveIndicatorFrames = []string{"▶"}
 	}
 
 	// Disclosure icons
