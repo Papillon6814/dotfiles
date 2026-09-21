@@ -53,6 +53,11 @@ LICENSE
 .tmux/plugins/tabby/screenshots
 .tmux/plugins/tabby/.git
 
+# openclaw: この MacBook には入れていないので配らない（Mac mini など他のマシンには配る）
+{{ if eq .chezmoi.hostname "Soichiros-MacBook-Pro" }}
+.openclaw
+{{ end }}
+
 # openclaw: runtime / per-machine state (secrets, sessions, caches)
 .openclaw/.env
 .openclaw/agents
