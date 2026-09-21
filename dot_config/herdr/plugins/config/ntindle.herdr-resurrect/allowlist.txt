@@ -1,0 +1,25 @@
+# herdr-resurrect — 復元時に自動で再実行してよいプログラム（2026-09-22 に既定値から絞った）
+# 1行に1つ。パスと大文字小文字は無視して実行ファイル名で一致を見る。
+# 方針: 再実行しても副作用のない、見るだけ・編集するだけのものに限る。
+# 既定値にあった npm / pnpm / yarn / make / cargo / node / python / docker / kubectl / psql / ssh などは
+# 引数ごと再実行されると危ないので外している（例: npm run deploy、kubectl delete）。
+# dev サーバーを戻したいときは、実際に前面で動いているプログラム名（多くは node）を確認してから足すこと。
+
+# --- エディタ・ページャ ---
+vim
+nvim
+less
+tail
+bat
+
+# --- dev サーバー（単体コマンドとして起動した場合のみ一致する） ---
+vite
+next
+nodemon
+
+# --- モニター・TUI ---
+top
+htop
+btop
+watch
+lazygit

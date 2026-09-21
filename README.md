@@ -11,6 +11,8 @@
 | `~/.config/nvim` | Neovim（lazy.nvim 構成）|
 | `~/.config/ghostty` | Ghostty ターミナル |
 | `~/.config/zellij` | Zellij マルチプレクサ |
+| `~/.config/herdr` | herdr（エージェント向けマルチプレクサ）。`config.toml` とプラグイン個別設定。プラグイン本体は `install-plugins.sh` でコミット固定のまま再導入。ログ・ソケット・セッション・`plugins.json` は追跡しない |
+| `~/Library/Application Support/Muxy/ghostty.conf` | Muxy ターミナル。`command` 行で herdr を起動（Ghostty 側は tmux）。`settings.json` は Muxy が起動中に上書きするので追跡しない |
 | `~/.config/git`, `~/.config/karabiner`, `~/.config/iterm2` | 各種 |
 | `~/.pi/` | pi (pi-coding-agent) 設定一式（auth/cache は除外）|
 | `~/.claude/` | Claude Code グローバル設定（CLAUDE.md, rules, agents, hooks）|
