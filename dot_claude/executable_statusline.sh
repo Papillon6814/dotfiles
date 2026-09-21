@@ -11,6 +11,13 @@ PCT=$(echo "$INPUT" | jq -r '.context_window.used_percentage // 0')
 TOKENS=$(echo "$INPUT" | jq -r '.context_window.current_usage.input_tokens // 0')
 DURATION_MS=$(echo "$INPUT" | jq -r '.cost.total_duration_ms // 0')
 
+# ログイン中アカウント（設定ディレクトリの .claude.json から）
+EMAIL=$(jq -r '.oauthAccount.emailAddress // ""' "${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json" 2>/dev/null)
+EMAIL_FMT=""
+if [ -n "$EMAIL" ]; then
+  EMAIL_FMT="\033[36m${EMAIL}\033[0m "
+fi
+
 # Git ブランチ
 BRANCH=""
 if [ -n "$DIR" ] && [ -d "$DIR" ]; then
@@ -56,5 +63,5 @@ fi
 # ディレクトリ表示 (~ 短縮)
 DIR_DISPLAY="${DIR/#$HOME/~}"
 
-printf "[%s] %s ${COLOR}%s${RESET} %d%% | %s tokens | %s%s\n" \
+printf "[%s] ${EMAIL_FMT}%s ${COLOR}%s${RESET} %d%% | %s tokens | %s%s\n" \
   "$MODEL" "$DIR_DISPLAY" "$BAR" "$PCT" "$TOKEN_FMT" "$TIME_FMT" "$GIT_FMT"

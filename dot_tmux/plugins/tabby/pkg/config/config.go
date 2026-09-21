@@ -50,6 +50,10 @@ type BusyDetection struct {
 	ExtraIdle   []string `yaml:"extra_idle"`   // Additional commands to treat as idle (not busy)
 	AITools     []string `yaml:"ai_tools"`     // Interactive AI tools (busy when active, input when idle)
 	IdleTimeout int      `yaml:"idle_timeout"` // Seconds of no output before AI tool shows as "input needed" (default: 10)
+	// Seconds before a hook-set @tabby_busy with no title spinner is auto-cleared
+	// (0 = default 10, negative = never). Tools that keep an idle title while
+	// working (Claude Code fullscreen TUI) need this disabled.
+	HookStaleTimeout int `yaml:"hook_stale_timeout"`
 }
 
 type TerminalTitle struct {
@@ -64,6 +68,21 @@ type Widgets struct {
 	Session SessionWidget `yaml:"session"`
 	Stats   StatsWidget   `yaml:"stats"`
 	Claude  ClaudeWidget  `yaml:"claude"`
+	Agents  AgentsWidget  `yaml:"agents"`
+}
+
+// AgentsWidget lists every AI tool pane with its state, most urgent first
+type AgentsWidget struct {
+	Enabled    bool   `yaml:"enabled"`
+	Position   string `yaml:"position"`       // top | bottom
+	Priority   int    `yaml:"priority"`       // Order among widgets
+	Fg         string `yaml:"fg"`             // Text color
+	Divider    string `yaml:"divider"`        // Divider line above widget
+	DividerFg  string `yaml:"divider_fg"`     // Divider color
+	PaddingTop int    `yaml:"padding_top"`    // Blank lines above content
+	PaddingBot int    `yaml:"padding_bottom"` // Blank lines below content
+	MarginTop  int    `yaml:"margin_top"`     // Lines above top divider
+	MarginBot  int    `yaml:"margin_bottom"`  // Lines below bottom divider
 }
 
 // StatsWidget shows system stats (CPU, memory, battery)

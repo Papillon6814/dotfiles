@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.85.1",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-6",
+  "defaultModel": "claude-opus-4-7",
   "packages": [
     "npm:claude-agent-sdk-pi",
     "npm:pi-ask-user",
@@ -13,8 +13,11 @@
     "npm:pi-poly-notify",
     "npm:pi-plan-mode",
     "~/.my-pi",
-    "~/.my-pi/extensions/pi-interactive-subagents",
-    "../../Documents/Github/pi-claude-auth"
+    "../../Documents/Github/pi-claude-auth",
+    {
+      "source": "npm:@plannotator/pi-extension",
+      "skills": []
+    }
   ],
   "compaction": {
     "enabled": true
@@ -22,7 +25,7 @@
   "autocompleteMaxVisible": 5,
   "theme": "ansi-dark",
   "defaultThinkingLevel": "high",
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "quietStartup": true,
   "collapseChangelog": true,
   "treeFilterMode": "default",
@@ -39,6 +42,7 @@
     "openrouter/z-ai/glm-5.1",
     "openrouter/qwen/qwen3-coder",
     "openai/gpt-5.4",
-    "openai/gpt-5.4-pro"
+    "openai/gpt-5.4-pro",
+    "anthropic/claude-opus-4-7"
   ]
 }

@@ -1,2 +1,4 @@
 . "$HOME/.cargo/env"
-. "$HOME/.rokit/env"
+if [ -f "$HOME/.rokit/env" ]; then
+  . "$HOME/.rokit/env"
+fi
