@@ -2969,7 +2969,11 @@ func (c *Coordinator) processAIToolStates(preloaded *processTree) []tmuxSetOptio
 		}
 
 		// Staleness check for hook-based busy (window-level @tabby_busy)
-		if win.Busy {
+		staleAfter := int64(c.config.BusyDetection.HookStaleTimeout)
+		if staleAfter == 0 {
+			staleAfter = 10
+		}
+		if win.Busy && staleAfter > 0 {
 			anySpinner := false
 			for _, p := range aiPanes {
 				if tmux.HasSpinner(p.Title) {
@@ -2982,7 +2986,7 @@ func (c *Coordinator) processAIToolStates(preloaded *processTree) []tmuxSetOptio
 				if _, ok := c.hookPaneBusyIdleAt[stalePID]; !ok {
 					c.hookPaneBusyIdleAt[stalePID] = now
 					coordinatorDebugLog.Printf("[AI] Pane %s (win %d): hook says busy but no spinner, starting staleness timer", stalePID, idx)
-				} else if now-c.hookPaneBusyIdleAt[stalePID] > 10 {
+				} else if now-c.hookPaneBusyIdleAt[stalePID] > staleAfter {
 					idleSecs := now - c.hookPaneBusyIdleAt[stalePID]
 					coordinatorDebugLog.Printf("[AI] Pane %s (win %d): auto-clearing stale @tabby_busy (idle for %ds)", stalePID, idx, idleSecs)
 					logEvent("STALE_BUSY_CLEAR pane=%s window=%d idle_secs=%d", stalePID, idx, idleSecs)
@@ -9992,6 +9996,20 @@ func (c *Coordinator) collectWidgetEntries(width int, skipPet, skipDebugBar bool
 		})
 	}
 
+	// Agents widget
+	if c.config.Widgets.Agents.Enabled {
+		pos := c.config.Widgets.Agents.Position
+		if pos == "" {
+			pos = "bottom"
+		}
+		entries = append(entries, widgetEntry{
+			name:     "agents",
+			zone:     pos,
+			priority: c.config.Widgets.Agents.Priority,
+			content:  constrainWidgetWidth(c.renderAgentsWidget(width), width),
+		})
+	}
+
 	// On phone, the window-header button bar already provides prev/next navigation
 	// (with matching up/down arrows), so the sidebar's dedicated nav buttons would
 	// be redundant.
@@ -10426,6 +10444,177 @@ func (c *Coordinator) renderSessionWidget(width int) string {
 	}
 
 	for i := 0; i < sessionCfg.MarginBot; i++ {
+		result.WriteString("\n")
+	}
+
+	return result.String()
+}
+
+// Agent states in display order: the ones waiting on the user come first.
+const (
+	agentAsk = iota
+	agentDone
+	agentWorking
+	agentIdle
+)
+
+type agentRow struct {
+	state  int
+	window int
+	pane   int
+	label  string
+}
+
+// agentTitle returns the title an AI tool set on its pane, minus the leading
+// status glyph. Titles without that glyph (hostnames, shell defaults) say
+// nothing about the agent, so they yield "".
+func agentTitle(title string) string {
+	if !tmux.HasIdleIcon(title) && !tmux.HasSpinner(title) {
+		return ""
+	}
+	for i := range title {
+		if i > 0 {
+			return strings.TrimSpace(title[i:])
+		}
+	}
+	return ""
+}
+
+// collectAgentRows returns one row per AI tool pane, most urgent first.
+func (c *Coordinator) collectAgentRows() []agentRow {
+	var rows []agentRow
+	for i := range c.windows {
+		win := &c.windows[i]
+		var aiPanes []*tmux.Pane
+		for j := range win.Panes {
+			if !isAuxiliaryPane(win.Panes[j]) && tmux.IsAITool(win.Panes[j].Command) {
+				aiPanes = append(aiPanes, &win.Panes[j])
+			}
+		}
+
+		for _, p := range aiPanes {
+			name := agentTitle(p.Title)
+			if name == "" {
+				name = win.AITitle
+			}
+			if name == "" {
+				name = win.Name
+			}
+			label := fmt.Sprintf("%d:%s", win.Index, name)
+			if len(aiPanes) > 1 {
+				label = fmt.Sprintf("%d.%d:%s", win.Index, p.Index, name)
+			}
+
+			state := agentIdle
+			switch {
+			case p.AIBusy:
+				state = agentWorking
+			case p.AIInput:
+				state = agentAsk
+			case p.AIDone || win.Bell:
+				state = agentDone
+			}
+			rows = append(rows, agentRow{state: state, window: win.Index, pane: p.Index, label: label})
+		}
+	}
+
+	sort.SliceStable(rows, func(a, b int) bool {
+		if rows[a].state != rows[b].state {
+			return rows[a].state < rows[b].state
+		}
+		if rows[a].window != rows[b].window {
+			return rows[a].window < rows[b].window
+		}
+		return rows[a].pane < rows[b].pane
+	})
+	return rows
+}
+
+// renderAgentsWidget lists every AI tool pane with its state
+func (c *Coordinator) renderAgentsWidget(width int) string {
+	agentsCfg := c.config.Widgets.Agents
+	if !agentsCfg.Enabled {
+		return ""
+	}
+	rows := c.collectAgentRows()
+	if len(rows) == 0 {
+		return ""
+	}
+
+	var result strings.Builder
+
+	for i := 0; i < agentsCfg.MarginTop; i++ {
+		result.WriteString("\n")
+	}
+
+	divider := agentsCfg.Divider
+	if divider == "" {
+		divider = "─"
+	}
+	dividerStyle := lipgloss.NewStyle()
+	if dividerFg := c.getInactiveTextColorWithFallback(agentsCfg.DividerFg); dividerFg != "" {
+		dividerStyle = dividerStyle.Foreground(lipgloss.Color(dividerFg))
+	}
+	if dividerWidth := lipgloss.Width(divider); dividerWidth > 0 {
+		result.WriteString(dividerStyle.Render(strings.Repeat(divider, width/dividerWidth)) + "\n")
+	}
+
+	for i := 0; i < agentsCfg.PaddingTop; i++ {
+		result.WriteString("\n")
+	}
+
+	textStyle := lipgloss.NewStyle()
+	if fg := c.getInactiveTextColorWithFallback(agentsCfg.Fg); fg != "" {
+		textStyle = textStyle.Foreground(lipgloss.Color(fg))
+	}
+	indicatorStyle := func(ind config.Indicator) lipgloss.Style {
+		s := lipgloss.NewStyle()
+		if ind.Color != "" {
+			s = s.Foreground(lipgloss.Color(ind.Color))
+		}
+		if ind.Bg != "" {
+			s = s.Background(lipgloss.Color(ind.Bg))
+		}
+		return s
+	}
+
+	result.WriteString(textStyle.Bold(true).Render(fmt.Sprintf("AGENTS %d", len(rows))) + "\n")
+
+	ind := c.config.Indicators
+	frame := c.getSlowSpinnerFrame()
+	for _, row := range rows {
+		var icon string
+		switch row.state {
+		case agentWorking:
+			frames := c.getBusyFrames()
+			icon = indicatorStyle(ind.Busy).Render(frames[frame%len(frames)])
+		case agentAsk:
+			glyph := ind.Input.Icon
+			if glyph == "" {
+				glyph = "?"
+			}
+			if len(ind.Input.Frames) > 0 {
+				glyph = ind.Input.Frames[frame%len(ind.Input.Frames)]
+			}
+			icon = indicatorStyle(ind.Input).Render(glyph)
+		case agentDone:
+			icon = indicatorStyle(ind.Bell).Render(c.getIndicatorIcon(ind.Bell))
+		default:
+			icon = textStyle.Render("·")
+		}
+
+		labelWidth := width - lipgloss.Width(icon) - 1
+		if labelWidth < 1 {
+			labelWidth = 1
+		}
+		label := runewidth.Truncate(row.label, labelWidth, "~")
+		result.WriteString(icon + " " + textStyle.Render(label) + "\n")
+	}
+
+	for i := 0; i < agentsCfg.PaddingBot; i++ {
+		result.WriteString("\n")
+	}
+	for i := 0; i < agentsCfg.MarginBot; i++ {
 		result.WriteString("\n")
 	}
 

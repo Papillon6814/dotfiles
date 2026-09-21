@@ -647,6 +647,7 @@ The sidebar hosts pinnable widgets below the window list. Enable and configure p
 | `git` | off | Branch, dirty/clean, ahead/behind, stash count for the active pane's cwd |
 | `session` | off | Current tmux session, client, and window count |
 | `claude` | off | Claude Code usage for today / week / month / total, read from the sqlite history DB |
+| `agents` | off | Every AI tool pane with its state, ordered ask → done → working → idle. Hidden while no AI tool is running |
 
 Each widget supports `pin`, `priority` (render order), `position: top|bottom`, padding, margins, dividers, and per-field colors. See `config.yaml` for the full schema.
 

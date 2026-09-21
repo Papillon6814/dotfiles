@@ -67,14 +67,12 @@
       "Bash(openclaw *)",
       "mcp__blender__*",
       "mcp__claude-in-chrome__*",
-      "mcp__claude_ai_Notion__*",
       "WebFetch",
       "WebSearch",
       "Read",
       "Edit(~/Documents/**)",
       "Edit(~/Downloads/**)",
-      "Write(~/Documents/**)",
-      "Write(~/Downloads/**)"
+      "mcp__zvec_grep__*"
     ],
     "deny": [
       "Bash(rm -rf *)",
@@ -85,8 +83,22 @@
       "Bash(git clean -f *)",
       "Bash(chmod -R 777 *)",
       "Bash(> *)"
+    ],
+    "ask": [
+      "Bash(gog gmail send *)",
+      "Bash(gog gmail drafts send *)",
+      "Bash(gog gmail forward *)",
+      "Bash(gog gmail autoreply *)",
+      "mcp__gmail__send_email",
+      "mcp__mcp-gsuite__reply_gmail_email"
     ]
   },
+  "model": "claude-fable-5-1[1m]",
+  "deniedMcpServers": [
+    {
+      "serverName": "claude_ai_Notion"
+    }
+  ],
   "hooks": {
     "Notification": [
       {
@@ -95,6 +107,98 @@
             "type": "command",
             "command": "/bin/bash ~/.claude/hooks/notify.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh notify",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' notification # muxy-notification-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' permission-request # muxy-notification-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh tool-done",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); if printf '%s' \"$cmd\" | grep -qE 'gog[[:space:]]+(gmail|mail|email)[[:space:]]+((draft|drafts)[[:space:]]+(send|post)|send|forward|fwd|autoreply)([[:space:]]|$)'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"メール送信は明示的なユーザー許可が必要（厳格ルール 2026-08-17）\"}}'; fi",
+            "if": "Bash(gog *)",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh ask",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' pre-tool-use # muxy-notification-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh end",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' session-end # muxy-notification-hook",
+            "timeout": 10
           }
         ]
       }
@@ -106,6 +210,42 @@
             "type": "command",
             "command": "/bin/bash ~/.claude/hooks/notify.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh stop",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' stop # muxy-notification-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh stop",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' stop-failure # muxy-notification-hook",
+            "timeout": 10
           }
         ]
       }
@@ -120,17 +260,82 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh prompt",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' user-prompt-submit # muxy-notification-hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/papillon/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "^(startup|resume|clear|compact)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh ~/.claude/hooks/herdr-session-context.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
+    "command": "HERDR_PLUGIN_STATE_DIR='/Users/papillon/.local/state/herdr/plugins/herdr-agent-quota' '/Users/papillon/.config/herdr/plugins/github/herdr-agent-quota-651432b09361/target/release/herdr-agent-quota' claude-statusline",
+    "refreshInterval": 60
   },
   "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "Notion@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true
+    "slack@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "basicslide@basicslide": true
   },
-  "effortLevel": "medium",
-  "skipDangerousModePermissionPrompt": true
+  "extraKnownMarketplaces": {
+    "basicslide": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/khaym/basicslide.git"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-fable-5-1": {
+      "effortLevel": "medium"
+    }
+  },
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark",
+  "agentPushNotifEnabled": true
 }

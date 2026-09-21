@@ -322,6 +322,17 @@ widgets:
         padding_bottom: 0
         margin_top: 0
         margin_bottom: 0
+    agents:
+        enabled: true
+        position: bottom
+        priority: 50
+        fg: ""
+        divider: ""
+        divider_fg: '#313244'
+        padding_top: 0
+        padding_bottom: 0
+        margin_top: 1
+        margin_bottom: 0
 busy_detection:
     extra_idle: []
     ai_tools:
@@ -334,6 +345,7 @@ busy_detection:
         - copilot
         - node
     idle_timeout: 10
+    hook_stale_timeout: -1
 terminal_title:
     enabled: false
     format: ""

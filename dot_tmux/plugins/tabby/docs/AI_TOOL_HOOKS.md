@@ -48,6 +48,12 @@ Common semantic states:
 - `question` => `busy 0` then `input 1`
 - `done` => `busy 0` then `input 1` (or `bell 1` for completion alert)
 
+A hook-set `busy` is auto-cleared after 10s when no AI pane shows a braille
+spinner in its title, as a safety net for a missed stop hook. Claude Code's
+fullscreen TUI keeps the idle `✳` title while it works, so that safety net
+wipes the indicator mid-turn. Set `busy_detection.hook_stale_timeout: -1` to
+trust the hooks instead (any positive value changes the timeout in seconds).
+
 ### Event Mapping
 
 Every AI tool has slightly different event names, but they map to the same
