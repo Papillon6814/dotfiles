@@ -50,7 +50,7 @@ def read_package_json(directory):
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        print("警告: package.json を読み取れません: {}".format(error), file=sys.stderr)
+        print("Warning: could not read package.json: {}".format(error), file=sys.stderr)
         return {}
     return data if isinstance(data, dict) else {}
 
@@ -116,34 +116,28 @@ def default_answers(directory, package):
     }
 
 
-def ask_text(step, emoji, label, question, default=""):
+def ask_text(step, emoji, label, question, default="", display_default=None):
     print("\n{} {}/{} {}".format(emoji, step, WIZARD_STEPS, label))
     print("  ? {}".format(question))
-    hint = "Enter = {}".format(default) if default else "Enter = スキップ"
-    try:
-        answer = input("  > [{}] ".format(hint)).strip()
-    except EOFError:
-        raise
+    shown_default = default if display_default is None else display_default
+    hint = "Enter = {}".format(shown_default) if shown_default else "Enter to skip"
+    answer = input("  > [{}] ".format(hint)).strip()
     return safe_text(answer) or default
 
 
 def ask_choice(step, emoji, label, question, choices, default_index=0):
     print("\n{} {}/{} {}".format(emoji, step, WIZARD_STEPS, label))
     print("  ? {}".format(question))
-    for index, choice in enumerate(choices, start=1):
+    for index, (choice_label, _) in enumerate(choices, start=1):
         marker = "●" if index - 1 == default_index else "○"
-        print("    {} {}) {}".format(marker, index, choice))
+        print("    {} {}) {}".format(marker, index, choice_label))
     while True:
-        try:
-            answer = input("  > [Enter = {}] ".format(default_index + 1)).strip()
-        except EOFError:
-            raise
+        answer = input("  > [Enter = {}] ".format(default_index + 1)).strip()
         if not answer:
-            return choices[default_index]
+            return choices[default_index][1]
         if answer.isdigit() and 1 <= int(answer) <= len(choices):
-            return choices[int(answer) - 1]
-        print("    番号で選んでください。")
-
+            return choices[int(answer) - 1][1]
+        print("    Please enter one of the listed numbers.")
 
 def parse_commands(value):
     normalized = safe_text(value)
@@ -154,77 +148,91 @@ def parse_commands(value):
 
 def run_wizard(directory, package):
     defaults = default_answers(directory, package)
+    detected_stack = defaults["stacks"]
+    shown_stack = "Not detected" if detected_stack == "未検出" else detected_stack
     print("\n╭─ 🤖 ai-init")
-    print("│ AI 向けの基本設定を一緒に作ります。Enter で検出値・おすすめを使えます。")
+    print("│ Let's create your AI project instructions.")
+    print("│ Press Enter to accept detected values or recommendations.")
     print("╰──────────────────────────")
 
     description = ask_text(
-        1,
-        "✨",
-        "プロジェクト概要",
-        "何を作るプロジェクトですか？",
+        1, "✨", "Project overview", "What are you building?"
     )
-    detected_stack = defaults["stacks"]
-    print("  🔎 自動検出: {}".format(detected_stack))
+    print("  🔎 Detected: {}".format(shown_stack))
     stacks = ask_text(
         2,
         "🧩",
-        "技術スタック",
-        "追加・修正があれば入力してください（カンマ区切り）。",
+        "Tech stack",
+        "Add or adjust the detected stack (comma-separated).",
         detected_stack,
+        shown_stack,
     )
     detected_commands = ", ".join(defaults["commands"])
     commands_answer = ask_text(
         3,
         "🛠️",
-        "開発コマンド",
-        "AI に使ってほしいコマンドを入力してください（カンマ区切り、なしにする場合は「なし」）。",
+        "Development commands",
+        "Which commands should the AI use? Separate multiple commands with commas; type none to clear.",
         detected_commands,
     )
     response_language = ask_choice(
         4,
         "💬",
-        "返答の言語",
-        "AI の返答はどの言語にしますか？",
-        ("日本語", "英語", "ユーザーの言語に合わせる"),
+        "Response language",
+        "Which language should the AI use in its replies?",
+        (
+            ("Japanese", "日本語"),
+            ("English", "英語"),
+            ("Match the user's language", "ユーザーの言語に合わせる"),
+        ),
         0,
     )
     focus = ask_text(
         5,
         "🎯",
-        "AI に期待すること",
-        "特に優先してほしい作業や品質はありますか？",
+        "AI priorities",
+        "What should the AI focus on?",
         defaults["focus"],
+        "Implementation, bug fixes, and maintainability",
     )
     testing_policy = ask_choice(
         6,
         "🧪",
-        "テスト・検証",
-        "テストや検証はどのように進めますか？",
+        "Testing and verification",
+        "How should the AI handle tests and checks?",
         (
-            "変更に合わせて適切なテスト・検証を行う",
-            "実行前に確認する",
-            "ユーザーが依頼した場合のみ実行する",
+            (
+                "Run relevant tests and checks for each change",
+                "変更に合わせて適切なテスト・検証を行う",
+            ),
+            ("Ask before running them", "実行前に確認する"),
+            (
+                "Run tests only when explicitly requested",
+                "ユーザーが依頼した場合のみ実行する",
+            ),
         ),
         2,
     )
     git_workflow = ask_choice(
         7,
         "🌿",
-        "Git の進め方",
-        "ブランチや worktree の方針は？",
+        "Git workflow",
+        "How should the AI handle branches and worktrees?",
         (
-            "既存ルールを優先し、未定義なら feature branch + worktree を使う",
-            "現在のブランチで作業する",
-            "着手前に方針を確認する",
+            (
+                "Follow existing rules; otherwise use a feature branch and worktree",
+                "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+            ),
+            ("Work on the current branch", "現在のブランチで作業する"),
+            ("Ask me before choosing a workflow", "着手前に方針を確認する"),
         ),
         0,
     )
     additional_rules = ask_text(
         8,
         "📝",
-        "追加ルール",
-        "ほかに守ってほしいことはありますか？",
+        "Additional instructions",
+        "Anything else the AI should follow?",
     )
 
     answers = {
@@ -232,16 +240,15 @@ def run_wizard(directory, package):
         "stacks": stacks,
         "commands": parse_commands(commands_answer),
         "response_language": response_language,
-        "focus": focus,
+        "focus": focus or defaults["focus"],
         "testing_policy": testing_policy,
         "git_workflow": git_workflow,
         "additional_rules": additional_rules,
     }
-    print("\n✅ 回答をまとめました")
+    print("\n✅ Answers recorded.")
     print("  📦 {}".format(description or project_name(directory, package)))
-    print("  🧩 {}".format(stacks))
-    print("  💬 {}".format(response_language))
-    print("  🧪 {}".format(testing_policy))
+    print("  🧩 {}".format("Not detected" if stacks == "未検出" else stacks))
+    print("  💬 Language, testing, and Git preferences saved.")
     return answers
 
 
@@ -306,19 +313,19 @@ def preview(path, content):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="既存リポジトリに個人用 AI 指示ファイルを作成します。"
+        description="Create personal AI instruction files in an existing repository."
     )
     parser.add_argument(
         "path",
         nargs="?",
         default=".",
-        help="対象のリポジトリまたはディレクトリ（省略時: カレントディレクトリ）",
+        help="Target repository or directory (default: current directory)",
     )
     parser.add_argument(
         "--yes",
         "-y",
         action="store_true",
-        help="質問と確認を省略し、自動検出値でファイルを作成",
+        help="Skip questions and final confirmation; use detected defaults",
     )
     args = parser.parse_args()
 
@@ -329,12 +336,12 @@ def main():
     target = find_repo_root(target)
     if target == requested_target and not (target / ".git").exists():
         print(
-            "警告: Git ルートが見つからないため、このディレクトリを対象にします: {}".format(target),
+            "Warning: no Git root found; using this directory: {}".format(target),
             file=sys.stderr,
         )
 
     package = read_package_json(target)
-    print("対象: {}".format(target))
+    print("Target: {}".format(target))
     claude_file = target / "CLAUDE.md"
     if claude_file.is_file():
         try:
@@ -343,8 +350,8 @@ def main():
             claude_instructions = ""
         if "@AGENTS.md" not in claude_instructions:
             print(
-                "注意: 既存の CLAUDE.md は変更しません。共通指示を読み込むには "
-                "@AGENTS.md を追記してください。",
+                "Note: existing CLAUDE.md will not be changed. Add "
+                "@AGENTS.md to include the shared instructions.",
                 file=sys.stderr,
             )
 
@@ -354,19 +361,22 @@ def main():
         if not (target / filename).exists()
     ]
     if not missing:
-        print("AGENTS.md と CLAUDE.md は作成済みです。変更しませんでした。")
+        print("AGENTS.md and CLAUDE.md already exist. No files were changed.")
         return 0
 
     if args.yes:
         answers = default_answers(target, package)
     else:
         if not sys.stdin.isatty():
-            print("対話実行には端末が必要です。自動設定する場合は --yes を指定してください。", file=sys.stderr)
+            print(
+                "Interactive setup requires a terminal. Use --yes to create files with detected defaults.",
+                file=sys.stderr,
+            )
             return 2
         try:
             answers = run_wizard(target, package)
         except (EOFError, KeyboardInterrupt):
-            print("\nウィザードを中断しました。ファイルは作成しませんでした。")
+            print("\nWizard cancelled. No files were created.")
             return 130
 
     files = {
@@ -376,17 +386,17 @@ def main():
     pending = [(target / name, content) for name, content in files.items()]
     pending = [(path, content) for path, content in pending if not path.exists()]
 
-    print("\n作成予定（既存ファイルは上書きしません）:")
+    print("\nFiles to create (existing files will not be overwritten):")
     for path, content in pending:
         preview(path, content)
 
     if not args.yes:
         try:
-            answer = input("\nこの内容で作成しますか？ [y/N] ").strip().lower()
+            answer = input("\nCreate these files? [y/N] ").strip().lower()
         except EOFError:
             answer = ""
         if answer not in {"y", "yes"}:
-            print("ファイルは作成しませんでした。")
+            print("No files were created.")
             return 0
 
     for path, content in pending:
@@ -394,12 +404,12 @@ def main():
             with path.open("x", encoding="utf-8") as output:
                 output.write(content)
         except FileExistsError:
-            print("作成をスキップ（確認中に作成済み）: {}".format(path.name))
+            print("Skipped (created while confirming): {}".format(path.name))
         except OSError as error:
-            print("{} を作成できません: {}".format(path.name, error), file=sys.stderr)
+            print("Could not create {}: {}".format(path.name, error), file=sys.stderr)
             return 1
         else:
-            print("作成しました: {}".format(path.name))
+            print("Created: {}".format(path.name))
     return 0
 
 

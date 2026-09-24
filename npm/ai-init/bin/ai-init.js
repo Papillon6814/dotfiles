@@ -60,7 +60,7 @@ function readPackageJson(directory) {
     const data = JSON.parse(fs.readFileSync(filename, "utf8"));
     return data && typeof data === "object" && !Array.isArray(data) ? data : {};
   } catch (error) {
-    console.error("警告: package.json を読み取れません: " + error.message);
+    console.error("Warning: could not read package.json: " + error.message);
     return {};
   }
 }
@@ -151,32 +151,40 @@ function createInputReader() {
   return { ask, close: () => interface_.close() };
 }
 
-async function askText(reader, step, emoji, label, question, defaultValue = "") {
+async function askText(
+  reader,
+  step,
+  emoji,
+  label,
+  question,
+  defaultValue = "",
+  displayDefault = defaultValue,
+) {
   console.log("\n" + emoji + " " + step + "/" + WIZARD_STEPS + " " + label);
   console.log("  ? " + question);
-  const hint = defaultValue ? "Enter = " + defaultValue : "Enter = スキップ";
+  const hint = displayDefault ? "Enter = " + displayDefault : "Enter to skip";
   const answer = await reader.ask("  > [" + hint + "] ");
-  if (answer === null) throw new Error("入力が終了しました。");
+  if (answer === null) throw new Error("Input ended.");
   return safeText(answer) || defaultValue;
 }
 
 async function askChoice(reader, step, emoji, label, question, choices, defaultIndex = 0) {
   console.log("\n" + emoji + " " + step + "/" + WIZARD_STEPS + " " + label);
   console.log("  ? " + question);
-  choices.forEach((choice, index) => {
+  choices.forEach(([label], index) => {
     const marker = index === defaultIndex ? "●" : "○";
-    console.log("    " + marker + " " + (index + 1) + ") " + choice);
+    console.log("    " + marker + " " + (index + 1) + ") " + label);
   });
   while (true) {
     const answer = await reader.ask("  > [Enter = " + (defaultIndex + 1) + "] ");
-    if (answer === null) throw new Error("入力が終了しました。");
+    if (answer === null) throw new Error("Input ended.");
     const selected = answer.trim();
-    if (!selected) return choices[defaultIndex];
+    if (!selected) return choices[defaultIndex][1];
     if (/^[0-9]+$/.test(selected)) {
       const index = Number(selected) - 1;
-      if (index >= 0 && index < choices.length) return choices[index];
+      if (index >= 0 && index < choices.length) return choices[index][1];
     }
-    console.log("    番号で選んでください。");
+    console.log("    Please enter one of the listed numbers.");
   }
 }
 
@@ -188,64 +196,78 @@ function parseCommands(value) {
 
 async function runWizard(directory, packageData) {
   const defaults = defaultAnswers(directory, packageData);
+  const displayedStack = defaults.stacks === "未検出" ? "Not detected" : defaults.stacks;
   const reader = createInputReader();
   try {
     console.log("\n╭─ 🤖 ai-init");
-    console.log("│ AI 向けの基本設定を一緒に作ります。Enter で検出値・おすすめを使えます。");
+    console.log("│ Let's create your AI project instructions.");
+    console.log("│ Press Enter to accept detected values or recommendations.");
     console.log("╰──────────────────────────");
 
     const description = await askText(
       reader,
       1,
       "✨",
-      "プロジェクト概要",
-      "何を作るプロジェクトですか？",
+      "Project overview",
+      "What are you building?",
     );
-    console.log("  🔎 自動検出: " + defaults.stacks);
+    console.log("  🔎 Detected: " + displayedStack);
     const stacks = await askText(
       reader,
       2,
       "🧩",
-      "技術スタック",
-      "追加・修正があれば入力してください（カンマ区切り）。",
+      "Tech stack",
+      "Add or adjust the detected stack (comma-separated).",
       defaults.stacks,
+      displayedStack,
     );
     const detectedCommands = defaults.commands.join(", ");
     const commandsAnswer = await askText(
       reader,
       3,
       "🛠️",
-      "開発コマンド",
-      "AI に使ってほしいコマンドを入力してください（カンマ区切り、なしにする場合は「なし」）。",
+      "Development commands",
+      "Which commands should the AI use? Separate multiple commands with commas; type none to clear.",
       detectedCommands,
     );
     const responseLanguage = await askChoice(
       reader,
       4,
       "💬",
-      "返答の言語",
-      "AI の返答はどの言語にしますか？",
-      ["日本語", "英語", "ユーザーの言語に合わせる"],
+      "Response language",
+      "Which language should the AI use in its replies?",
+      [
+        ["Japanese", "日本語"],
+        ["English", "英語"],
+        ["Match the user's language", "ユーザーの言語に合わせる"],
+      ],
       0,
     );
     const focus = await askText(
       reader,
       5,
       "🎯",
-      "AI に期待すること",
-      "特に優先してほしい作業や品質はありますか？",
+      "AI priorities",
+      "What should the AI focus on?",
       defaults.focus,
+      "Implementation, bug fixes, and maintainability",
     );
     const testingPolicy = await askChoice(
       reader,
       6,
       "🧪",
-      "テスト・検証",
-      "テストや検証はどのように進めますか？",
+      "Testing and verification",
+      "How should the AI handle tests and checks?",
       [
-        "変更に合わせて適切なテスト・検証を行う",
-        "実行前に確認する",
-        "ユーザーが依頼した場合のみ実行する",
+        [
+          "Run relevant tests and checks for each change",
+          "変更に合わせて適切なテスト・検証を行う",
+        ],
+        ["Ask before running them", "実行前に確認する"],
+        [
+          "Run tests only when explicitly requested",
+          "ユーザーが依頼した場合のみテストを実行する",
+        ],
       ],
       2,
     );
@@ -253,12 +275,15 @@ async function runWizard(directory, packageData) {
       reader,
       7,
       "🌿",
-      "Git の進め方",
-      "ブランチや worktree の方針は？",
+      "Git workflow",
+      "How should the AI handle branches and worktrees?",
       [
-        "既存ルールを優先し、未定義なら feature branch + worktree を使う",
-        "現在のブランチで作業する",
-        "着手前に方針を確認する",
+        [
+          "Follow existing rules; otherwise use a feature branch and worktree",
+          "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+        ],
+        ["Work on the current branch", "現在のブランチで作業する"],
+        ["Ask me before choosing a workflow", "着手前に方針を確認する"],
       ],
       0,
     );
@@ -266,8 +291,8 @@ async function runWizard(directory, packageData) {
       reader,
       8,
       "📝",
-      "追加ルール",
-      "ほかに守ってほしいことはありますか？",
+      "Additional instructions",
+      "Anything else the AI should follow?",
     );
 
     const answers = {
@@ -280,11 +305,10 @@ async function runWizard(directory, packageData) {
       gitWorkflow,
       additionalRules,
     };
-    console.log("\n✅ 回答をまとめました");
+    console.log("\n✅ Answers recorded.");
     console.log("  📦 " + (description || projectName(directory, packageData)));
-    console.log("  🧩 " + stacks);
-    console.log("  💬 " + responseLanguage);
-    console.log("  🧪 " + testingPolicy);
+    console.log("  🧩 " + (stacks === "未検出" ? "Not detected" : stacks));
+    console.log("  💬 Language, testing, and Git preferences saved.");
     return answers;
   } finally {
     reader.close();
@@ -345,12 +369,12 @@ function parseArguments(argv) {
     } else if (argument === "--yes" || argument === "-y") {
       parsed.yes = true;
     } else if (argument.startsWith("-")) {
-      throw new Error("不明なオプション: " + argument);
+      throw new Error("Unknown option: " + argument);
     } else if (!selectedPath) {
       parsed.path = argument;
       selectedPath = true;
     } else {
-      throw new Error("対象のディレクトリは1つだけ指定できます。");
+      throw new Error("Only one target directory can be specified.");
     }
   }
   return parsed;
@@ -358,14 +382,14 @@ function parseArguments(argv) {
 
 function usage() {
   return [
-    "使い方: ai-init [path] [--yes]",
+    "Usage: ai-init [path] [--yes]",
     "",
-    "質問形式で既存リポジトリの AGENTS.md と CLAUDE.md を作成します。",
+    "Create AGENTS.md and CLAUDE.md in an existing repository with an interactive wizard.",
     "",
-    "引数:",
-    "  path       対象のリポジトリまたはディレクトリ（省略時: カレントディレクトリ）",
-    "  --yes, -y  質問と確認を省略し、自動検出値でファイルを作成",
-    "  --help     このヘルプを表示",
+    "Arguments:",
+    "  path       Target repository or directory (default: current directory)",
+    "  --yes, -y  Skip questions and confirmation; use detected defaults",
+    "  --help     Show this help",
     "",
   ].join("\n");
 }
@@ -400,11 +424,11 @@ async function main() {
     return 2;
   }
   if (target === requestedTarget && !isFileOrDirectory(path.join(target, ".git"))) {
-    console.error("警告: Git ルートが見つからないため、このディレクトリを対象にします: " + target);
+    console.error("Warning: no Git root found; using this directory: " + target);
   }
 
   const packageData = readPackageJson(target);
-  console.log("対象: " + target);
+  console.log("Target: " + target);
   const claudeFile = path.join(target, "CLAUDE.md");
   if (fs.existsSync(claudeFile)) {
     let claudeInstructions = "";
@@ -415,7 +439,7 @@ async function main() {
     }
     if (!claudeInstructions.includes("@AGENTS.md")) {
       console.error(
-        "注意: 既存の CLAUDE.md は変更しません。共通指示を読み込むには @AGENTS.md を追記してください。",
+        "Note: existing CLAUDE.md will not be changed. Add @AGENTS.md to include the shared instructions.",
       );
     }
   }
@@ -424,7 +448,7 @@ async function main() {
     (name) => !fs.existsSync(path.join(target, name)),
   );
   if (!missing.length) {
-    console.log("AGENTS.md と CLAUDE.md は作成済みです。変更しませんでした。");
+    console.log("AGENTS.md and CLAUDE.md already exist. No files were changed.");
     return 0;
   }
 
@@ -433,13 +457,13 @@ async function main() {
     answers = defaultAnswers(target, packageData);
   } else {
     if (!process.stdin.isTTY) {
-      console.error("対話実行には端末が必要です。自動設定する場合は --yes を指定してください。");
+      console.error("Interactive setup requires a terminal. Use --yes to create files with detected defaults.");
       return 2;
     }
     try {
       answers = await runWizard(target, packageData);
     } catch (error) {
-      console.error("\nウィザードを中断しました: " + error.message);
+      console.error("\nWizard cancelled: " + error.message);
       return 130;
     }
   }
@@ -452,7 +476,7 @@ async function main() {
     .filter(([name]) => !fs.existsSync(path.join(target, name)))
     .map(([name, content]) => [path.join(target, name), content]);
 
-  console.log("\n作成予定（既存ファイルは上書きしません）:");
+  console.log("\nFiles to create (existing files will not be overwritten):");
   for (const [filename, content] of pending) showPreview(filename, content);
 
   if (!args.yes) {
@@ -468,10 +492,10 @@ async function main() {
       };
       interface_.once("line", finish);
       interface_.once("close", () => resolve(""));
-      process.stdout.write("\nこの内容で作成しますか？ [y/N] ");
+      process.stdout.write("\nCreate these files? [y/N] ");
     });
     if (!["y", "yes"].includes(answer.trim().toLowerCase())) {
-      console.log("ファイルは作成しませんでした。");
+      console.log("No files were created.");
       return 0;
     }
   }
@@ -479,12 +503,12 @@ async function main() {
   for (const [filename, content] of pending) {
     try {
       fs.writeFileSync(filename, content, { encoding: "utf8", flag: "wx" });
-      console.log("作成しました: " + path.basename(filename));
+      console.log("Created: " + path.basename(filename));
     } catch (error) {
       if (error.code === "EEXIST") {
-        console.log("作成をスキップ（確認中に作成済み）: " + path.basename(filename));
+        console.log("Skipped (created while confirming): " + path.basename(filename));
       } else {
-        console.error(path.basename(filename) + " を作成できません: " + error.message);
+        console.error("Could not create " + path.basename(filename) + ": " + error.message);
         return 1;
       }
     }
