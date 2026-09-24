@@ -26,12 +26,14 @@ NODE_LOCKFILES = (
     ("bun.lockb", "bun"),
     ("package-lock.json", "npm"),
 )
+INLINE = chr(96)
+WIZARD_STEPS = 8
 
 
 def safe_text(value):
     if value is None:
         return ""
-    return re.sub(r"[\r\n\t]+", " ", str(value)).replace("`", "'").strip()
+    return re.sub(r"[\r\n\t]+", " ", str(value)).replace(INLINE, "'").strip()
 
 
 def find_repo_root(directory):
@@ -100,34 +102,198 @@ def project_commands(directory, package):
     return commands
 
 
-def render_agents(directory, package):
-    name = project_name(directory, package)
+def default_answers(directory, package):
     stacks = detected_stacks(directory)
-    stack_line = ", ".join(stacks) if stacks else "未検出（必要に応じて追記）"
-    commands = project_commands(directory, package)
-    command_lines = "\n".join("- `{}`".format(command) for command in commands)
+    return {
+        "description": "",
+        "stacks": ", ".join(stacks) if stacks else "未検出",
+        "commands": project_commands(directory, package),
+        "response_language": "日本語",
+        "focus": "機能実装、バグ修正、保守性を重視",
+        "testing_policy": "ユーザーが依頼した場合のみテストを実行する",
+        "git_workflow": "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+        "additional_rules": "",
+    }
+
+
+def ask_text(step, emoji, label, question, default=""):
+    print("\n{} {}/{} {}".format(emoji, step, WIZARD_STEPS, label))
+    print("  ? {}".format(question))
+    hint = "Enter = {}".format(default) if default else "Enter = スキップ"
+    try:
+        answer = input("  > [{}] ".format(hint)).strip()
+    except EOFError:
+        raise
+    return safe_text(answer) or default
+
+
+def ask_choice(step, emoji, label, question, choices, default_index=0):
+    print("\n{} {}/{} {}".format(emoji, step, WIZARD_STEPS, label))
+    print("  ? {}".format(question))
+    for index, choice in enumerate(choices, start=1):
+        marker = "●" if index - 1 == default_index else "○"
+        print("    {} {}) {}".format(marker, index, choice))
+    while True:
+        try:
+            answer = input("  > [Enter = {}] ".format(default_index + 1)).strip()
+        except EOFError:
+            raise
+        if not answer:
+            return choices[default_index]
+        if answer.isdigit() and 1 <= int(answer) <= len(choices):
+            return choices[int(answer) - 1]
+        print("    番号で選んでください。")
+
+
+def parse_commands(value):
+    normalized = safe_text(value)
+    if normalized.lower() in {"", "none", "なし", "-"}:
+        return []
+    return [command.strip() for command in normalized.split(",") if command.strip()]
+
+
+def run_wizard(directory, package):
+    defaults = default_answers(directory, package)
+    print("\n╭─ 🤖 ai-init")
+    print("│ AI 向けの基本設定を一緒に作ります。Enter で検出値・おすすめを使えます。")
+    print("╰──────────────────────────")
+
+    description = ask_text(
+        1,
+        "✨",
+        "プロジェクト概要",
+        "何を作るプロジェクトですか？",
+    )
+    detected_stack = defaults["stacks"]
+    print("  🔎 自動検出: {}".format(detected_stack))
+    stacks = ask_text(
+        2,
+        "🧩",
+        "技術スタック",
+        "追加・修正があれば入力してください（カンマ区切り）。",
+        detected_stack,
+    )
+    detected_commands = ", ".join(defaults["commands"])
+    commands_answer = ask_text(
+        3,
+        "🛠️",
+        "開発コマンド",
+        "AI に使ってほしいコマンドを入力してください（カンマ区切り、なしにする場合は「なし」）。",
+        detected_commands,
+    )
+    response_language = ask_choice(
+        4,
+        "💬",
+        "返答の言語",
+        "AI の返答はどの言語にしますか？",
+        ("日本語", "英語", "ユーザーの言語に合わせる"),
+        0,
+    )
+    focus = ask_text(
+        5,
+        "🎯",
+        "AI に期待すること",
+        "特に優先してほしい作業や品質はありますか？",
+        defaults["focus"],
+    )
+    testing_policy = ask_choice(
+        6,
+        "🧪",
+        "テスト・検証",
+        "テストや検証はどのように進めますか？",
+        (
+            "変更に合わせて適切なテスト・検証を行う",
+            "実行前に確認する",
+            "ユーザーが依頼した場合のみ実行する",
+        ),
+        2,
+    )
+    git_workflow = ask_choice(
+        7,
+        "🌿",
+        "Git の進め方",
+        "ブランチや worktree の方針は？",
+        (
+            "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+            "現在のブランチで作業する",
+            "着手前に方針を確認する",
+        ),
+        0,
+    )
+    additional_rules = ask_text(
+        8,
+        "📝",
+        "追加ルール",
+        "ほかに守ってほしいことはありますか？",
+    )
+
+    answers = {
+        "description": description,
+        "stacks": stacks,
+        "commands": parse_commands(commands_answer),
+        "response_language": response_language,
+        "focus": focus,
+        "testing_policy": testing_policy,
+        "git_workflow": git_workflow,
+        "additional_rules": additional_rules,
+    }
+    print("\n✅ 回答をまとめました")
+    print("  📦 {}".format(description or project_name(directory, package)))
+    print("  🧩 {}".format(stacks))
+    print("  💬 {}".format(response_language))
+    print("  🧪 {}".format(testing_policy))
+    return answers
+
+
+def render_agents(directory, package, answers=None):
+    answers = answers or default_answers(directory, package)
+    name = project_name(directory, package)
+    description = answers["description"] or "README / manifest で確認する"
+    stacks = answers["stacks"]
+    commands = answers["commands"]
+    command_lines = "\n".join("- {}{}{}".format(INLINE, command, INLINE) for command in commands)
     if not command_lines:
         command_lines = "- README / CI / manifest で実在を確認してから追記する"
+    additional_rules = answers["additional_rules"]
+    additional_line = (
+        "- {}".format(additional_rules)
+        if additional_rules
+        else "- 繰り返し必要になるプロジェクト固有ルールはこのファイルへ追加する。"
+    )
 
     return """# {name} — AI エージェント向け指示
 
 ## プロジェクト
-- 検出した技術: {stack_line}
-- この雛形はルート直下の manifest だけを確認する。プロジェクトの実態はソースコードでも確認する。
+- 概要: {description}
+- 技術スタック: {stacks}
+- 技術情報はルート直下の manifest からの検出値を含む。プロジェクトの実態はソースコードでも確認する。
 
 ## コマンド
 {command_lines}
 
-## 作業ルール
-- 応答は日本語を基本にする。
+## AI の進め方
+- 返答の言語: {response_language}
+- 優先事項: {focus}
+- テスト・検証: {testing_policy}
+- Git の進め方: {git_workflow}
 - 編集前に README、既存の指示ファイル、関連コードを確認し、既存の設計・命名に合わせる。
-- 文字列検索には `rg` を使い、コード変更は既存の Git 運用がなければ feature branch と worktree で行う。
-- 変更前に `git status` を確認し、ユーザーの既存変更を保護する。
-- コマンドや設定値を推測で作らず、manifest とドキュメントで確認する。
+- 文字列検索には {inline}rg{inline} を使い、コマンドや設定値は manifest とドキュメントで確認する。
+- 変更前に {inline}git status{inline} を確認し、ユーザーの既存変更を保護する。
 - 破壊的操作、外部送信、公開、push はユーザーの明示許可を得てから行う。
-- プロジェクトで定めた検証手順を使い、結果と未実施項目を報告する。
-- 繰り返し必要になるプロジェクト固有ルールはこのファイルへ追加する。特定ディレクトリだけの規則は近い階層の `AGENTS.md` に置く。
-""".format(name=name, stack_line=stack_line, command_lines=command_lines)
+- {additional_line}
+- 特定ディレクトリだけの規則は近い階層の {inline}AGENTS.md{inline} に置く。
+""".format(
+        name=name,
+        description=description,
+        stacks=stacks,
+        command_lines=command_lines,
+        response_language=answers["response_language"],
+        focus=answers["focus"],
+        testing_policy=answers["testing_policy"],
+        git_workflow=answers["git_workflow"],
+        additional_line=additional_line,
+        inline=INLINE,
+    )
 
 
 def preview(path, content):
@@ -149,7 +315,10 @@ def main():
         help="対象のリポジトリまたはディレクトリ（省略時: カレントディレクトリ）",
     )
     parser.add_argument(
-        "--yes", "-y", action="store_true", help="確認プロンプトを省略して表示済みのファイルを作成"
+        "--yes",
+        "-y",
+        action="store_true",
+        help="質問と確認を省略し、自動検出値でファイルを作成",
     )
     args = parser.parse_args()
 
@@ -159,16 +328,12 @@ def main():
     requested_target = target
     target = find_repo_root(target)
     if target == requested_target and not (target / ".git").exists():
-        print("警告: Git ルートが見つからないため、このディレクトリを対象にします: {}".format(target), file=sys.stderr)
+        print(
+            "警告: Git ルートが見つからないため、このディレクトリを対象にします: {}".format(target),
+            file=sys.stderr,
+        )
 
     package = read_package_json(target)
-    files = {
-        "AGENTS.md": render_agents(target, package),
-        "CLAUDE.md": "# Claude Code\n\n@AGENTS.md\n",
-    }
-    pending = [(target / name, content) for name, content in files.items()]
-    pending = [(path, content) for path, content in pending if not path.exists()]
-
     print("対象: {}".format(target))
     claude_file = target / "CLAUDE.md"
     if claude_file.is_file():
@@ -182,9 +347,34 @@ def main():
                 "@AGENTS.md を追記してください。",
                 file=sys.stderr,
             )
-    if not pending:
+
+    missing = [
+        filename
+        for filename in ("AGENTS.md", "CLAUDE.md")
+        if not (target / filename).exists()
+    ]
+    if not missing:
         print("AGENTS.md と CLAUDE.md は作成済みです。変更しませんでした。")
         return 0
+
+    if args.yes:
+        answers = default_answers(target, package)
+    else:
+        if not sys.stdin.isatty():
+            print("対話実行には端末が必要です。自動設定する場合は --yes を指定してください。", file=sys.stderr)
+            return 2
+        try:
+            answers = run_wizard(target, package)
+        except (EOFError, KeyboardInterrupt):
+            print("\nウィザードを中断しました。ファイルは作成しませんでした。")
+            return 130
+
+    files = {
+        "AGENTS.md": render_agents(target, package, answers),
+        "CLAUDE.md": "# Claude Code\n\n@AGENTS.md\n",
+    }
+    pending = [(target / name, content) for name, content in files.items()]
+    pending = [(path, content) for path, content in pending if not path.exists()]
 
     print("\n作成予定（既存ファイルは上書きしません）:")
     for path, content in pending:
@@ -192,7 +382,7 @@ def main():
 
     if not args.yes:
         try:
-            answer = input("\n作成しますか？ [y/N] ").strip().lower()
+            answer = input("\nこの内容で作成しますか？ [y/N] ").strip().lower()
         except EOFError:
             answer = ""
         if answer not in {"y", "yes"}:

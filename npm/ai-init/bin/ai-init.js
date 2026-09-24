@@ -24,6 +24,7 @@ const NODE_LOCKFILES = [
   ["package-lock.json", "npm"],
 ];
 const BACKTICK = String.fromCharCode(96);
+const WIZARD_STEPS = 8;
 
 function safeText(value) {
   if (value === undefined || value === null) return "";
@@ -114,34 +115,214 @@ function projectCommands(directory, packageData) {
   return commands;
 }
 
-function renderAgents(directory, packageData) {
-  const name = projectName(directory, packageData);
+function defaultAnswers(directory, packageData) {
   const stacks = detectedStacks(directory);
-  const stackLine = stacks.length ? stacks.join(", ") : "未検出（必要に応じて追記）";
-  const commands = projectCommands(directory, packageData);
-  const commandLines = commands.length
-    ? commands.map((command) => "- " + BACKTICK + command + BACKTICK).join("\n")
+  return {
+    description: "",
+    stacks: stacks.length ? stacks.join(", ") : "未検出",
+    commands: projectCommands(directory, packageData),
+    responseLanguage: "日本語",
+    focus: "機能実装、バグ修正、保守性を重視",
+    testingPolicy: "ユーザーが依頼した場合のみテストを実行する",
+    gitWorkflow: "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+    additionalRules: "",
+  };
+}
+
+function createInputReader() {
+  const interface_ = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: Boolean(process.stdin.isTTY),
+  });
+  const ask = (prompt) =>
+    new Promise((resolve) => {
+      let settled = false;
+      const finish = (answer) => {
+        if (settled) return;
+        settled = true;
+        interface_.off("close", onClose);
+        resolve(answer);
+      };
+      const onClose = () => finish(null);
+      interface_.once("close", onClose);
+      interface_.question(prompt, finish);
+    });
+  return { ask, close: () => interface_.close() };
+}
+
+async function askText(reader, step, emoji, label, question, defaultValue = "") {
+  console.log("\n" + emoji + " " + step + "/" + WIZARD_STEPS + " " + label);
+  console.log("  ? " + question);
+  const hint = defaultValue ? "Enter = " + defaultValue : "Enter = スキップ";
+  const answer = await reader.ask("  > [" + hint + "] ");
+  if (answer === null) throw new Error("入力が終了しました。");
+  return safeText(answer) || defaultValue;
+}
+
+async function askChoice(reader, step, emoji, label, question, choices, defaultIndex = 0) {
+  console.log("\n" + emoji + " " + step + "/" + WIZARD_STEPS + " " + label);
+  console.log("  ? " + question);
+  choices.forEach((choice, index) => {
+    const marker = index === defaultIndex ? "●" : "○";
+    console.log("    " + marker + " " + (index + 1) + ") " + choice);
+  });
+  while (true) {
+    const answer = await reader.ask("  > [Enter = " + (defaultIndex + 1) + "] ");
+    if (answer === null) throw new Error("入力が終了しました。");
+    const selected = answer.trim();
+    if (!selected) return choices[defaultIndex];
+    if (/^[0-9]+$/.test(selected)) {
+      const index = Number(selected) - 1;
+      if (index >= 0 && index < choices.length) return choices[index];
+    }
+    console.log("    番号で選んでください。");
+  }
+}
+
+function parseCommands(value) {
+  const normalized = safeText(value);
+  if (["", "none", "なし", "-"].includes(normalized.toLowerCase())) return [];
+  return normalized.split(",").map((command) => command.trim()).filter(Boolean);
+}
+
+async function runWizard(directory, packageData) {
+  const defaults = defaultAnswers(directory, packageData);
+  const reader = createInputReader();
+  try {
+    console.log("\n╭─ 🤖 ai-init");
+    console.log("│ AI 向けの基本設定を一緒に作ります。Enter で検出値・おすすめを使えます。");
+    console.log("╰──────────────────────────");
+
+    const description = await askText(
+      reader,
+      1,
+      "✨",
+      "プロジェクト概要",
+      "何を作るプロジェクトですか？",
+    );
+    console.log("  🔎 自動検出: " + defaults.stacks);
+    const stacks = await askText(
+      reader,
+      2,
+      "🧩",
+      "技術スタック",
+      "追加・修正があれば入力してください（カンマ区切り）。",
+      defaults.stacks,
+    );
+    const detectedCommands = defaults.commands.join(", ");
+    const commandsAnswer = await askText(
+      reader,
+      3,
+      "🛠️",
+      "開発コマンド",
+      "AI に使ってほしいコマンドを入力してください（カンマ区切り、なしにする場合は「なし」）。",
+      detectedCommands,
+    );
+    const responseLanguage = await askChoice(
+      reader,
+      4,
+      "💬",
+      "返答の言語",
+      "AI の返答はどの言語にしますか？",
+      ["日本語", "英語", "ユーザーの言語に合わせる"],
+      0,
+    );
+    const focus = await askText(
+      reader,
+      5,
+      "🎯",
+      "AI に期待すること",
+      "特に優先してほしい作業や品質はありますか？",
+      defaults.focus,
+    );
+    const testingPolicy = await askChoice(
+      reader,
+      6,
+      "🧪",
+      "テスト・検証",
+      "テストや検証はどのように進めますか？",
+      [
+        "変更に合わせて適切なテスト・検証を行う",
+        "実行前に確認する",
+        "ユーザーが依頼した場合のみ実行する",
+      ],
+      2,
+    );
+    const gitWorkflow = await askChoice(
+      reader,
+      7,
+      "🌿",
+      "Git の進め方",
+      "ブランチや worktree の方針は？",
+      [
+        "既存ルールを優先し、未定義なら feature branch + worktree を使う",
+        "現在のブランチで作業する",
+        "着手前に方針を確認する",
+      ],
+      0,
+    );
+    const additionalRules = await askText(
+      reader,
+      8,
+      "📝",
+      "追加ルール",
+      "ほかに守ってほしいことはありますか？",
+    );
+
+    const answers = {
+      description,
+      stacks,
+      commands: parseCommands(commandsAnswer),
+      responseLanguage,
+      focus,
+      testingPolicy,
+      gitWorkflow,
+      additionalRules,
+    };
+    console.log("\n✅ 回答をまとめました");
+    console.log("  📦 " + (description || projectName(directory, packageData)));
+    console.log("  🧩 " + stacks);
+    console.log("  💬 " + responseLanguage);
+    console.log("  🧪 " + testingPolicy);
+    return answers;
+  } finally {
+    reader.close();
+  }
+}
+
+function renderAgents(directory, packageData, answers = defaultAnswers(directory, packageData)) {
+  const name = projectName(directory, packageData);
+  const description = answers.description || "README / manifest で確認する";
+  const commandLines = answers.commands.length
+    ? answers.commands.map((command) => "- " + BACKTICK + command + BACKTICK).join("\n")
     : "- README / CI / manifest で実在を確認してから追記する";
+  const additionalLine = answers.additionalRules
+    ? "- " + answers.additionalRules
+    : "- 繰り返し必要になるプロジェクト固有ルールはこのファイルへ追加する。";
 
   return [
     "# " + name + " — AI エージェント向け指示",
     "",
     "## プロジェクト",
-    "- 検出した技術: " + stackLine,
-    "- この雛形はルート直下の manifest だけを確認する。プロジェクトの実態はソースコードでも確認する。",
+    "- 概要: " + description,
+    "- 技術スタック: " + answers.stacks,
+    "- 技術情報はルート直下の manifest からの検出値を含む。プロジェクトの実態はソースコードでも確認する。",
     "",
     "## コマンド",
     commandLines,
     "",
-    "## 作業ルール",
-    "- 応答は日本語を基本にする。",
+    "## AI の進め方",
+    "- 返答の言語: " + answers.responseLanguage,
+    "- 優先事項: " + answers.focus,
+    "- テスト・検証: " + answers.testingPolicy,
+    "- Git の進め方: " + answers.gitWorkflow,
     "- 編集前に README、既存の指示ファイル、関連コードを確認し、既存の設計・命名に合わせる。",
-    "- 文字列検索には " + BACKTICK + "rg" + BACKTICK + " を使い、コード変更は既存の Git 運用がなければ feature branch と worktree で行う。",
+    "- 文字列検索には " + BACKTICK + "rg" + BACKTICK + " を使い、コマンドや設定値は manifest とドキュメントで確認する。",
     "- 変更前に " + BACKTICK + "git status" + BACKTICK + " を確認し、ユーザーの既存変更を保護する。",
-    "- コマンドや設定値を推測で作らず、manifest とドキュメントで確認する。",
     "- 破壊的操作、外部送信、公開、push はユーザーの明示許可を得てから行う。",
-    "- プロジェクトで定めた検証手順を使い、結果と未実施項目を報告する。",
-    "- 繰り返し必要になるプロジェクト固有ルールはこのファイルへ追加する。特定ディレクトリだけの規則は近い階層の " + BACKTICK + "AGENTS.md" + BACKTICK + " に置く。",
+    additionalLine,
+    "- 特定ディレクトリだけの規則は近い階層の " + BACKTICK + "AGENTS.md" + BACKTICK + " に置く。",
     "",
   ].join("\n");
 }
@@ -153,26 +334,6 @@ function showPreview(filename, content) {
   process.stdout.write("+++ " + filename + "\n");
   process.stdout.write("@@ -0,0 +1," + lines.length + " @@\n");
   for (const line of lines) process.stdout.write("+" + line + "\n");
-}
-
-function askConfirmation() {
-  return new Promise((resolve) => {
-    const interface_ = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: Boolean(process.stdin.isTTY),
-    });
-    let settled = false;
-    const finish = (answer) => {
-      if (settled) return;
-      settled = true;
-      interface_.close();
-      resolve(answer);
-    };
-    interface_.once("line", finish);
-    interface_.once("close", () => finish(""));
-    process.stdout.write("\n作成しますか？ [y/N] ");
-  });
 }
 
 function parseArguments(argv) {
@@ -199,11 +360,11 @@ function usage() {
   return [
     "使い方: ai-init [path] [--yes]",
     "",
-    "既存リポジトリに AGENTS.md と CLAUDE.md を作成します。",
+    "質問形式で既存リポジトリの AGENTS.md と CLAUDE.md を作成します。",
     "",
     "引数:",
     "  path       対象のリポジトリまたはディレクトリ（省略時: カレントディレクトリ）",
-    "  --yes, -y  確認プロンプトを省略",
+    "  --yes, -y  質問と確認を省略し、自動検出値でファイルを作成",
     "  --help     このヘルプを表示",
     "",
   ].join("\n");
@@ -243,14 +404,6 @@ async function main() {
   }
 
   const packageData = readPackageJson(target);
-  const files = {
-    "AGENTS.md": renderAgents(target, packageData),
-    "CLAUDE.md": "# Claude Code\n\n@AGENTS.md\n",
-  };
-  const pending = Object.entries(files)
-    .filter(([name]) => !fs.existsSync(path.join(target, name)))
-    .map(([name, content]) => [path.join(target, name), content]);
-
   console.log("対象: " + target);
   const claudeFile = path.join(target, "CLAUDE.md");
   if (fs.existsSync(claudeFile)) {
@@ -266,16 +419,57 @@ async function main() {
       );
     }
   }
-  if (!pending.length) {
+
+  const missing = ["AGENTS.md", "CLAUDE.md"].filter(
+    (name) => !fs.existsSync(path.join(target, name)),
+  );
+  if (!missing.length) {
     console.log("AGENTS.md と CLAUDE.md は作成済みです。変更しませんでした。");
     return 0;
   }
+
+  let answers;
+  if (args.yes) {
+    answers = defaultAnswers(target, packageData);
+  } else {
+    if (!process.stdin.isTTY) {
+      console.error("対話実行には端末が必要です。自動設定する場合は --yes を指定してください。");
+      return 2;
+    }
+    try {
+      answers = await runWizard(target, packageData);
+    } catch (error) {
+      console.error("\nウィザードを中断しました: " + error.message);
+      return 130;
+    }
+  }
+
+  const files = {
+    "AGENTS.md": renderAgents(target, packageData, answers),
+    "CLAUDE.md": "# Claude Code\n\n@AGENTS.md\n",
+  };
+  const pending = Object.entries(files)
+    .filter(([name]) => !fs.existsSync(path.join(target, name)))
+    .map(([name, content]) => [path.join(target, name), content]);
 
   console.log("\n作成予定（既存ファイルは上書きしません）:");
   for (const [filename, content] of pending) showPreview(filename, content);
 
   if (!args.yes) {
-    const answer = await askConfirmation();
+    const answer = await new Promise((resolve) => {
+      const interface_ = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: Boolean(process.stdin.isTTY),
+      });
+      const finish = (value) => {
+        interface_.close();
+        resolve(value);
+      };
+      interface_.once("line", finish);
+      interface_.once("close", () => resolve(""));
+      process.stdout.write("\nこの内容で作成しますか？ [y/N] ");
+    });
     if (!["y", "yes"].includes(answer.trim().toLowerCase())) {
       console.log("ファイルは作成しませんでした。");
       return 0;

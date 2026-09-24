@@ -108,7 +108,7 @@ git add -A && git commit && git push
 
 ## AI 指示ファイルの初期化
 
-`ai-init` は既存プロジェクトのルート直下の manifest を読み、`AGENTS.md` と `CLAUDE.md` を生成する。`AGENTS.md` には検出した技術スタックと `package.json` / `Makefile` で見つけた開発コマンドを記録し、`CLAUDE.md` は `AGENTS.md` を読み込む。生成内容を表示して確認を求め、既存ファイルは上書きしない。Python 3 が必要。
+`ai-init` は絵文字つきの8問ウィザードで、既存プロジェクトに AI 指示ファイルを作る。概要、技術スタック、開発コマンド、返答言語、AI に期待する作業、テスト方針、Git 方針、追加ルールを聞く。技術スタックと開発コマンドは manifest から候補を出す。生成した AGENTS.md と CLAUDE.md の内容を表示して確認を求め、既存ファイルは上書きしない。Python 3 が必要。
 
 ```bash
 chezmoi apply ~/.local/bin/ai-init
@@ -118,7 +118,7 @@ ai-init
 # 別の既存リポジトリを指定
 ai-init ~/Code/another-project
 
-# 内容を確認したうえで確認プロンプトを省略
+# 質問と最終確認を省略し、自動検出値で作成
 ai-init --yes
 ```
 
