@@ -1,0 +1,22 @@
+{
+  "name": "ai-init-papillon6814",
+  "version": "0.1.0",
+  "description": "Add personal AI agent instructions to an existing repository",
+  "bin": {
+    "ai-init": "./bin/ai-init.js",
+    "ai-init-papillon6814": "./bin/ai-init.js"
+  },
+  "files": [
+    "bin/ai-init.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Papillon6814/dotfiles.git",
+    "directory": "npm/ai-init"
+  },
+  "homepage": "https://github.com/Papillon6814/dotfiles/tree/main/npm/ai-init"
+}

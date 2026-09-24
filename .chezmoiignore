@@ -1,6 +1,7 @@
 # --- Repository meta (not part of the home tree) ---
 README.md
 LICENSE
+npm
 
 # --- Auto-generated / runtime state (regenerated on demand) ---
 .claude/.credentials.json

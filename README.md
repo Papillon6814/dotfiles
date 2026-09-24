@@ -124,6 +124,17 @@ ai-init --yes
 
 コマンドは manifest の読み取りだけを行い、Git 初期化、依存インストール、MCP・フック・権限設定の追加は行わない。
 
+### npx 形式
+
+npm パッケージのソースは npm/ai-init/ にあります。パッケージ名は ai-init-papillon6814 です。公開後は npm をグローバルインストールせずに実行できます。
+
+    npx --yes ai-init-papillon6814
+    npx --yes ai-init-papillon6814 ~/Code/another-project
+
+公開前にこの checkout から動かす場合:
+
+    node npm/ai-init/bin/ai-init.js [path] [--yes]
+
 ## シークレットを追加するときの流れ
 
 1. 1Password に新しい item を作る (`op item create` または GUI)
