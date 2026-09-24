@@ -17,6 +17,7 @@
 | `~/.config/git`, `~/.config/karabiner`, `~/.config/iterm2` | 各種 |
 | `~/.pi/` | pi (pi-coding-agent) 設定一式（auth/cache は除外）|
 | `~/.claude/` | Claude Code グローバル設定（CLAUDE.md, rules, agents, hooks）|
+| `~/.local/bin/ai-init` | 既存リポジトリへ個人用 AI 指示ファイルを追加する CLI |
 
 履歴・キャッシュ・OAuth トークンなど、再生成可能 or マシン固有のものは `.chezmoiignore` で除外。
 
@@ -104,6 +105,24 @@ chezmoi execute-template < ~/Documents/Github/dotfiles/dot_zshrc.tmpl
 chezmoi cd
 git add -A && git commit && git push
 ```
+
+## AI 指示ファイルの初期化
+
+`ai-init` は既存プロジェクトのルート直下の manifest を読み、`AGENTS.md` と `CLAUDE.md` を生成する。`AGENTS.md` には検出した技術スタックと `package.json` / `Makefile` で見つけた開発コマンドを記録し、`CLAUDE.md` は `AGENTS.md` を読み込む。生成内容を表示して確認を求め、既存ファイルは上書きしない。Python 3 が必要。
+
+```bash
+chezmoi apply ~/.local/bin/ai-init
+cd ~/Code/my-project
+ai-init
+
+# 別の既存リポジトリを指定
+ai-init ~/Code/another-project
+
+# 内容を確認したうえで確認プロンプトを省略
+ai-init --yes
+```
+
+コマンドは manifest の読み取りだけを行い、Git 初期化、依存インストール、MCP・フック・権限設定の追加は行わない。
 
 ## シークレットを追加するときの流れ
 

@@ -1,0 +1,217 @@
+#!/usr/bin/env python3
+"""Create personal AI-agent instruction files in an existing project."""
+
+import argparse
+import difflib
+import json
+import re
+import sys
+from pathlib import Path
+
+
+STACK_MARKERS = (
+    ("TypeScript / JavaScript", ("package.json", "tsconfig.json")),
+    ("Python", ("pyproject.toml", "requirements.txt", "Pipfile")),
+    ("Rust", ("Cargo.toml",)),
+    ("Go", ("go.mod",)),
+    ("Roblox / Lua", ("wally.toml", "aftman.toml", "default.project.json", ".luaurc")),
+    ("Ruby", ("Gemfile",)),
+    ("PHP", ("composer.json",)),
+)
+NODE_SCRIPT_ORDER = ("dev", "build", "test", "lint", "typecheck", "check", "start")
+NODE_LOCKFILES = (
+    ("pnpm-lock.yaml", "pnpm"),
+    ("yarn.lock", "yarn"),
+    ("bun.lock", "bun"),
+    ("bun.lockb", "bun"),
+    ("package-lock.json", "npm"),
+)
+
+
+def safe_text(value):
+    if value is None:
+        return ""
+    return re.sub(r"[\r\n\t]+", " ", str(value)).replace("`", "'").strip()
+
+
+def find_repo_root(directory):
+    for candidate in (directory, *directory.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return directory
+
+
+def read_package_json(directory):
+    path = directory / "package.json"
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        print("警告: package.json を読み取れません: {}".format(error), file=sys.stderr)
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def package_manager(directory, package):
+    declared = safe_text(package.get("packageManager", "")).split("@", 1)[0]
+    if declared in {"npm", "pnpm", "yarn", "bun"}:
+        return declared
+    for lockfile, manager in NODE_LOCKFILES:
+        if (directory / lockfile).exists():
+            return manager
+    return "npm"
+
+
+def project_name(directory, package):
+    name = safe_text(package.get("name", ""))
+    return name or directory.name
+
+
+def detected_stacks(directory):
+    stacks = []
+    for label, markers in STACK_MARKERS:
+        if any((directory / marker).exists() for marker in markers):
+            stacks.append(label)
+    return stacks
+
+
+def project_commands(directory, package):
+    commands = []
+    scripts = package.get("scripts", {})
+    if isinstance(scripts, dict) and scripts:
+        manager = package_manager(directory, package)
+        for name in NODE_SCRIPT_ORDER:
+            if name in scripts and re.fullmatch(r"[A-Za-z0-9:_-]+", name):
+                commands.append("{} run {}".format(manager, name))
+
+    makefile = directory / "Makefile"
+    if makefile.is_file():
+        try:
+            content = makefile.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            content = ""
+        for line in content.splitlines():
+            match = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):(?:\s|$)", line)
+            if match and match.group(1) in NODE_SCRIPT_ORDER:
+                command = "make {}".format(match.group(1))
+                if command not in commands:
+                    commands.append(command)
+    return commands
+
+
+def render_agents(directory, package):
+    name = project_name(directory, package)
+    stacks = detected_stacks(directory)
+    stack_line = ", ".join(stacks) if stacks else "未検出（必要に応じて追記）"
+    commands = project_commands(directory, package)
+    command_lines = "\n".join("- `{}`".format(command) for command in commands)
+    if not command_lines:
+        command_lines = "- README / CI / manifest で実在を確認してから追記する"
+
+    return """# {name} — AI エージェント向け指示
+
+## プロジェクト
+- 検出した技術: {stack_line}
+- この雛形はルート直下の manifest だけを確認する。プロジェクトの実態はソースコードでも確認する。
+
+## コマンド
+{command_lines}
+
+## 作業ルール
+- 応答は日本語を基本にする。
+- 編集前に README、既存の指示ファイル、関連コードを確認し、既存の設計・命名に合わせる。
+- 文字列検索には `rg` を使い、コード変更は既存の Git 運用がなければ feature branch と worktree で行う。
+- 変更前に `git status` を確認し、ユーザーの既存変更を保護する。
+- コマンドや設定値を推測で作らず、manifest とドキュメントで確認する。
+- 破壊的操作、外部送信、公開、push はユーザーの明示許可を得てから行う。
+- プロジェクトで定めた検証手順を使い、結果と未実施項目を報告する。
+- 繰り返し必要になるプロジェクト固有ルールはこのファイルへ追加する。特定ディレクトリだけの規則は近い階層の `AGENTS.md` に置く。
+""".format(name=name, stack_line=stack_line, command_lines=command_lines)
+
+
+def preview(path, content):
+    lines = content.splitlines(keepends=True)
+    diff = difflib.unified_diff(
+        [], lines, fromfile="/dev/null", tofile=str(path), n=2
+    )
+    sys.stdout.writelines(diff)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="既存リポジトリに個人用 AI 指示ファイルを作成します。"
+    )
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="対象のリポジトリまたはディレクトリ（省略時: カレントディレクトリ）",
+    )
+    parser.add_argument(
+        "--yes", "-y", action="store_true", help="確認プロンプトを省略して表示済みのファイルを作成"
+    )
+    args = parser.parse_args()
+
+    target = Path(args.path).expanduser().resolve()
+    if not target.is_dir():
+        parser.error("directory does not exist: {}".format(target))
+    requested_target = target
+    target = find_repo_root(target)
+    if target == requested_target and not (target / ".git").exists():
+        print("警告: Git ルートが見つからないため、このディレクトリを対象にします: {}".format(target), file=sys.stderr)
+
+    package = read_package_json(target)
+    files = {
+        "AGENTS.md": render_agents(target, package),
+        "CLAUDE.md": "# Claude Code\n\n@AGENTS.md\n",
+    }
+    pending = [(target / name, content) for name, content in files.items()]
+    pending = [(path, content) for path, content in pending if not path.exists()]
+
+    print("対象: {}".format(target))
+    claude_file = target / "CLAUDE.md"
+    if claude_file.is_file():
+        try:
+            claude_instructions = claude_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            claude_instructions = ""
+        if "@AGENTS.md" not in claude_instructions:
+            print(
+                "注意: 既存の CLAUDE.md は変更しません。共通指示を読み込むには "
+                "@AGENTS.md を追記してください。",
+                file=sys.stderr,
+            )
+    if not pending:
+        print("AGENTS.md と CLAUDE.md は作成済みです。変更しませんでした。")
+        return 0
+
+    print("\n作成予定（既存ファイルは上書きしません）:")
+    for path, content in pending:
+        preview(path, content)
+
+    if not args.yes:
+        try:
+            answer = input("\n作成しますか？ [y/N] ").strip().lower()
+        except EOFError:
+            answer = ""
+        if answer not in {"y", "yes"}:
+            print("ファイルは作成しませんでした。")
+            return 0
+
+    for path, content in pending:
+        try:
+            with path.open("x", encoding="utf-8") as output:
+                output.write(content)
+        except FileExistsError:
+            print("作成をスキップ（確認中に作成済み）: {}".format(path.name))
+        except OSError as error:
+            print("{} を作成できません: {}".format(path.name, error), file=sys.stderr)
+            return 1
+        else:
+            print("作成しました: {}".format(path.name))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
