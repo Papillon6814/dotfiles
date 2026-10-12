@@ -42,3 +42,6 @@ pi() {
 alias claude-personal='claude-profile -P personal'
 # personal + 権限スキップ: `cw`
 alias cw='claude-personal --dangerously-skip-permissions'
+
+# マシン固有の設定（dotfiles では管理しない）
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
