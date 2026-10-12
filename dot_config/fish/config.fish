@@ -1,3 +1,6 @@
+# Keep exec $SHELL using fish even when the parent app exports another shell.
+set -gx SHELL /opt/homebrew/bin/fish
+
 set PATH /opt/homebrew/bin /opt/homebrew/sbin /usr/local/bin /usr/bin /bin /usr/sbin /sbin  $PATH
 set -x PYENV_ROOT $HOME/.pyenv
 set -x PATH $PYENV_ROOT/shims $PATH
@@ -32,7 +35,6 @@ alias kali='docker exec -it (docker run -itd --name kali --net=host papillon6814
 alias gce='gcloud compute instances create example-instance --image-family=ubuntu-1804-lts-arm64 --image-project=ubuntu-os-cloud --zone asia-east1-a'
 alias gcessh='gcloud compute ssh example-instance --zone asia-east1-a'
 alias gcedel='gcloud compute instances delete example-instance --zone asia-east1-a'
-alias c='claude --dangerously-skip-permissions'
 alias obs='obsidian-cli'
 # Neovim wrapper function to prevent socket address conflicts
 # Each instance gets a unique socket using mktemp
@@ -115,4 +117,34 @@ end
 
 # Alias to start Chrome in debug mode by default
 alias chrome='chrome-debug'
-set -gx OPENROUTER_API_KEY {{ onepasswordRead "op://Personal/OpenRouter API Key/credential" }}
+
+# --- Claude Code multi-account (claude-profile) ---
+# finn(既定): 通常どおり `claude` で起動
+# 2つ目アカウント: `claude-personal`
+alias claude-personal='claude-profile -P personal'
+# c / cw: 引数なしの対話起動で Profile（なし／Development）を選ぶ。定義は claude-scaffold 側
+source ~/Documents/Github/claude-scaffold/shell/c.fish
+
+# --- Happy (スマホ承認・通知) ---
+# Happy を通すのは firstmate の親と、明示的に cwh で起動したときだけ。
+# 素の claude / c / cw / co は Happy を通さない。
+# firstmate の親: `fm`
+function fm
+    cd ~/Code/firstmate; and happy claude --dangerously-skip-permissions $argv
+end
+# personal + 権限スキップ + Happy: `cwh`
+# claude-profile も Happy もラッパーで直列につなげないので CLAUDE_CONFIG_DIR を直接渡す
+function cwh
+    env CLAUDE_CONFIG_DIR=$HOME/.claude-profiles/personal/config happy claude --dangerously-skip-permissions $argv
+end
+
+# Codex: skip approvals and sandbox
+alias co='codex --dangerously-bypass-approvals-and-sandbox'
+
+# Codex work account: separate authentication via codex-profile
+function cow
+    codex-profile cli work --dangerously-bypass-approvals-and-sandbox $argv
+end
+
+# Letta: resume Finn
+alias le='letta -n Finn'

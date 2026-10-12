@@ -1,1 +1,5 @@
 **/.claude/settings.local.json
+
+# pi-loop (@davidroman/pi-loop) state
+.pi/loops.json
+.pi/loops/

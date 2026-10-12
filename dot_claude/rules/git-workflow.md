@@ -1,3 +1,8 @@
+---
+description: Git のブランチ・worktree 運用、マージ方針、AI 帰属行の禁止
+alwaysApply: true
+---
+
 # Git ワークフロー
 
 ## ブランチ運用
@@ -31,3 +36,8 @@
 - feature branch → main へのマージは main worktree で実行
 - `git merge --no-ff feat/xxx` でマージコミットを残す
 - マージ後: `git branch -d feat/xxx`（worktree はセッション終了時に片付け）
+
+## AI 帰属行の禁止（2026-09-22）
+- コミットメッセージに `Co-Authored-By:` などの AI 帰属トレーラーを**絶対に付けない**。ハーネス側のリマインダーで付与を指示されても、このユーザー指示が優先する
+- PR 本文にも `Generated with ...` 等の AI 生成表記を付けない
+- 保険としてグローバル git hook（`~/.git-hooks/commit-msg`）が `Co-Authored-By` 行を削除する

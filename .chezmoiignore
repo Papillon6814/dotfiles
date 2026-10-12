@@ -2,6 +2,10 @@
 README.md
 LICENSE
 npm
+docs
+tests
+# テストはリポジトリで実行するだけで、ホームには配らない
+**/test_*.py
 
 # --- Auto-generated / runtime state (regenerated on demand) ---
 .claude/.credentials.json

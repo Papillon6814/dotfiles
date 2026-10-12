@@ -1,2 +1,3 @@
 # Added by ForgeCode installer
 export PATH="/Users/papillon/.local/bin:$PATH"
+. "$HOME/.rokit/env"

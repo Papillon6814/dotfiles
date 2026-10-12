@@ -1,3 +1,8 @@
+---
+description: ゲーム企画・仕様・バランスの話題では game-design-reviewer エージェントを使う
+alwaysApply: true
+---
+
 # ゲームデザイン知識ベース
 
 ## ルール
