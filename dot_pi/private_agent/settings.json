@@ -54,7 +54,8 @@
     "git:github.com/obra/superpowers@v6.4.2",
     "npm:@injaneity/pi-computer-use@0.5.1",
     "git:github.com/KendrickMalar/pi-model-roles@0cea28dcb976dc79ac12ee7903c79f34a6cd41d3",
-    "../../Documents/Github/pi-claude-local"
+    "../../Documents/Github/pi-claude-local",
+    "npm:pi-remote-control"
   ],
   "skills": [
     "!../../.agents/skills/using-git-worktrees/SKILL.md",
