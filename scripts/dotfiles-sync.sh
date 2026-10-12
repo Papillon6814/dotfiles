@@ -108,6 +108,16 @@ else
   fi
 fi
 
+# --- 2.5 scaffold-profiles の生成物が原本と一致しているか（リンク越しの直接編集を見つける） ---
+sp="${SCAFFOLD_PROFILES_DIR:-$HOME/Code/scaffold-profiles}"
+if [ -f "$sp/bin/generate.ts" ]; then
+  if sp_out="$(cd "$sp" && node bin/generate.ts --check 2>&1)"; then
+    clear_notice scaffold
+  else
+    notify_once scaffold "scaffold-profiles: 生成物が原本と違います" "$(printf '%s' "$sp_out" | grep -E '^  [-+M] ' | head -3 | tr '\n' ' ')（src/ に移して再生成）"
+  fi
+fi
+
 # --- 3. Brewfile を1日1回作り直す ---
 brewfile="$repo/brew/Brewfile.$host"
 if [ ! -f "$brewfile" ] || [ -n "$(find "$brewfile" -mtime +0 2>/dev/null)" ]; then

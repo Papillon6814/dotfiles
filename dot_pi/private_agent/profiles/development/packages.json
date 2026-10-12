@@ -1,7 +1,0 @@
-{
-  "version": 1,
-  "packages": [
-    "npm:@papillon6814/pi-gh@0.7.0",
-    "npm:@papillon6814/pi-scaffold@0.5.1"
-  ]
-}
