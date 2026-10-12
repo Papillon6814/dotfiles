@@ -1,0 +1,6 @@
+# Plannotator policy for Gemini CLI
+# Allows exit_plan_mode without TUI confirmation so the browser UI is the sole gate.
+[[rule]]
+toolName = "exit_plan_mode"
+decision = "allow"
+priority = 100

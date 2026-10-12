@@ -1,0 +1,10 @@
+#!/bin/sh
+# Strip AI co-author trailers, then chain to the repo-local hook if present.
+msg="$1"
+tmp="$msg.tmp.$$"
+grep -v -i -E '^(Co-Authored-By|Co-authored-by):.*(claude|anthropic|codex|openai|chatgpt|copilot|gemini|cursor|pi coding|noreply@anthropic|noreply@openai)' "$msg" > "$tmp" || true
+mv "$tmp" "$msg"
+local_hook="$(git rev-parse --git-common-dir)/hooks/commit-msg"
+if [ -x "$local_hook" ] && [ "$(cd "$(dirname "$local_hook")" && pwd)" != "$HOME/.git-hooks" ]; then
+  exec "$local_hook" "$@"
+fi

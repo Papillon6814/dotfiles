@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "playwright-mcp": {
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "command": "npx"
+    },
+    "zvec_grep": {
+      "command": "zg",
+      "args": [
+        "server",
+        "--stdio"
+      ]
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "muxy-notify" : {
+    "PostToolUse" : [
+      {
+        "hooks" : [
+          {
+            "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-antigravity-hook.sh' PostToolUse # muxy-notification-hook",
+            "timeout" : 10,
+            "type" : "command"
+          }
+        ],
+        "matcher" : ""
+      }
+    ],
+    "PreInvocation" : [
+      {
+        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-antigravity-hook.sh' PreInvocation # muxy-notification-hook",
+        "timeout" : 10,
+        "type" : "command"
+      }
+    ],
+    "PreToolUse" : [
+      {
+        "hooks" : [
+          {
+            "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-antigravity-hook.sh' PreToolUse # muxy-notification-hook",
+            "timeout" : 10,
+            "type" : "command"
+          }
+        ],
+        "matcher" : ""
+      }
+    ],
+    "Stop" : [
+      {
+        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-antigravity-hook.sh' Stop # muxy-notification-hook",
+        "timeout" : 10,
+        "type" : "command"
+      }
+    ]
+  }
+}
