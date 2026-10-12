@@ -32,6 +32,12 @@ tests
 .claude/agent-memory
 .claude/plugins
 
+# Claude Code: claude.ai から自動同期されるスキル（手で管理しない）
+.claude/skills/synced
+# pi-scaffold: 実行時の状態と手作業バックアップ
+.pi/agent/pi-scaffold/state
+.pi/agent/pi-scaffold/*.bak-*
+
 # pi: ephemeral / per-machine state
 .pi/agent/auth.json
 .pi/agent/mcp-cache.json

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "grants": [
+    {
+      "repo": "KendrickMalar/*",
+      "operations": [
+        "gh_issue_submit",
+        "gh_issue_edit_if_current",
+        "gh_issue_labels_if_current",
+        "gh_issue_close_if_current",
+        "gh_subissue_add",
+        "gh_dependency_add",
+        "gh_label_create",
+        "gh_label_edit",
+        "gh_issue_labels"
+      ],
+      "allowHeadless": true,
+      "allowChild": true
+    }
+  ]
+}

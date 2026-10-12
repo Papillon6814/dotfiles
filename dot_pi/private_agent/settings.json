@@ -14,7 +14,7 @@
     "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
     "git:github.com/leblancfg/pi-ansi-themes",
     "npm:pi-poly-notify",
-    "{{ .chezmoi.homeDir }}/Documents/Github/pi-plan-mode",
+    "~/Documents/Github/pi-plan-mode",
     {
       "source": "~/.my-pi",
       "extensions": [
@@ -57,12 +57,15 @@
     "../../Documents/Github/pi-claude-local"
   ],
   "skills": [
-    "!{{ .chezmoi.homeDir }}/.agents/skills/using-git-worktrees/SKILL.md",
-    "!{{ .chezmoi.homeDir }}/.agents/skills/writing-plans/SKILL.md",
-    "!{{ .chezmoi.homeDir }}/.agents/skills/subagent-driven-development/SKILL.md",
-    "!{{ .chezmoi.homeDir }}/.pi/agent*/skills/using-git-worktrees/SKILL.md",
-    "!{{ .chezmoi.homeDir }}/.pi/agent*/skills/writing-plans/SKILL.md",
-    "!{{ .chezmoi.homeDir }}/.pi/agent*/skills/subagent-driven-development/SKILL.md"
+    "!../../.agents/skills/using-git-worktrees/SKILL.md",
+    "!../../.agents/skills/writing-plans/SKILL.md",
+    "!../../.agents/skills/subagent-driven-development/SKILL.md",
+    "!skills/using-git-worktrees/SKILL.md",
+    "!../agent/skills/using-git-worktrees/SKILL.md",
+    "!skills/writing-plans/SKILL.md",
+    "!../agent/skills/writing-plans/SKILL.md",
+    "!skills/subagent-driven-development/SKILL.md",
+    "!../agent/skills/subagent-driven-development/SKILL.md"
   ],
   "compaction": {
     "enabled": true,

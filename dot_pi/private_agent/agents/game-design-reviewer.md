@@ -11,8 +11,8 @@ model: openai-codex/gpt-5.6-sol
 
 ゲームデザイン知識は以下のリポジトリに格納されている：
 
-- **パス**: `{{ .chezmoi.homeDir }}/Documents/Github/game-maker/knowledge/gmtk/`
-- **インデックス**: `{{ .chezmoi.homeDir }}/Documents/Github/game-maker/knowledge/gmtk/index.md`
+- **パス**: `~/Documents/Github/game-maker/knowledge/gmtk/`
+- **インデックス**: `~/Documents/Github/game-maker/knowledge/gmtk/index.md`
 - **形式**: 141本のGMTK動画トランスクリプト（Markdown）
 - **番号体系**: `001_xxx.md` 〜 `141_xxx.md`（ファイル名にトピックが含まれる）
 
