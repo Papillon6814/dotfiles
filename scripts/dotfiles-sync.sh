@@ -62,6 +62,14 @@ fi
 clear_notice branch; clear_notice midop
 
 # --- 1. chezmoi の状態を見て、外れた symlink を直し、コピー型のずれを集める ---
+# 1Password を読めない環境（SSH 越し・Mac mini など）ではテンプレートの展開に失敗するので、
+# そのときはテンプレートを除いて続ける（macOS の bash 3.2 は空配列の展開に注意）
+cz_exclude=()
+if ! status_out="$(chezmoi status 2>/dev/null)"; then
+  cz_exclude=(--exclude=templates)
+  status_out="$(chezmoi status ${cz_exclude[@]+"${cz_exclude[@]}"} 2>/dev/null)" || status_out=""
+  log "テンプレートを除いて確認（1Password を読めない可能性）"
+fi
 copy_drift=""
 while IFS= read -r line; do
   [ -n "$line" ] || continue
@@ -76,7 +84,7 @@ while IFS= read -r line; do
   elif [ -f "$path" ] && [ ! -L "$path" ]; then
     copy_drift+="$target"$'\n'
   fi
-done < <(chezmoi status 2>/dev/null)
+done <<< "$status_out"
 
 if [ -n "$copy_drift" ]; then
   notify_once copydrift "dotfiles: コピー型ファイルがずれています" "$(printf '%s' "$copy_drift" | head -5 | tr '\n' ' ')（chezmoi diff で確認し、re-add か apply）"
@@ -155,7 +163,7 @@ if [ "$behind" -gt 0 ]; then
   else
     clear_notice pull
     # 取り込んだ変更のうち、コピー型のファイルはホームへ反映が必要
-    run chezmoi apply --force >/dev/null 2>&1 || notify_once apply "dotfiles: 反映に失敗" "chezmoi apply を手で実行してください"
+    run chezmoi apply --force ${cz_exclude[@]+"${cz_exclude[@]}"} >/dev/null 2>&1 || notify_once apply "dotfiles: 反映に失敗" "chezmoi apply を手で実行してください"
     ahead="$(git rev-list --count origin/main..main)"
   fi
 fi
