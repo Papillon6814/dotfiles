@@ -11,4 +11,4 @@
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 [core]
-	hooksPath = /Users/papillon/.git-hooks
+	hooksPath = ~/.git-hooks
