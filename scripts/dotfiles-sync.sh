@@ -112,7 +112,7 @@ fi
 sp="${SCAFFOLD_PROFILES_DIR:-$HOME/Code/scaffold-profiles}"
 if [ -f "$sp/bin/generate.ts" ]; then
   # 他のマシンで直した原本を取り込む。main で、手元に変更が無いときだけ（直接編集を上書きしない）
-  if [ "$(git -C "$sp" symbolic-ref --short -q HEAD)" = main ] && [ -z "$(git -C "$sp" status --porcelain)" ]; then
+  if [ "$(git -C "$sp" symbolic-ref --short -q HEAD)" = main ] && [ -z "$(git -C "$sp" status --porcelain --untracked-files=no)" ]; then
     if run git -C "$sp" pull -q --ff-only 2>/dev/null; then
       clear_notice scaffold-pull
     else
