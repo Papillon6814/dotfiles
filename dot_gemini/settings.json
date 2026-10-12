@@ -1,0 +1,115 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"SessionStart\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"SessionEnd\""
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"BeforeAgent\""
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"AfterAgent\""
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"BeforeTool\""
+          }
+        ]
+      },
+      {
+        "matcher": "exit_plan_mode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "plannotator",
+            "timeout": 345600
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"AfterTool\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"Notification\""
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "clawd",
+            "type": "command",
+            "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/gemini-hook.js\" \"PreCompress\""
+          }
+        ]
+      }
+    ]
+  }
+}

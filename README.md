@@ -48,6 +48,8 @@ op account list   # アカウントが見えれば OK
 mkdir -p ~/.config/chezmoi
 cat > ~/.config/chezmoi/chezmoi.toml <<'EOF'
 sourceDir = "~/Documents/Github/dotfiles"
+# 実ファイルをこのリポジトリへの symlink にする（テンプレ・実行ファイル・private はコピー）
+mode = "symlink"
 
 [edit]
   command = "nvim"
@@ -55,11 +57,25 @@ sourceDir = "~/Documents/Github/dotfiles"
 [git]
   autoCommit = false
   autoPush = false
+
+[add]
+  # 秘密情報らしきものを含むファイルの chezmoi add を拒否する
+  secrets = "error"
 EOF
 
 # 4. このリポジトリをクローン
 mkdir -p ~/Documents/Github
 git clone git@github.com:KendrickMalar/dotfiles ~/Documents/Github/dotfiles
+
+# 4.5 コミット前の検査（gitleaks・JSON）を有効にする
+brew install gitleaks
+cat > ~/Documents/Github/dotfiles/.git/hooks/pre-commit <<'HOOK'
+#!/bin/sh
+hook="$(git rev-parse --show-toplevel)/scripts/git-hooks/pre-commit"
+[ -x "$hook" ] || { echo "pre-commit: $hook がありません" >&2; exit 1; }
+exec "$hook" "$@"
+HOOK
+chmod +x ~/Documents/Github/dotfiles/.git/hooks/pre-commit
 
 # 5. 反映前にプレビュー
 chezmoi diff
@@ -84,6 +100,16 @@ MCP サーバ実体（使う場合のみ）:
 - `notion_local` → `~/Documents/Github/mcp-notion-server`
 - `Roblox_Studio` → `/Applications/RobloxStudioMCP.app`
 - `serena` → `~/.local/bin/serena`
+
+## 仕組みと注意（2026-10 時点）
+
+- **symlink モード**: ホーム側の多くのファイルは、このリポジトリのファイルへのリンク。ホームで編集すると、その場でリポジトリが変わる（`chezmoi re-add` は不要）
+- **コピーのまま残るもの**: テンプレート（`.tmpl`。秘密情報を 1Password から埋め込むもの）、実行ファイル、`private_` のファイル。これらはホームで編集したら `chezmoi re-add` が必要
+- **このリポジトリの main checkout でブランチを切り替えない**。リンク先が変わり、ホームの設定が即座に変わる。作業は worktree で行い、`chezmoi --source <worktree> add ...` を使う
+- **コミット前の検査**: `scripts/git-hooks/pre-commit`（gitleaks と JSON の構文）。`~/.git-hooks` のディスパッチャから、`.git/hooks/pre-commit` 経由で呼ばれる
+- **Homebrew**: `brew/Brewfile.<ホスト名>` に一覧を置く。自動では入れない。新しい Mac では `brew bundle --file=brew/Brewfile.<ホスト名>` を手で実行する。更新は `brew bundle dump --file=brew/Brewfile.$(chezmoi execute-template '{{ .chezmoi.hostname }}') --force`
+- **Claude の personal プロファイル**: `~/.claude-profiles/personal/config` の設定は `~/.claude` へのリンク（MacBook のみ）
+- **管理しないもの**: `~/.codex/config.toml`（平文の API キーとマシン固有の状態を含み、Codex が実行中に書き換える）、各ツールの認証・履歴・キャッシュ
 
 ## 普段の使い方
 

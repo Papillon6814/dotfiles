@@ -1,0 +1,23 @@
+#!/bin/sh
+# dotfiles の pre-commit。PUBLIC リポジトリなので、秘密情報と壊れた設定ファイルを入れない。
+# 有効化: ln -s ../../scripts/git-hooks/pre-commit "$(git rev-parse --git-common-dir)/hooks/pre-commit"
+# （~/.git-hooks のディスパッチャがリポジトリ側の同名フックを呼ぶ）
+set -eu
+root=$(git rev-parse --show-toplevel)
+status=0
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks がありません（brew install gitleaks）" >&2
+  exit 1
+fi
+if ! gitleaks git --pre-commit --staged --redact --no-banner "$root" >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks が秘密情報らしき文字列を見つけました。中身: gitleaks git --pre-commit --staged --redact -v ." >&2
+  status=1
+fi
+
+# テンプレートでない JSON が壊れていないか
+git diff --cached --name-only --diff-filter=ACMR -z -- '*.json' | while IFS= read -r -d '' f; do
+  python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$root/$f" 2>/dev/null || { echo "pre-commit: JSON が壊れています: $f" >&2; exit 1; }
+done || status=1
+
+exit $status

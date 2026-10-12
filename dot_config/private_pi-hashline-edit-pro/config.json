@@ -1,0 +1,9 @@
+{
+  "autoRead": true,
+  "autoReadAll": "off",
+  "autoReadAllIgnore": [],
+  "anchorGrepEnabled": true,
+  "requirePath": true,
+  "strictInput": false,
+  "diffContextLines": 1
+}

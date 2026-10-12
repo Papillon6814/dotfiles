@@ -1,0 +1,340 @@
+tap "abhishek21k/tap", "https://github.com/Abhishek21k/homebrew-tap"
+tap "anomalyco/tap"
+tap "asmvik/formulae", "https://github.com/asmvik/homebrew-formulae.git"
+tap "ducksss/tap", "https://github.com/Ducksss/homebrew-tap"
+tap "ethereum/ethereum"
+tap "homebrew/services"
+tap "lotyp/formulae"
+tap "muxy-app/tap", trusted: true
+tap "openclaw/tap"
+tap "rjyo/moshi", trusted: true
+tap "steipete/tap"
+tap "supabase/tap"
+tap "thecasualcoder/stable"
+tap "vjeantet/tap"
+tap "yakitrak/yakitrak"
+# Toolchain manager for Roblox, the prodigal sequel to Foreman
+brew "aftman"
+# Simple, modern, secure file encryption
+brew "age"
+# Display directories as trees (with optional color/HTML output)
+brew "tree"
+# Automate deployment, configuration, and upgrading
+brew "ansible"
+# All in one for **env
+brew "anyenv"
+# Aquarium animation in ASCII art
+brew "asciiquarium"
+# Extendable version manager with support for Ruby, Node.js, Erlang & more
+brew "asdf"
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
+# Python code formatter
+brew "black"
+# Incredibly fast JavaScript runtime, bundler, test runner, and package manager
+brew "bun"
+# Manage your dotfiles across multiple diverse machines, securely
+brew "chezmoi"
+# GNU CLISP, a Common Lisp implementation
+brew "clisp"
+# Cloudflare Tunnel client (formerly Argo Tunnel)
+brew "cloudflared"
+# Debugger for the Go programming language
+brew "delve"
+# Load/unload environment variables based on $PWD
+brew "direnv"
+# Language Server and Debugger for Elixir
+brew "elixir-ls"
+# Speed up eslint to accelerate your development workflow
+brew "eslint_d"
+# Modern, maintained replacement for ls
+brew "eza"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# User-friendly command-line shell for UNIX-like operating systems
+brew "fish"
+# GitHub command-line tool
+brew "gh"
+# Interpreter for PostScript and PDF
+brew "ghostscript"
+# Quickly rewrite git repository history
+brew "git-filter-repo"
+# Tcl/Tk UI for the git revision control system
+brew "git-gui"
+# Git extension for versioning large files
+brew "git-lfs"
+# Audit git repos for secrets
+brew "gitleaks"
+# Render markdown on the CLI
+brew "glow"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
+# Language server for the Go language
+brew "gopls"
+# CLI for backing up and restoring Gmail messages
+brew "gyb"
+# Kubernetes package manager
+brew "helm"
+# Agent multiplexer that lives in your terminal
+brew "herdr"
+# Tools and libraries to manipulate images in select formats
+brew "imagemagick"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Tool to move from `docker-compose` to Kubernetes
+brew "kompose"
+# Simple terminal UI for git commands
+brew "lazygit"
+# Sophisticated file transfer program
+brew "lftp"
+# Language Server for the Lua language
+brew "lua-language-server"
+# Mac App Store command-line interface
+brew "mas"
+# Run a Kubernetes cluster locally
+brew "minikube"
+# Simple tool to make locally trusted development certificates
+brew "mkcert"
+# Remote terminal application
+brew "mosh"
+# Open source relational database management system
+brew "mysql"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Network Kanji code conversion Filter (NKF)
+brew "nkf"
+# Port scanning utility for large networks
+brew "nmap"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node@22"
+# Development kit for the Java programming language
+brew "openjdk"
+# Drop-in replacement for Terraform. Infrastructure as Code Tool
+brew "opentofu"
+# Swiss-army knife of markup format conversion
+brew "pandoc"
+# Simplistic interactive filtering tool
+brew "peco"
+# Execute binaries from Python packages in isolated environments
+brew "pipx"
+# Fast, disk space efficient package manager
+brew "pnpm"
+# PDF rendering library (based on the xpdf-3.0 code base)
+brew "poppler"
+# Object-relational database system
+brew "postgresql@14"
+# Object-relational database system
+brew "postgresql@17", restart_service: :changed
+# Convert bitmaps to vector graphics
+brew "potrace"
+# Coreutils progress viewer
+brew "progress"
+# Python version management
+brew "pyenv"
+# It's not just a linter that annoys you!
+brew "pylint"
+# Static type checker for Python
+brew "pyright"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.13"
+# File browser
+brew "ranger"
+# Ruby version manager
+brew "rbenv"
+# Rsync for cloud storage
+brew "rclone"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Experimental Rust compiler front-end for IDEs
+brew "rust-analyzer"
+# Prints a steam locomotive if you type sl instead of ls
+brew "sl"
+# Contract-oriented programming language
+brew "solidity"
+# Editor of encrypted files
+brew "sops"
+# Cross-shell prompt for astronauts
+brew "starship"
+# Opinionated Lua code formatter
+brew "stylua"
+# Send macOS User Notifications from the command-line
+brew "terminal-notifier"
+# Terraform Language Server
+brew "terraform-ls"
+# Terraform version manager inspired by rbenv
+brew "tfenv"
+# Static analysis security scanner for your terraform code
+brew "tfsec"
+# Terminal multiplexer
+brew "tmux"
+# NetBSD's FTP client
+brew "tnftp"
+# Program that allows you to count code, quickly
+brew "tokei"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Command-line interface for Vercel
+brew "vercel"
+# Generate your Xcode project from a spec file and your folder structure
+brew "xcodegen"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Pluggable terminal workspace, with terminal multiplexer as the base feature
+brew "zellij"
+# Named Codex CLI profiles with separate local ChatGPT desktop state
+brew "ducksss/tap/codex-profile", trusted: true
+# Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
+brew "rjyo/moshi/moshi-hook"
+# Supabase CLI
+brew "supabase/tap/supabase", trusted: true
+# macOS notification CLI — send native notifications and capture user interactions
+brew "vjeantet/tap/alerter", trusted: true
+# Password manager that keeps all passwords secure behind one password
+cask "1password"
+# Command-line interface for 1Password
+cask "1password-cli"
+# GPU-accelerated terminal emulator
+cask "alacritty"
+# Tools for building Android applications
+cask "android-studio"
+# Agent orchestration platform
+cask "antigravity"
+# Chromium based browser
+cask "arc"
+# 3D creation suite
+cask "blender"
+# OpenAI's official ChatGPT desktop app
+cask "chatgpt"
+# Group chat software
+cask "chatwork"
+# Clipboard extension app
+cask "clipy"
+# OpenAI's coding agent that runs in your terminal
+cask "codex"
+# Write, edit, and chat about your code with AI
+cask "cursor"
+# Voice and text chat software
+cask "discord"
+# App to build and share containerised applications and microservices
+cask "docker-desktop"
+# Developer platform
+cask "dotnet-sdk"
+# Collaborative team software
+cask "figma"
+# Web browser
+cask "firefox"
+# Web browser
+cask "firefox@nightly"
+cask "font-hack-nerd-font"
+cask "font-iosevka"
+# Virtual video-calling space
+cask "gather"
+# Set of tools to manage resources and applications hosted on Google Cloud
+cask "gcloud-cli"
+# Desktop customization tool
+cask "geektool"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
+# Web browser
+cask "google-chrome"
+# Client for the Google Drive storage service
+cask "google-drive"
+# Japanese input software
+cask "google-japanese-ime"
+# Terminal emulator as alternative to Apple's Terminal app
+cask "iterm2"
+# Keyboard customiser
+cask "karabiner-elements"
+# Blocks all Keyboard and TouchBar input
+cask "keyboardcleantool"
+# Open-source keystroke visualiser
+cask "keycastr"
+# Project management software
+cask "lark"
+# Free cross-platform office suite, fresh version
+cask "libreoffice"
+# App to manage software development and track bugs
+cask "linear"
+# Terminal multiplexer
+cask "muxy-app/tap/muxy"
+# Developer IDE or Management Environment for Neo4j instances
+cask "neo4j-desktop"
+# App to write, plan, collaborate, and get organised
+cask "notion"
+# Calendar for professionals and teams
+cask "notion-calendar"
+# Knowledge base that works on top of a local folder of plain text Markdown files
+cask "obsidian"
+# Administration and development platform for PostgreSQL
+cask "pgadmin4"
+# Collaboration platform for API development
+cask "postman"
+# Control your tools with a few keystrokes
+cask "raycast"
+# Standalone app for debugging React Native apps
+cask "react-native-debugger"
+# Team communication and collaboration software
+cask "slack"
+# Music streaming service
+cask "spotify"
+# Dictation tool including LLM reformatting
+cask "superwhisper"
+# Messaging app with a focus on speed and security
+cask "telegram"
+# VPN client for secure internet access and private browsing
+cask "tunnelbear"
+# Run commands and display their output on the desktop
+cask "ubersicht"
+# Open-source code editor
+cask "visual-studio-code"
+# Network protocol analyzer
+cask "wireshark-app"
+# Gecko based web browser
+cask "zen"
+vscode "evaera.vscode-rojo"
+vscode "jonathan-yeung.mark-sharp"
+vscode "ms-vscode-remote.remote-containers"
+vscode "waderyan.gitblame"
+cargo "mcp-server-youtube"
+cargo "rojo"
+uv "graphifyy[mcp]"
+uv "kabi-discord-cli"
+uv "nano-pdf"
+uv "serena-agent"
+npm "@circleback/cli"
+npm "@coctostan/pi-exa-gh-web-tools"
+npm "@earendil-works/pi-coding-agent"
+npm "@google/clasp"
+npm "@google/gemini-cli"
+npm "@jackwener/opencli"
+npm "@letta-ai/letta-code"
+npm "@marp-team/marp-cli"
+npm "@papillon6814/copi"
+npm "@suekou/mcp-notion-server"
+npm "@zvec/zvec-grep"
+npm "agent-browser"
+npm "chrome-devtools-axi"
+npm "claude-agent-sdk-pi"
+npm "codemogger"
+npm "depcheck"
+npm "docx"
+npm "gh-axi"
+npm "gh-issueflow"
+npm "happy"
+npm "lavish-axi"
+npm "mcp-gsheets"
+npm "pi-ask-user"
+npm "pi-mcp-adapter"
+npm "pi-plan-mode"
+npm "pi-poly-notify"
+npm "pi-profile"
+npm "prettier"
+npm "quota-axi"
+npm "roblox-ts"
+npm "robloxstudio-mcp"
+npm "tasks-axi"
+npm "ts-node"
+npm "typescript-language-server"
+npm "typescript"
+npm "uipro-cli"
+npm "yarn"

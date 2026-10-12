@@ -4,6 +4,8 @@ LICENSE
 npm
 docs
 tests
+scripts
+brew
 # テストはリポジトリで実行するだけで、ホームには配らない
 **/test_*.py
 
@@ -79,6 +81,28 @@ tests
 .pi/loops
 .pi/loops.json
 .pi/profile-packages
+
+# Codex: 実行時の状態・認証・自動管理のシステムスキル（config.toml は平文キーとマシン固有の状態を含むので管理しない）
+.codex/*
+!.codex/AGENTS.md
+!.codex/CLAUDE-PARITY.md
+!.codex/MCP-SYNC.md
+!.codex/hooks.json
+!.codex/herdr-agent-state.sh
+!.codex/hooks
+!.codex/instructions
+!.codex/bin
+!.codex/rules
+!.codex/skills
+!.codex/agents
+.codex/skills/.system
+.codex/hooks/*.log
+.codex/**/*.bak*
+
+# Claude Code の personal プロファイル（claude-profile）は MacBook にだけある。中身は ~/.claude へのリンク
+{{ if ne .chezmoi.hostname "Soichiros-MacBook-Pro" }}
+.claude-profiles
+{{ end }}
 
 # Karabiner backups (auto-generated)
 .config/karabiner/automatic_backups

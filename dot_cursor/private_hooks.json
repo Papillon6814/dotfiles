@@ -1,0 +1,69 @@
+{
+  "hooks" : {
+    "afterAgentThought" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "beforeSubmitPrompt" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      },
+      {
+        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' beforeSubmitPrompt # muxy-notification-hook"
+      }
+    ],
+    "postToolUse" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "postToolUseFailure" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "preCompact" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "preToolUse" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "sessionEnd" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      },
+      {
+        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' sessionEnd # muxy-notification-hook"
+      }
+    ],
+    "sessionStart" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "stop" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      },
+      {
+        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' stop # muxy-notification-hook"
+      }
+    ],
+    "subagentStart" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ],
+    "subagentStop" : [
+      {
+        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+      }
+    ]
+  },
+  "version" : 1
+}
