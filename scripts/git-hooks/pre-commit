@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # dotfiles の pre-commit。PUBLIC リポジトリなので、秘密情報と壊れた設定ファイルを入れない。
 # 有効化: ln -s ../../scripts/git-hooks/pre-commit "$(git rev-parse --git-common-dir)/hooks/pre-commit"
 # （~/.git-hooks のディスパッチャがリポジトリ側の同名フックを呼ぶ）

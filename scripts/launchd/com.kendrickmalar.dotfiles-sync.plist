@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  dotfiles の自動同期（5分ごと）。直接コピーせず scripts/install-dotfiles-sync.sh で設置する
+  （__HOME__ と __REPO__ を実際のパスに置き換えて ~/Library/LaunchAgents に置き、bootstrap する）。
+
+  状態:     launchctl print gui/$(id -u)/com.kendrickmalar.dotfiles-sync
+  即時実行: launchctl kickstart -k gui/$(id -u)/com.kendrickmalar.dotfiles-sync
+  停止:     launchctl bootout gui/$(id -u)/com.kendrickmalar.dotfiles-sync
+  ログ:     ~/Library/Logs/dotfiles-sync.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kendrickmalar.dotfiles-sync</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO__/scripts/dotfiles-sync.sh</string>
+  </array>
+
+  <!-- 5分ごと。前回が続いている間は多重起動しない。スリープ中の分は捨てられる -->
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/dotfiles-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/dotfiles-sync.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LANG</key>
+    <string>ja_JP.UTF-8</string>
+  </dict>
+
+  <!-- ログイン中のユーザーとして、低優先度で動かす -->
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>
