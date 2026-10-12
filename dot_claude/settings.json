@@ -90,7 +90,9 @@
       "Read",
       "Edit(~/Documents/**)",
       "Edit(~/Downloads/**)",
-      "mcp__zvec_grep__*"
+      "mcp__zvec_grep__*",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)"
     ],
     "deny": [
       "Bash(git push --force *)",
@@ -101,8 +103,6 @@
       "Bash(> *)"
     ],
     "ask": [
-      "Bash(rm -rf *)",
-      "Bash(rm -r *)",
       "Bash(gog gmail send *)",
       "Bash(gog gmail drafts send *)",
       "Bash(gog gmail forward *)",
