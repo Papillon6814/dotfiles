@@ -74,6 +74,29 @@ require("lazy").setup({
       local builtin = require("telescope.builtin")
       local fb_actions = telescope.extensions.file_browser.actions
 
+      local function toggle_symlinks(prompt_bufnr)
+        local picker = require("telescope.actions.state").get_current_picker(prompt_bufnr)
+        local finder = picker.finder
+        if finder._symlink_entry_maker then
+          finder.entry_maker = finder._symlink_entry_maker
+          finder._symlink_entry_maker = nil
+        else
+          local original = finder.entry_maker
+          finder._symlink_entry_maker = original
+          finder.entry_maker = function(opts)
+            local make_entry = original(opts)
+            return function(path)
+              local stat = vim.uv.fs_lstat((path:gsub("/+$", "")))
+              if path ~= vim.fn.fnamemodify(opts.cwd, ":h") and stat and stat.type == "link" then
+                return nil
+              end
+              return make_entry(path)
+            end
+          end
+        end
+        picker:refresh(finder, { reset_prompt = true })
+        vim.notify(finder._symlink_entry_maker and "Symlinks: hidden" or "Symlinks: shown")
+      end
       local function telescope_buffer_dir()
         return vim.fn.expand("%:p:h")
       end
@@ -97,6 +120,7 @@ require("lazy").setup({
                 end,
               },
               ["n"] = {
+                ["S"] = toggle_symlinks,
                 ["N"] = fb_actions.create,
                 ["M"] = fb_actions.move,
                 ["D"] = fb_actions.remove,
@@ -140,6 +164,7 @@ require("lazy").setup({
           path = "%:p:h",
           cwd = telescope_buffer_dir(),
           respect_gitignore = false,
+          follow_symlinks = true,
           hidden = true,
           grouped = true,
           previewer = false,

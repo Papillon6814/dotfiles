@@ -10,6 +10,22 @@ DIR=$(echo "$INPUT" | jq -r '.workspace.current_dir // ""')
 PCT=$(echo "$INPUT" | jq -r '.context_window.used_percentage // 0')
 TOKENS=$(echo "$INPUT" | jq -r '.context_window.current_usage.input_tokens // 0')
 DURATION_MS=$(echo "$INPUT" | jq -r '.cost.total_duration_ms // 0')
+CACHE_RATIO=$(echo "$INPUT" | jq -r '.prompt_cache.hit_ratio // empty')
+CACHE_MISSES=$(echo "$INPUT" | jq -r '.prompt_cache.misses // 0')
+CACHE_REBUILDS=$(echo "$INPUT" | jq -r '.prompt_cache.expected_rebuilds // 0')
+CACHE_WARM=$(echo "$INPUT" | jq -r '
+  if .prompt_cache.warm == true then "warm"
+  elif .prompt_cache.warm == false then "cold"
+  else "—"
+  end
+')
+
+if [ -n "$CACHE_RATIO" ]; then
+  CACHE_PCT=$(awk -v ratio="$CACHE_RATIO" 'BEGIN {printf "%.0f", ratio * 100}')
+  CACHE_FMT="cache ${CACHE_PCT}%/${CACHE_MISSES}m/${CACHE_REBUILDS}r/${CACHE_WARM}"
+else
+  CACHE_FMT="cache —"
+fi
 
 # ログイン中アカウント（設定ディレクトリの .claude.json から）
 EMAIL=$(jq -r '.oauthAccount.emailAddress // ""' "${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json" 2>/dev/null)
@@ -63,5 +79,5 @@ fi
 # ディレクトリ表示 (~ 短縮)
 DIR_DISPLAY="${DIR/#$HOME/~}"
 
-printf "[%s] ${EMAIL_FMT}%s ${COLOR}%s${RESET} %d%% | %s tokens | %s%s\n" \
-  "$MODEL" "$DIR_DISPLAY" "$BAR" "$PCT" "$TOKEN_FMT" "$TIME_FMT" "$GIT_FMT"
+printf "[%s] ${EMAIL_FMT}%s ${COLOR}%s${RESET} %d%% | %s tokens | %s | %s%s\n" \
+  "$MODEL" "$DIR_DISPLAY" "$BAR" "$PCT" "$TOKEN_FMT" "$TIME_FMT" "$CACHE_FMT" "$GIT_FMT"

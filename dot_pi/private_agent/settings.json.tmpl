@@ -9,7 +9,6 @@
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6-luna",
   "packages": [
-    "npm:claude-agent-sdk-pi",
     "npm:pi-ask-user",
     "npm:@coctostan/pi-exa-gh-web-tools",
     "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
@@ -33,7 +32,7 @@
     "npm:@piex-dev/dap",
     "npm:@schovest/pi-goal",
     "npm:@davidroman/pi-loop",
-    "git:github.com/KendrickMalar/pi-subagents@535f78a899a23ef3fe0b2171fbee1d8671194c39",
+    "git:github.com/KendrickMalar/pi-subagents@77cfc3db880522910f69507ead69fa7c4a6df0f8",
     "npm:pi-filler",
     "npm:@335g/pi-autocommit",
     "npm:pi-pr-review",
@@ -54,7 +53,8 @@
     "pi-deep-research-exa",
     "git:github.com/obra/superpowers@v6.4.2",
     "npm:@injaneity/pi-computer-use@0.5.1",
-    "git:github.com/KendrickMalar/pi-model-roles@0cea28dcb976dc79ac12ee7903c79f34a6cd41d3"
+    "git:github.com/KendrickMalar/pi-model-roles@0cea28dcb976dc79ac12ee7903c79f34a6cd41d3",
+    "../../Documents/Github/pi-claude-local"
   ],
   "skills": [
     "!{{ .chezmoi.homeDir }}/.agents/skills/using-git-worktrees/SKILL.md",
@@ -105,10 +105,10 @@
     "anthropicExtraUsage": false
   },
   "modelRoles": {
-    "smol": "openai-codex/gpt-6-luna:low",
-    "default": "openai-codex/gpt-6-luna:xhigh",
+    "smol": "openai-codex/gpt-6-luna:xhigh",
+    "default": "openai-codex/gpt-6.1-sol:medium",
     "slow": "openai-codex/gpt-6.1-sol:high",
-    "task": "openai-codex/gpt-6.1-sol:xhigh"
+    "task": "openai-codex/gpt-6.1-sol:medium"
   },
   "modelRoleCycle": [
     "smol",

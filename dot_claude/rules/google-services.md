@@ -1,3 +1,8 @@
+---
+description: Google サービス操作は gog（一般）/ gam（管理者）を優先する方針と注意点
+alwaysApply: true
+---
+
 # Google サービス操作
 
 ## 基本方針
@@ -9,7 +14,7 @@
 
 - 実行例: `gam info domain` / `gam update group <group> add member <email>` / `gam user <email> modify calendars primary timezone Asia/Tokyo`
 - サブコマンドは `gam help` や公式 Wiki（https://github.com/GAM-team/GAM/wiki）で確認
-- セットアップ済み環境: GAM 7.x、認証情報は `~/.gam/`、GCP プロジェクト `<project-id>`、ドメインワイド委任承認済み（経緯は ai-secretary リポジトリ `projects/2026-07-10-GAMセットアップ-引き継ぎ.md`）
+- セットアップ済み環境: GAM 7.x、認証情報は `~/.gam/`、GCP プロジェクト `gam-project-86pzc`、ドメインワイド委任承認済み（経緯は ai-secretary リポジトリ `projects/2026-07-10-GAMセットアップ-引き継ぎ.md`）
 
 ### GAM 使用時の注意（厳守）
 - **破壊的・一括操作は実行前に必ずユーザーに確認する**: `gam all users ...`、ユーザーの削除/停止、`deprovision`、転送設定の変更など影響範囲が大きいものは、対象と影響を提示して明示的な許可を得てから実行

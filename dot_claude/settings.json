@@ -3,8 +3,26 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "MCP_TIMEOUT": "600000",
-    "MCP_TOOL_TIMEOUT": "600000"
+    "MCP_TOOL_TIMEOUT": "600000",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_TRACES_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://api.honeycomb.io",
+    "OTEL_RESOURCE_ATTRIBUTES": "service.name=claude-code,tool=claude-code",
+    "OTEL_METRICS_INCLUDE_VERSION": "true",
+    "OTEL_METRICS_INCLUDE_ENTRYPOINT": "true",
+    "OTEL_LOG_USER_PROMPTS": "0",
+    "OTEL_LOG_TOOL_DETAILS": "0",
+    "OTEL_LOG_TOOL_CONTENT": "0"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -75,8 +93,6 @@
       "mcp__zvec_grep__*"
     ],
     "deny": [
-      "Bash(rm -rf *)",
-      "Bash(rm -r *)",
       "Bash(git push --force *)",
       "Bash(git push -f *)",
       "Bash(git reset --hard *)",
@@ -85,6 +101,8 @@
       "Bash(> *)"
     ],
     "ask": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
       "Bash(gog gmail send *)",
       "Bash(gog gmail drafts send *)",
       "Bash(gog gmail forward *)",
@@ -93,7 +111,7 @@
       "mcp__mcp-gsuite__reply_gmail_email"
     ]
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus[1m]",
   "deniedMcpServers": [
     {
       "serverName": "claude_ai_Notion"
@@ -317,7 +335,9 @@
     "slack@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "vercel@claude-plugins-official": true,
-    "basicslide@basicslide": true
+    "basicslide@basicslide": true,
+    "honeycomb@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "basicslide": {
@@ -325,12 +345,19 @@
         "source": "git",
         "url": "https://github.com/khaym/basicslide.git"
       }
+    },
+    "honeycomb-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "honeycombio/agent-skill"
+      }
     }
   },
+  "otelHeadersHelper": "/Users/papillon/.config/otel/claude-otel-headers.sh",
   "effortLevel": "xhigh",
   "modelSettings": {
     "claude-fable-5-1": {
-      "effortLevel": "medium"
+      "effortLevel": "low"
     }
   },
   "tui": "fullscreen",

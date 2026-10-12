@@ -1,40 +1,5 @@
 {
   "providers": {
-    "claude-code-proxy": {
-      "baseUrl": "http://127.0.0.1:3456/v1",
-      "api": "openai-completions",
-      "apiKey": "not-needed",
-      "compat": {
-        "supportsStore": false,
-        "supportsDeveloperRole": false
-      },
-      "models": [
-        {
-          "id": "claude-opus-4",
-          "name": "Claude Code Proxy Opus (会話用・Piツール非対応)",
-          "reasoning": false,
-          "input": ["text"],
-          "contextWindow": 200000,
-          "maxTokens": 8192
-        },
-        {
-          "id": "claude-sonnet-4",
-          "name": "Claude Code Proxy Sonnet (会話用・Piツール非対応)",
-          "reasoning": false,
-          "input": ["text"],
-          "contextWindow": 200000,
-          "maxTokens": 8192
-        },
-        {
-          "id": "claude-haiku-4",
-          "name": "Claude Code Proxy Haiku (会話用・Piツール非対応)",
-          "reasoning": false,
-          "input": ["text"],
-          "contextWindow": 200000,
-          "maxTokens": 8192
-        }
-      ]
-    },
     "ollama": {
       "baseUrl": "http://localhost:11434/v1",
       "api": "openai-completions",

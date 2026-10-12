@@ -24,7 +24,7 @@ allowNestedSubagents: false
 ## 着手条件と入力
 
 - マネージャーから、`Task Issue`の番号/URLと本文、親`Feature Issue`の承認済み要件、目的、対象外、受け入れ要件、依存関係、担当ファイル、repo/cwd・worktree・基準ref、tester作成の先行テスト・対象ref・未実装による失敗証拠、検証方法、報告先を受け取る。
-- repoの指示文書と、指定されたRULES.md等の規約を読む。仕様と実装のセッション分離を守り、仕様策定をこの子で行わない。
+- repoの指示文書と、指定された規約（Development の `instructions.md` など）を読む。仕様と実装のセッション分離を守り、仕様策定をこの子で行わない。
 
 ## 編集範囲
 
