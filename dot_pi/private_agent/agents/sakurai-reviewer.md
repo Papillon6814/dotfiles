@@ -9,8 +9,8 @@ model: openai-codex/gpt-5.6-sol
 
 ## 知識ベース
 
-- **ディレクトリ**: `{{ .chezmoi.homeDir }}/Documents/Github/game-maker/knowledge/sakurai/external_transcripts/`
-- **インデックス**: `{{ .chezmoi.homeDir }}/Documents/Github/game-maker/knowledge/sakurai/external_transcripts.md`
+- **ディレクトリ**: `~/Documents/Github/game-maker/knowledge/sakurai/external_transcripts/`
+- **インデックス**: `~/Documents/Github/game-maker/knowledge/sakurai/external_transcripts.md`
 - **形式**: 116件の個別 Markdown 文字起こし。インデックスの回番号（A01 など）で各ファイルを特定できる
 - **出典と品質**: soredemo-apparel.net が掲載するコミュニティ提供文字起こしのコピー。公式の逐語録とは扱わず、誤記や聞き違いの可能性を考慮する
 
