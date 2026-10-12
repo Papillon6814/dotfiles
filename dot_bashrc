@@ -1,3 +1,6 @@
 # Added by ForgeCode installer
-export PATH="/Users/papillon/.local/bin:$PATH"
-. "$HOME/.rokit/env"
+export PATH="$HOME/.local/bin:$PATH"
+[ -f "$HOME/.rokit/env" ] && . "$HOME/.rokit/env"
+
+# マシン固有の設定（dotfiles では管理しない）
+[ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"

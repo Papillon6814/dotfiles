@@ -114,6 +114,15 @@ brew
 .config/herdr/*.log
 .config/herdr/*.bak-*
 
+# MacBook 以外（Mac mini）では、マシン固有の設定を共有しない
+# - Claude の settings.json は MacBook 前提の絶対パス（herdr・otel）を含む
+# - gh のログイン情報、Karabiner のキー設定はマシンごとに違う
+{{ if ne .chezmoi.hostname "Soichiros-MacBook-Pro" }}
+.claude/settings.json
+.config/gh/hosts.yml
+.config/karabiner
+{{ end }}
+
 # Karabiner backups (auto-generated)
 .config/karabiner/automatic_backups
 

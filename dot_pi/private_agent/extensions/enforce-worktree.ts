@@ -21,10 +21,11 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { statSync } from "node:fs";
-import { resolve, relative } from "node:path";
+import { realpathSync, statSync } from "node:fs";
+import { isAbsolute, resolve, relative } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
+import { Type } from "@earendil-works/pi-ai";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 // --- Git helpers ---
@@ -365,7 +366,7 @@ export default function (pi: ExtensionAPI) {
 		// --- Bash: prepend cd ---
 		if (event.toolName === "bash") {
 			const input = event.input as { command: string };
-			input.command = `cd ${worktree.path} && ${input.command}`;
+			input.command = `cd '${worktree.path.replace(/'/g, "'\\''")}' && ${input.command}`;
 		}
 	});
 
@@ -434,6 +435,44 @@ You are in the **main worktree** and no linked worktree exists.
 After creation, paths are automatically redirected — no manual \`cd\` needed.
 `,
 		};
+	});
+
+	pi.registerTool({
+		name: "worktree_switch",
+		label: "Switch Worktree",
+		description: "Switch this session's file and bash redirection to an explicitly chosen linked worktree of the current repository. Call separately before file operations. Does not create worktrees, checkout branches, or change the session history.",
+		executionMode: "sequential",
+		parameters: Type.Object({
+			path: Type.String({ description: "Absolute path of an existing linked worktree in the current repository" }),
+		}),
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			if (!isInMainWorktree(ctx.cwd)) {
+				throw new Error("Worktree redirection requires a session started in the main worktree.");
+			}
+			if (!isAbsolute(params.path)) {
+				throw new Error("The worktree path must be absolute.");
+			}
+			const targetPath = realpathSync(params.path);
+			const chosen = getLinkedWorktrees(ctx.cwd).find((wt) => {
+				try {
+					return realpathSync(wt.path) === targetPath;
+				} catch {
+					return false;
+				}
+			});
+			if (!chosen) {
+				throw new Error("The target must be an existing linked worktree of the current repository.");
+			}
+			const activated = activateWorktree(ctx.cwd, chosen)!;
+			const details = {
+				path: activated.path,
+				branch: activated.branch.replace(/^refs\/heads\//, ""),
+			};
+			return {
+				content: [{ type: "text", text: JSON.stringify(details) }],
+				details,
+			};
+		},
 	});
 
 	// --- /worktree command ---
