@@ -1,0 +1,87 @@
+tap "muxy-app/tap"
+tap "rjyo/moshi", trusted: true
+tap "supabase/tap"
+# Simple, modern, secure file encryption
+brew "age"
+# Manage your dotfiles across multiple diverse machines, securely
+brew "chezmoi"
+# Tool for emulating mouse and keyboard events
+brew "cliclick"
+# Modern, maintained replacement for ls
+brew "eza"
+# Simple, fast and user-friendly alternative to find
+brew "fd"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# User-friendly command-line shell for UNIX-like operating systems
+brew "fish"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# GitHub command-line tool
+brew "gh"
+# Audit git repos for secrets
+brew "gitleaks"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
+# Google Suite CLI
+brew "gogcli"
+# Remote terminal application
+brew "mosh"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node@22"
+# Fast, disk space efficient package manager
+brew "pnpm"
+# Rsync for cloud storage
+brew "rclone"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Professional grade Roblox development tools
+brew "rojo"
+# Editor of encrypted files
+brew "sops"
+# Send macOS User Notifications from the command-line
+brew "terminal-notifier"
+# OCR (Optical Character Recognition) engine
+brew "tesseract"
+# Enables extra languages support for Tesseract
+brew "tesseract-lang"
+# Terminal multiplexer
+brew "tmux"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Generate your Xcode project from a spec file and your folder structure
+brew "xcodegen"
+# Pluggable terminal workspace, with terminal multiplexer as the base feature
+brew "zellij"
+# Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
+brew "rjyo/moshi/moshi-hook"
+# Supabase CLI
+brew "supabase/tap/supabase", trusted: true
+# Password manager that keeps all passwords secure behind one password
+cask "1password"
+# Command-line interface for 1Password
+cask "1password-cli"
+# Speech-to-text system
+cask "aqua-voice"
+# Terminal-based AI coding assistant
+cask "claude-code"
+cask "font-iosevka"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
+cask "muxy"
+# Control your tools with a few keystrokes
+cask "raycast"
+# Mesh VPN based on WireGuard
+cask "tailscale-app"
+# Messaging app with a focus on speed and security
+cask "telegram"
+uv "serena-agent"
+npm "@earendil-works/pi-coding-agent"
+npm "@jackwener/opencli"
+npm "@notionhq/notion-mcp-server"
+npm "@zvec/zvec-grep"
+npm "openclaw"

@@ -467,25 +467,6 @@
   "mcp": {
     "sessionIdleTtlMs": 120000,
     "servers": {
-      "notion_local": {
-        "command": "/opt/homebrew/bin/notion-mcp-server",
-        "args": [
-          "--transport",
-          "stdio"
-        ],
-        "env": {
-          "NOTION_API_TOKEN": "${NOTION_API_TOKEN}",
-          "NOTION_TOKEN": "${NOTION_API_TOKEN}"
-        }
-      },
-      "notion_remote": {
-        "command": "npx",
-        "args": [
-          "-y",
-          "mcp-remote",
-          "https://mcp.notion.com/mcp"
-        ]
-      },
       "github": {
         "command": "npx",
         "args": [
