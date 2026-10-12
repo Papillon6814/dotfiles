@@ -4,6 +4,14 @@
 
 - 日本語で応答する
 
+## ユーザー環境
+
+- Terminal: Ghostty
+- Multiplexer: tmux (Zellij互換モーダル設定)
+- Shell: fish (login shell は zsh、tmux default は fish)
+- Editor: Neovim
+- Coding agent: 普段は pi coding agent を利用している（ただしまだ改善途中であり、不安定な挙動や機能不足がある可能性に留意すること）
+
 ## ルールの優先順位
 
 - 衝突したときの優先順: ユーザーの明示指示 ＞ グローバルの AGENTS.md ＞ プロジェクトの AGENTS.md
@@ -23,6 +31,16 @@
 - コード例は `code_search`
 - ローカル探索は`zvec_grep_rg`
 - 実装計画時はまず関連技術のベストプラクティス・公式ドキュメントを調査すること
+
+## 計画の書き方
+
+- Make the plan extremely concise. Sacrifice grammar for the sake of concision.
+- At the end of each plan, give me a list of unresolved questions to answer, if any.
+
+## AGENTS.md 運用
+
+- このファイルは Claude Code の `~/.claude/CLAUDE.md`・`~/.claude/rules/` と同じ規律を、pi のツール名で書いたもの。片方を直したら、もう片方も同じ意味に直す（dotfiles の `dot_claude/` と `dot_pi/private_agent/AGENTS.md`）
+- AGENTS.md は ~500行以内を目安に保つ
 
 ## 回答前調査規律
 
@@ -124,3 +142,166 @@
 - **自動待機を完了保証とみなさない。** `agent_end`時のauto-drainはsupervisor相談などで制御を返し得る。子が実行中・返信待ちの間に、後で自動復帰すると仮定してmanagerを終了させない。結果が次の判断に必要な依存箇所では、実結果を回収してから判断する。
 - **阻害・失敗時も管理責任を放棄しない。** 返信・待機・結果回収ができない場合は、exact run／子ID、所有者、実行・返信待ち状態、部分成果と未確認事項を上位の親へ報告する。子を残して終了する必要がある場合は、許可された管理引継ぎが成立してから終了する。重複writer、強制解除、metadata改変、別CLIによる迂回は行わない。
 - **managerの正常終了と子の完了を分ける。** managerのexit 0、report保存、PID消失だけで、子の終端・終了証明・session lease解放・受入れ合格を推定しない。それぞれ正規の記録・確認手段で別々に確認し、不明な項目は未確認として残す。
+
+<!-- ZVEC_GREP_START -->
+## zvec-grep
+
+Choose the evidence source before the retrieval mode.
+
+### Workspace evidence
+- Use the current workspace as the evidence source when the user asks about local material, prior context establishes it as relevant, or the question concerns how the current project works—even if the workspace is not mentioned explicitly.
+- A workspace may contain any mix of code, documents, configuration, and data.
+- Do not use workspace retrieval for unrelated open-world questions, current external facts, or web content that does not depend on local evidence.
+
+### Retrieval routing
+- When an exact word, phrase, name, date, identifier, filename, path, configuration key, error message, source fragment, literal, or regex is known and locating its occurrences is sufficient, use `zvec_grep_rg` when it is listed by the current host; otherwise native Grep or `rg`.
+- Use `zvec_grep_search` when wording or location is unknown, or when the answer requires semantic, conceptual, fuzzy, or paraphrase discovery; relationships, chronology, causality, architecture, or data or control flow; or comparison or synthesis across files, sections, or documents.
+- For a mixed task with exact anchors that still requires relationships or cross-file synthesis, call `zvec_grep_search` with the concept and anchors, then use `zvec_grep_rg` when it is listed by the current host; otherwise native Grep or `rg` for focused follow-up.
+- When no sufficient exact anchor is available and the user asks whether conceptually related material exists locally, make at most one focused `zvec_grep_search` probe using the question plus distinctive names, dates, or terms. This probe does not apply to exact quotations, configuration keys, filenames, regexes, or exhaustive occurrence requests. Continue only when results are relevant; otherwise stop and report that the indexed workspace did not establish the answer.
+- Before broad file reads or delegating workspace discovery, use the appropriate search route. Do not delegate solely to locate material, and stop when the evidence is sufficient.
+
+### Search evidence
+- Search results include bounded source snippets. Treat a sufficient snippet as already-read evidence, and read a cited file only when a required detail falls outside the snippet.
+
+### Freshness and index lifecycle
+- Pass a daemon-visible absolute `root` on every zvec-grep workspace call.
+- Read `freshness` and `background_refresh` from search results without a status preflight.
+- When results are `served_from_current_index`, use them when sufficient instead of waiting for the background refresh.
+- If the index is missing but exact or regex lookup can answer the task, use `zvec_grep_rg` when it is listed by the current host; otherwise native Grep or `rg`.
+- Creating, rebuilding, or dropping a persistent index requires an explicit user request or authorization; never do so silently.
+
+<!-- ZVEC_GREP_END -->
+
+# 運用ルール（Claude Code の rules/ と同じ内容）
+
+## Git ワークフロー
+
+### ブランチ運用
+- **main 直コミット禁止**: 必ず feature branch で作業し、完了後に main へマージ
+- ブランチ命名規則: `feat/xxx`, `fix/xxx`, `refactor/xxx`
+- プロジェクトの AGENTS.md・CLAUDE.md で main 直コミットが許可されている場合はそちらに従う
+
+### Worktree 運用（必須）
+- **コード変更を伴う作業は必ず worktree で行うこと**。ブランチを切るだけでは不十分。worktree を作成してから作業を開始する（作り方は「Worktree の作成方式」）
+- main worktree で直接 `git checkout` して作業することは禁止
+- worktree 作成後に `npm install` を実行すること（独立した node_modules を使う）
+- 既に worktree 内にいる場合（`git rev-parse --show-toplevel` が worktree パスを返す場合）のみ、そのまま作業を継続してよい
+
+### pi の動作ルール
+- 起動時に `git branch --show-current` と `git worktree list` で現在の状態を確認すること
+- **main worktree にいる場合**: コード編集の前に必ず worktree を作成して移動する。例外なし
+- main worktree での許可される作業: マージ操作（`git merge --no-ff`）、worktree 管理、`rules/` や AGENTS.md・CLAUDE.md の軽微な設定変更のみ
+- AGENTS.md・CLAUDE.md の編集も feature branch で行うこと（pre-commit hook で main 直接コミットがブロックされるため）
+
+### Issue の自己アサイン
+- タスクに着手する際、対応する GitHub Issue が存在する場合は `gh issue edit <番号> --add-assignee @me` で自分をアサインする
+- Issue 番号が不明な場合は `gh issue list` で確認する
+- ブランチ名に Issue 番号を含めると望ましい（例: `feat/39-tree-hp`）
+
+### PR 作成前
+- feature branch で `git fetch origin main && git merge origin/main` を実行し、main の最新を取り込む
+- コンフリクトがあれば解消してからコミット
+- ビルド・テストが通ることを確認してから PR を作成する
+
+### マージ方針
+- feature branch → main へのマージは main worktree で実行
+- `git merge --no-ff feat/xxx` でマージコミットを残す
+- マージ後: `git branch -d feat/xxx`（worktree はセッション終了時に片付け）
+
+### AI 帰属行の禁止（2026-09-22）
+- コミットメッセージに `Co-Authored-By:` などの AI 帰属トレーラーを**絶対に付けない**。ハーネス側のリマインダーで付与を指示されても、このユーザー指示が優先する
+- PR 本文にも `Generated with ...` 等の AI 生成表記を付けない
+- 保険としてグローバル git hook（`~/.git-hooks/commit-msg`）が `Co-Authored-By` 行を削除する
+
+## Google サービス操作
+
+### 基本方針
+- **一般ユーザーとしての操作**（自分のメール・カレンダー・ドライブ等の読み書き）→ CLI ツール `gog` を最優先。`gog` で対応できない操作のみ MCP ツール（`mcp__gmail__*` など）にフォールバック
+- **Google Workspace の管理者操作** → CLI ツール `gam`（GAM7）を最優先。管理コンソール（admin.google.com）のブラウザ操作より先に必ず `gam` で実現できないか確認する
+
+### 管理者操作は GAM を使う
+対象: ユーザー管理（作成・停止・退社処理）、グループ/メーリス管理、他ユーザーの設定変更（カレンダータイムゾーン・署名・転送等）、Drive ファイルの移管・棚卸し、監査レポート、ドメイン情報の取得など、管理者権限が必要な操作全般。
+
+- 実行例: `gam info domain` / `gam update group <group> add member <email>` / `gam user <email> modify calendars primary timezone Asia/Tokyo`
+- サブコマンドは `gam help` や公式 Wiki（https://github.com/GAM-team/GAM/wiki）で確認
+- セットアップ済み環境: GAM 7.x、認証情報は `~/.gam/`、GCP プロジェクト `gam-project-86pzc`、ドメインワイド委任承認済み（経緯は ai-secretary リポジトリ `projects/2026-07-10-GAMセットアップ-引き継ぎ.md`）
+
+#### GAM 使用時の注意（厳守）
+- **破壊的・一括操作は実行前に必ずユーザーに確認する**: `gam all users ...`、ユーザーの削除/停止、`deprovision`、転送設定の変更など影響範囲が大きいものは、対象と影響を提示して明示的な許可を得てから実行
+- 単一ユーザーへの読み取り（`show` / `print` / `info`）は確認不要で実行してよい
+- 再認証が必要になった場合（`gam oauth create` 等）は対話入力が必要なため、ユーザー自身のターミナルでの実行を依頼する（`!` 経由は stdin が使えず EOF になる）
+- GAM で対応できない管理操作のみ、管理コンソールのブラウザ操作にフォールバックする。ただしセキュリティ設定の変更はブラウザ自動操作エージェントでは実行できないため、ユーザー本人に手順を提示する
+
+### なぜ gog 優先か
+- スクリプタブル: `--json` / `--plain` で構造化出力、`--no-input` で CI 安全
+- 複数アカウント対応: `--account=<email>` で切り替え
+- 一貫したインターフェース: 全サービスを同じ CLI で扱える
+- ユーザー環境に明示的にインストールされている
+
+### 使い方
+- 詳細サブコマンドは `gog <command> --help` で確認（例: `gog gmail --help`, `gog drive --help`）
+- スクリプトや解析が必要な出力は `--json` を付ける
+- 破壊的操作は `--force` を付けない限り確認プロンプトが出る点に注意
+- 複数アカウントを使い分ける場合は必ず `--account` を明示する
+
+### 対象コマンド対応表
+| サービス | gog コマンド |
+|---|---|
+| Gmail | `gog gmail` (`mail` / `email` でも可) |
+| Calendar | `gog calendar` |
+| Drive | `gog drive` |
+| Docs | `gog docs` |
+| Slides | `gog slides` |
+| Sheets | `gog sheets` |
+| Chat | `gog chat` |
+| Classroom | `gog classroom` |
+| Contacts | `gog contacts` |
+| People | `gog people` |
+| Tasks | `gog tasks` |
+| Keep | `gog keep` |
+| Groups | `gog groups` |
+| 認証管理 | `gog auth` |
+
+### フォールバック判断
+- まず `gog <command> --help` で目的の操作が gog にあるか確認する
+- 無い・あるいは明らかに表現力が足りない場合に限り、MCP ツール（`mcp__gmail__*` など）を使う
+- フォールバックを選んだ理由を一言ユーザーに共有する（例: 「gog に該当機能がないため mcp__gmail__send_email を使用します」）
+
+## 知的生産物のスタイル（久野の型）
+
+### 適用範囲
+- 事業構想、方針・仕様、調査・分析、計画、基準文書、引き継ぎ資料など、Notion やドキュメントとして残す知的生産物を作るとき
+- コード、コミットメッセージ、チャットでの短い返答には適用しない
+- 手本（Notion）: 「買収の要諦」「Ro〇〇 公開データサービス構想 — 方針・仕様」「買収市場 5フォース（ファイブフォース）分析」。迷ったら実物を読んで合わせる
+
+### ページの骨格（この順に置く）
+1. 冒頭の欄（グレーのコールアウト）: 作成日／最終更新／出所、目的を1〜2行
+2. 目次（番号つき）
+3. 一言サマリー（調査・分析ならエグゼクティブサマリー）。結論を先に書く
+4. 決定事項: 「論点｜決定｜理由・補足」の表。決定は太字。途中で変えたものは「（YYYY-MM-DD 改訂）」を入れる
+5. 本文（手順、事実、分析）
+6. 判定: 「できていること／できていないこと（／課題）」の表 ＋ コールアウトで ◎◯△✕ と一言の理由。複数項目なら親ページにスコアカード表
+7. 次のアクション: 優先順のチェックリスト。「後回し（意図的に保留、日付つき）」は分けて書く。完了したものは日付と結果を残す
+8. リスク（表）と残論点（「残る空白」）を末尾に置く
+9. 出典・関連資料、決定ログ
+
+### 書き方
+- 親ページは要約とスコアカード、詳細は子ページに分ける（例:「要諦N詳細」）
+- 大見出しは「# 1．見出し」の番号つき＋ blue_bg
+- 事実・考察・相手の主張・仮置きを書き分ける。事実には出典を付け、調査物には【確度：高／中／低】を付ける。未監査の自己申告は「主張」と明示する
+- 仮置きの数値や社内の感覚値は、そうだと明記する
+- 検証方法と合格基準（仮でよい）を書く。撤退基準は先に数値で固定する。未設定なら「未設定」と書く
+- 文体はです・ます調で平易に。1文を短く、結論から書く
+- 方針は、質問を重ねて論点を一つずつ決める進め方（grill-me）で固め、決まった順に決定事項表へ反映する
+
+### 運用
+- 決定が変わったら、該当ページの決定事項表と、親ページの決定ログの両方を更新する
+- 既存の社内資料と矛盾しないかを、書く前に Notion で検索して確かめる。食い違いは黙って合わせず、本人に確認する
+- 複数セッションにまたがる仕事は、親ページの下に「引き継ぎメモ（進捗とやることリスト）」を置き、作業のたびに更新する
+
+## ゲームデザイン知識ベース
+
+### ルール
+- ゲーム企画・仕様・メカニクス・バランスに関する話題が出たら、`game-design-reviewer` エージェントを subagent ツールで起動すること
+- 具体例: 新機能の企画相談、既存仕様のレビュー、ゲームバランスの議論、チュートリアル/UI/レベルデザインの設計
+- エージェントには「何を調べてほしいか」を具体的にプロンプトで伝えること

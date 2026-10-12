@@ -42,6 +42,7 @@
 - CLAUDE.md に内容を追加する際、`rules/` への分割を常に検討すること
 - 特定ファイルにしか関係しない知識は `rules/` に分離し `paths` で絞る
 - CLAUDE.md は ~500行以内を目安に保つ
+- `rules/agent-discipline.md` と全 rules は、pi の `~/.pi/agent/AGENTS.md` と同じ規律を書いたもの。片方を直したら、もう片方も同じ意味に直す（dotfiles の `dot_claude/` と `dot_pi/private_agent/AGENTS.md`）
 
 ## MCP 設定の共有
 
