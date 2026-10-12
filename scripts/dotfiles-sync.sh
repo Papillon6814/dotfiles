@@ -131,7 +131,7 @@ if [ -n "$changed" ]; then
 
   files="$(git status --porcelain --untracked-files=all | sed -E 's/^.. //' | sed -E 's#^(dot_|private_)##' | head -3 | tr '\n' ' ')"
   count="$(printf '%s\n' "$changed" | grep -c .)"
-  msg="auto: $count 件の設定を同期（$host）"$'\n\n'"$(printf '%s\n' "$changed" | head -40)"
+  msg="auto: $count 件の設定を同期（${host}）"$'\n\n'"$(printf '%s\n' "$changed" | head -40)"
   if [ "$dry" = 1 ]; then
     log "[dry-run] コミット予定: $count 件 ($files)"
   else
@@ -141,7 +141,7 @@ if [ -n "$changed" ]; then
       clear_notice commit
     else
       git reset -q
-      notify_once commit "dotfiles: コミットを止めました" "$(printf '%s' "$out" | grep -m1 -E 'pre-commit|error|fatal' || echo '検査に失敗')（$files）"
+      notify_once commit "dotfiles: コミットを止めました" "$(printf '%s' "$out" | grep -m1 -E 'pre-commit|error|fatal' || echo '検査に失敗')（${files}）"
       log "コミット失敗: $out"
     fi
   fi

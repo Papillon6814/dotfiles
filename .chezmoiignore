@@ -87,7 +87,9 @@ brew
 !.codex/AGENTS.md
 !.codex/CLAUDE-PARITY.md
 !.codex/MCP-SYNC.md
+{{ if eq .chezmoi.hostname "Soichiros-MacBook-Pro" }}
 !.codex/hooks.json
+{{ end }}
 !.codex/herdr-agent-state.sh
 !.codex/hooks
 !.codex/instructions
