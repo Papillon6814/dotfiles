@@ -7,13 +7,13 @@ set -x PATH $PYENV_ROOT/shims $PATH
 set -x PATH $HOME/.local/bin $PATH
 set -x PATH $HOME/.rbenv/bin $PATH
 
-set -x ANDROID_SDK /Users/papillon/Library/Android/sdk
+set -x ANDROID_SDK $HOME/Library/Android/sdk
 set -x PATH $ANDROID_SDK/platform-tools $PATH 
 
-source (pyenv init - | psub)
+type -q pyenv; and pyenv init - | source
 
-set -x PATH /Users/papillon/Library/Android/sdk/platform-tools $PATH
-set -x PATH /Users/papillon/go/bin $PATH
+set -x PATH $HOME/Library/Android/sdk/platform-tools $PATH
+set -x PATH $HOME/go/bin $PATH
 set -x JAVA_HOME /opt/homebrew/opt/openjdk
 set -x ZELLIJ_AUTO_EXIT true
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -94,10 +94,10 @@ fish_add_path /opt/homebrew/opt/openjdk/bin
 #   zellij
 # end
 
-status --is-interactive; and source (rbenv init -|psub)
+status --is-interactive; and type -q rbenv; and rbenv init - | source
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc' ]; . '/Users/papillon/Downloads/google-cloud-sdk/path.fish.inc'; end
+if test -f "$HOME/Downloads/google-cloud-sdk/path.fish.inc"; source "$HOME/Downloads/google-cloud-sdk/path.fish.inc"; end
 set -gx VOLTA_HOME "$HOME/.volta"
 set -gx PATH "$VOLTA_HOME/bin" $PATH
 
@@ -107,7 +107,7 @@ function __bell_on_prompt --on-event fish_prompt
 end
 
 # Added by Antigravity
-fish_add_path /Users/papillon/.antigravity/antigravity/bin
+fish_add_path $HOME/.antigravity/antigravity/bin
 
 # Chrome remote debugging mode for pi agent browser automation
 function chrome-debug
@@ -123,7 +123,7 @@ alias chrome='chrome-debug'
 # 2つ目アカウント: `claude-personal`
 alias claude-personal='claude-profile -P personal'
 # c / cw: 引数なしの対話起動で Profile（なし／Development）を選ぶ。定義は claude-scaffold 側
-source ~/Documents/Github/claude-scaffold/shell/c.fish
+test -f ~/Documents/Github/claude-scaffold/shell/c.fish; and source ~/Documents/Github/claude-scaffold/shell/c.fish
 
 # --- Happy (スマホ承認・通知) ---
 # Happy を通すのは firstmate の親と、明示的に cwh で起動したときだけ。
@@ -148,3 +148,6 @@ end
 
 # Letta: resume Finn
 alias le='letta -n Finn'
+
+# マシン固有の設定（dotfiles では管理しない。秘密情報もここに置かない方針だが、置く場合はこのファイルに限る）
+test -f ~/.config/fish/config.local.fish; and source ~/.config/fish/config.local.fish
