@@ -111,7 +111,7 @@ MCP サーバ実体（使う場合のみ）:
 - **コミット前の検査**: `scripts/git-hooks/pre-commit`（gitleaks と JSON の構文）。`~/.git-hooks` のディスパッチャから、`.git/hooks/pre-commit` 経由で呼ばれる
 - **Homebrew**: `brew/Brewfile.<ホスト名>` に一覧を置く。自動では入れない。新しい Mac では `brew bundle --file=brew/Brewfile.<ホスト名>` を手で実行する。更新は `brew bundle dump --file=brew/Brewfile.$(chezmoi execute-template '{{ .chezmoi.hostname }}') --force`
 - **Claude の personal プロファイル**: `~/.claude-profiles/personal/config` の設定は `~/.claude` へのリンク（MacBook のみ）
-- **pi の Development プロファイル**: `~/.pi/agent/profiles/development`、`pi-gh-permissions.json`、`pi-scaffold/policy.json` は `~/Code/scaffold-profiles/dist/pi/` へのリンク（private リポジトリ KendrickMalar/scaffold-profiles。原本は `src/`、`node bin/generate.ts` で生成）。直接編集は自動同期の点検で通知される
+- **pi の Development プロファイル**: `~/.pi/agent/profiles/development` は `~/Code/scaffold-profiles/dist/pi/` へのリンク。`pi-gh-permissions.json` と `pi-scaffold/policy.json` は scaffold-profiles の `bin/install-config.sh` が 0600 のコピーで入れる（pi-gh・pi-scaffold がリンクを拒否するため。dotfiles では管理しない）（private リポジトリ KendrickMalar/scaffold-profiles。原本は `src/`、`node bin/generate.ts` で生成）。直接編集は自動同期の点検で通知される
 - **管理しないもの**: `~/.codex/config.toml`（平文の API キーとマシン固有の状態を含み、Codex が実行中に書き換える）、各ツールの認証・履歴・キャッシュ
 
 ## 普段の使い方

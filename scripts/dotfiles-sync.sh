@@ -116,6 +116,14 @@ if [ -f "$sp/bin/generate.ts" ]; then
   else
     notify_once scaffold "scaffold-profiles: 生成物が原本と違います" "$(printf '%s' "$sp_out" | grep -E '^  [-+M] ' | head -3 | tr '\n' ' ')（src/ に移して再生成）"
   fi
+  # policy.json と許可ファイルはコピーなので、生成し直した後の入れ忘れ・リンク化・権限を確かめる
+  if [ -x "$sp/bin/install-config.sh" ]; then
+    if ic_out="$("$sp/bin/install-config.sh" --check 2>&1)"; then
+      clear_notice scaffold-config
+    else
+      notify_once scaffold-config "scaffold-profiles: 設定ファイルが古いか壊れています" "$(printf '%s' "$ic_out" | head -2 | tr '\n' ' ')（$sp/bin/install-config.sh で入れ直す）"
+    fi
+  fi
 fi
 
 # --- 3. Brewfile を1日1回作り直す ---
