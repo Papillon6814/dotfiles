@@ -44,10 +44,10 @@ brew install --cask 1password
 # 2. 1Password アプリにサインインし、Settings → Developer → "Integrate with 1Password CLI" を ON
 op account list   # アカウントが見えれば OK
 
-# 3. chezmoi の sourceDir を ~/Documents/Github/dotfiles に向ける
+# 3. chezmoi の sourceDir を ~/Code/dotfiles に向ける
 mkdir -p ~/.config/chezmoi
 cat > ~/.config/chezmoi/chezmoi.toml <<'EOF'
-sourceDir = "~/Documents/Github/dotfiles"
+sourceDir = "~/Code/dotfiles"
 # 実ファイルをこのリポジトリへの symlink にする（テンプレ・実行ファイル・private はコピー）
 mode = "symlink"
 
@@ -65,17 +65,17 @@ EOF
 
 # 4. このリポジトリをクローン
 mkdir -p ~/Documents/Github
-git clone git@github.com:KendrickMalar/dotfiles ~/Documents/Github/dotfiles
+git clone git@github.com:KendrickMalar/dotfiles ~/Code/dotfiles
 
 # 4.5 コミット前の検査（gitleaks・JSON）を有効にする
 brew install gitleaks
-cat > ~/Documents/Github/dotfiles/.git/hooks/pre-commit <<'HOOK'
+cat > ~/Code/dotfiles/.git/hooks/pre-commit <<'HOOK'
 #!/bin/sh
 hook="$(git rev-parse --show-toplevel)/scripts/git-hooks/pre-commit"
 [ -x "$hook" ] || { echo "pre-commit: $hook がありません" >&2; exit 1; }
 exec "$hook" "$@"
 HOOK
-chmod +x ~/Documents/Github/dotfiles/.git/hooks/pre-commit
+chmod +x ~/Code/dotfiles/.git/hooks/pre-commit
 
 # 5. 反映前にプレビュー
 chezmoi diff
@@ -105,6 +105,8 @@ MCP サーバ実体（使う場合のみ）:
 
 - **symlink モード**: ホーム側の多くのファイルは、このリポジトリのファイルへのリンク。ホームで編集すると、その場でリポジトリが変わる（`chezmoi re-add` は不要）
 - **コピーのまま残るもの**: テンプレート（`.tmpl`。秘密情報を 1Password から埋め込むもの）、実行ファイル、`private_` のファイル。これらはホームで編集したら `chezmoi re-add` が必要
+- **置き場所は `~/Code/dotfiles`**。`~/Documents` は macOS のプライバシー保護の対象で、launchd や GUI アプリがリンク越しに読めなくなるため置かない
+- **自動同期**: `scripts/install-dotfiles-sync.sh` で launchd ジョブを設置すると、5分ごとに `scripts/dotfiles-sync.sh` が外れたリンクの修復・検査つきの commit と push・ずれの通知を行う（ログは `~/Library/Logs/dotfiles-sync.log`、通知は `scripts/notify.sh`）
 - **このリポジトリの main checkout でブランチを切り替えない**。リンク先が変わり、ホームの設定が即座に変わる。作業は worktree で行い、`chezmoi --source <worktree> add ...` を使う
 - **コミット前の検査**: `scripts/git-hooks/pre-commit`（gitleaks と JSON の構文）。`~/.git-hooks` のディスパッチャから、`.git/hooks/pre-commit` 経由で呼ばれる
 - **Homebrew**: `brew/Brewfile.<ホスト名>` に一覧を置く。自動では入れない。新しい Mac では `brew bundle --file=brew/Brewfile.<ホスト名>` を手で実行する。更新は `brew bundle dump --file=brew/Brewfile.$(chezmoi execute-template '{{ .chezmoi.hostname }}') --force`
@@ -125,7 +127,7 @@ chezmoi re-add        # 既存トラッキング対象を取り直し
 chezmoi add ~/.config/something/config
 
 # テンプレートの解決結果を確認
-chezmoi execute-template < ~/Documents/Github/dotfiles/dot_zshrc.tmpl
+chezmoi execute-template < ~/Code/dotfiles/dot_zshrc.tmpl
 
 # 変更をコミット & push（autoCommit/autoPush は無効にしてある）
 chezmoi cd
