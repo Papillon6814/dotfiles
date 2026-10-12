@@ -5,7 +5,6 @@ font-size = 14
 font-thicken = true
 bold-is-bright = true
 
-background-opacity = 0.85
 
 cursor-style-blink = false
 cursor-style = bar
