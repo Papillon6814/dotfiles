@@ -111,6 +111,35 @@ fi
 # --- 2.5 scaffold-profiles の生成物が原本と一致しているか（リンク越しの直接編集を見つける） ---
 sp="${SCAFFOLD_PROFILES_DIR:-$HOME/Code/scaffold-profiles}"
 if [ -f "$sp/bin/generate.ts" ]; then
+  # 他のマシンで直した原本を取り込む。main で、手元に変更が無いときだけ（直接編集を上書きしない）
+  if [ "$(git -C "$sp" symbolic-ref --short -q HEAD)" = main ] && [ -z "$(git -C "$sp" status --porcelain)" ]; then
+    if run git -C "$sp" pull -q --ff-only 2>/dev/null; then
+      clear_notice scaffold-pull
+    else
+      notify_once scaffold-pull "scaffold-profiles: pull できません" "$sp を fast-forward で更新できませんでした（git status で確認）"
+    fi
+  fi
+  # 文書はリンクで読ませている。リンクが本物のファイル・フォルダに置き換わると、中身の比較では気づけないので確かめる
+  link_problems=""
+  check_link() { # <リンクの場所> <指しているべき先>
+    [ -e "$1" ] || [ -L "$1" ] || return 0
+    if [ ! -L "$1" ]; then link_problems+="$1 がリンクではありません。"
+    elif [ "$(readlink "$1")" != "$2" ]; then link_problems+="$1 の指す先が違います。"
+    fi
+  }
+  check_link "$HOME/.pi/agent/profiles/development" "$sp/dist/pi/development"
+  cs="${CLAUDE_SCAFFOLD_DIR:-$HOME/Documents/Github/claude-scaffold}/profile/development"
+  if [ -d "$cs" ]; then
+    check_link "$cs/instructions.md" "$sp/dist/claude/development/instructions.md"
+    check_link "$cs/skills" "$sp/dist/claude/development/skills"
+    check_link "$cs/agents" "$sp/dist/claude/development/agents"
+    check_link "$cs/templates" "$sp/dist/claude/templates"
+  fi
+  if [ -n "$link_problems" ]; then
+    notify_once scaffold-link "scaffold-profiles: 生成物へのリンクが外れています" "${link_problems}（中身を src/ に移してから、pi は chezmoi apply、Claude は claude-scaffold の bin/link-profiles）"
+  else
+    clear_notice scaffold-link
+  fi
   if sp_out="$(cd "$sp" && node bin/generate.ts --check 2>&1)"; then
     clear_notice scaffold
   else
