@@ -40,7 +40,7 @@ brew
 .pi/agent/pi-scaffold/state
 .pi/agent/pi-scaffold/*.bak-*
 # policy.json と許可ファイルは scaffold-profiles の bin/install-config.sh が 0600 のコピーで入れる（pi-gh・pi-scaffold がリンクを拒否する）
-.pi/agent/pi-scaffold/policy.json
+.pi/agent/pi-scaffold
 .pi/agent/pi-gh-permissions.json
 
 # pi: ephemeral / per-machine state
