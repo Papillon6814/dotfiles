@@ -6,7 +6,7 @@ class Cleanup(unittest.TestCase):
   self.t=tempfile.TemporaryDirectory(prefix="wt-cleanup-");self.root=pathlib.Path(self.t.name).resolve()
   self.repo=self.root/"repo";self.repo.mkdir()
   git("init","-q","-b","main",cwd=self.repo);git("config","user.email","t@t",cwd=self.repo);git("config","user.name","t",cwd=self.repo)
-  (self.repo/".gitignore").write_text("node_modules/\n.env\n.claude/\n");git("add",".",cwd=self.repo);git("commit","-qm","init",cwd=self.repo)
+  (self.repo/".gitignore").write_text("node_modules/\n.env\n.claude/\n.pi/\n.superpowers/\n.scaffold-logs/\ntarget/\ngen/\nartifacts/\nkeep.db\n");git("add",".",cwd=self.repo);git("commit","-qm","init",cwd=self.repo)
   self.lsof=self.root/"cwds";self.lsof.write_text("")
  def tearDown(self):self.t.cleanup()
  def wt(self,name,commit=True,merge=True,base=".claude/worktrees"):
@@ -34,6 +34,24 @@ class Cleanup(unittest.TestCase):
  def test_keeps_valuable_ignored_but_not_node_modules(self):
   p=self.wt("env");(p/".env").write_text("SECRET=1");q=self.wt("nm");(q/"node_modules").mkdir();(q/"node_modules/a.js").write_text("")
   self.run_(str(self.repo));self.assertTrue(p.exists());self.assertFalse(q.exists())
+ def test_removes_agent_logs_build_and_test_outputs(self):
+  p=self.wt("logs")
+  for f in [".pi/loops/a.json",".superpowers/sdd/plan.md",".scaffold-logs/a.log","target/debug/app","src-tauri/gen/schema.json","e2e/artifacts/shot.png"]:
+   (p/f).parent.mkdir(parents=True,exist_ok=True);(p/f).write_text("x")
+  self.run_(str(self.repo));self.assertFalse(p.exists())
+ def test_keeps_other_ignored_files_next_to_logs(self):
+  p=self.wt("db");(p/".pi").mkdir();(p/".pi/a").write_text("x");(p/"keep.db").write_text("x")
+  self.run_(str(self.repo));self.assertTrue(p.exists())
+ def detached(self,name,extra_commit=False):
+  path=(self.repo/".claude/worktrees"/name).resolve();git("worktree","add","-q","--detach",str(path),"main",cwd=self.repo)
+  if extra_commit:(path/"t.txt").write_text("x");git("add","t.txt",cwd=path);git("commit","-qm","t",cwd=path)
+  return path
+ def test_removes_detached_worktree_inside_main(self):
+  p=self.detached("verify");r=self.run_(str(self.repo));self.assertFalse(p.exists());self.assertIn("removed:",r.stdout)
+ def test_keeps_detached_worktree_with_unmerged_commits(self):
+  p=self.detached("verify",extra_commit=True);self.run_(str(self.repo));self.assertTrue(p.exists())
+ def test_keeps_dirty_detached_worktree(self):
+  p=self.detached("verify");(p/"new.txt").write_text("x");self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_in_use(self):
   p=self.wt("feat-a");self.lsof.write_text("p1\nn"+str(p)+"/sub\n");self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_unmanaged_location(self):

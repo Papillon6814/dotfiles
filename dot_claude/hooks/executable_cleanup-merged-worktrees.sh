@@ -60,36 +60,44 @@ in_use() {
 }
 
 # worktree remove は無視ファイルも消すため、作り直せるもの以外があれば残す
+# 作り直せるもの: 依存、エージェントの作業ログ、ビルド出力・キャッシュ、テストの出力（2026-10-13 に範囲を拡大）
+disposable_dirs='node_modules|\.venv|__pycache__|\.pi|\.superpowers|\.scaffold-logs|\.task-artifacts|\.test-evidence|\.pi-lens-probe-home|target|dist|out|\.build|\.wrangler|\.pytest_cache|\.ruff_cache|src-tauri/gen|e2e/artifacts|test-artifacts|test-results|playwright-report|coverage'
 valuable_ignored() {
   git -C "$1" status --porcelain --ignored -uall 2>/dev/null | sed -n 's/^!! //p' \
-    | grep -vE '(^|/)(node_modules|\.venv|__pycache__)/|(^|/)\.DS_Store$' | grep -q .
+    | grep -vE "(^|/)($disposable_dirs)/|(^|/)\.DS_Store\$|\.tsbuildinfo\$" | grep -q .
 }
 
 removed=""
 check_and_remove() {
-  local wt=$1 br=$2
-  { [ "$wt" = "$main_root" ] || [ -z "$br" ] || [ "$br" = "$def" ]; } && return
+  local wt=$1 br=$2 head=$3
+  { [ "$wt" = "$main_root" ] || [ "$br" = "$def" ]; } && return
   managed "$wt" || return
-  g merge-base --is-ancestor "refs/heads/$br" "refs/heads/$def" 2>/dev/null || return
-  # 作っただけでコミットのないブランチも「祖先」になるため、reflog で除外する
-  [ "$(g reflog show --format=%H "refs/heads/$br" 2>/dev/null | wc -l)" -ge 2 ] || return
+  if [ -n "$br" ]; then
+    g merge-base --is-ancestor "refs/heads/$br" "refs/heads/$def" 2>/dev/null || return
+    # 作っただけでコミットのないブランチも「祖先」になるため、reflog で除外する
+    [ "$(g reflog show --format=%H "refs/heads/$br" 2>/dev/null | wc -l)" -ge 2 ] || return
+  else
+    # ブランチなし（検証・レビュー用）: HEAD が既定ブランチに含まれていれば消せる
+    [ -n "$head" ] && g merge-base --is-ancestor "$head" "refs/heads/$def" 2>/dev/null || return
+  fi
   [ -z "$(git -C "$wt" status --porcelain -uall 2>/dev/null)" ] || return
   valuable_ignored "$wt" && return
   in_use "$wt" && return
   if [ $dry = 0 ]; then
     g worktree remove "$wt" 2>/dev/null || return
-    g branch -d "$br" >/dev/null 2>&1
+    [ -n "$br" ] && g branch -d "$br" >/dev/null 2>&1
   fi
-  removed+="removed: $wt ($br)"$'\n'
+  removed+="removed: $wt (${br:-detached})"$'\n'
 }
 
-wt=""; br=""; skip=0
+wt=""; br=""; head=""; skip=0
 while IFS= read -r line; do
   case "$line" in
-    "worktree "*) wt=${line#worktree }; br=""; skip=0 ;;
+    "worktree "*) wt=${line#worktree }; br=""; head=""; skip=0 ;;
+    "HEAD "*) head=${line#HEAD } ;;
     "branch "*) br=${line#branch refs/heads/} ;;
-    detached|locked*|prunable*) skip=1 ;;
-    "") [ -n "$wt" ] && [ $skip = 0 ] && check_and_remove "$wt" "$br"; wt="" ;;
+    locked*|prunable*) skip=1 ;;
+    "") [ -n "$wt" ] && [ $skip = 0 ] && check_and_remove "$wt" "$br" "$head"; wt="" ;;
   esac
 done < <(g worktree list --porcelain; echo)
 [ $dry = 0 ] && g worktree prune
