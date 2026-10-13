@@ -157,6 +157,8 @@ brew "sops"
 brew "starship"
 # Opinionated Lua code formatter
 brew "stylua"
+# Tool to enforce Swift style and conventions
+brew "swiftlint"
 # Send macOS User Notifications from the command-line
 brew "terminal-notifier"
 # Terraform Language Server
@@ -295,8 +297,6 @@ vscode "evaera.vscode-rojo"
 vscode "jonathan-yeung.mark-sharp"
 vscode "ms-vscode-remote.remote-containers"
 vscode "waderyan.gitblame"
-cargo "mcp-server-youtube"
-cargo "rojo"
 uv "graphifyy[mcp]"
 uv "kabi-discord-cli"
 uv "nano-pdf"
