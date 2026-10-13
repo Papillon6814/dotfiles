@@ -1,0 +1,8 @@
+#!/bin/sh
+export PATH="/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export SHELL=/opt/homebrew/bin/fish
+session=$(basename "$PWD")
+if [ "$session" = firstmate ]; then
+    exec "$HOME/.local/bin/herdr"
+fi
+exec "$HOME/.local/bin/herdr" --session "$session"
