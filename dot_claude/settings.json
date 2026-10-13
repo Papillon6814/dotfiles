@@ -165,6 +165,17 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/cleanup-merged-worktrees.sh --claude-post-tool-use",
+            "if": "Bash(git *)",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -217,6 +228,15 @@
             "type": "command",
             "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' session-end # muxy-notification-hook",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash ~/.claude/hooks/cleanup-merged-worktrees.sh \"$(jq -r '.cwd // empty')\" >/dev/null 2>&1",
+            "timeout": 30
           }
         ]
       }

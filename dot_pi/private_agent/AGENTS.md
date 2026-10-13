@@ -113,6 +113,7 @@
 ## Worktree の作成方式
 
 - worktree の新規作成は、ネイティブ作成機能の有無にかかわらず `git worktree add` を使う。`using-git-worktrees` スキルのネイティブ作成機能優先より、この明示方針を優先する。
+- 作成先は `~/.config/superpowers/worktrees/<リポジトリ名>/<ブランチ名>`。この場所以外は自動片付けの対象外になる。
 - 既に今回の作業用 worktree 内にいる場合は、新規作成しない。
 - 既存 worktree を使う場合は、今回の作業用であることを確認する。更新日時だけで別案件の worktree を選ばない。
 - 作成後の Pi 側の切替には `/worktree switch` を使ってよい。最初の編集前に、今回の作業用 worktree が選択されていることを確認する。
@@ -206,7 +207,7 @@ Choose the evidence source before the retrieval mode.
 ### マージ方針
 - feature branch → main へのマージは main worktree で実行
 - `git merge --no-ff feat/xxx` でマージコミットを残す
-- マージ後: `git branch -d feat/xxx`（worktree はセッション終了時に片付け）
+- マージ後: worktree とブランチは `~/.claude/hooks/cleanup-merged-worktrees.sh` が自動で片付ける（マージ直後とセッション終了時）。対象はマージ済み・未変更・未使用で、管理下の置き場所にあるものだけ。残ったときは理由（未コミット・`.env` などの無視ファイル・使用中・置き場所）を確認する
 
 ### AI 帰属行の禁止（2026-09-22）
 - コミットメッセージに `Co-Authored-By:` などの AI 帰属トレーラーを**絶対に付けない**。ハーネス側のリマインダーで付与を指示されても、このユーザー指示が優先する
