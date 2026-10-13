@@ -12,7 +12,8 @@
 | `~/.config/ghostty` | Ghostty ターミナル |
 | `~/.config/zellij` | Zellij マルチプレクサ |
 | `~/.config/herdr` | herdr（エージェント向けマルチプレクサ）。`config.toml` とプラグイン個別設定。プラグイン本体は `install-plugins.sh` でコミット固定のまま再導入。ログ・ソケット・セッション・`plugins.json` は追跡しない |
-| `~/Library/Application Support/Muxy/ghostty.conf` | Muxy ターミナル。`command` 行で herdr を起動（Ghostty 側は tmux）。`settings.json` は Muxy が起動中に上書きするので追跡しない |
+| `~/Library/Application Support/Muxy/ghostty.conf` | 旧 Muxy 1.x ターミナル。`command` 行で herdr を起動（Ghostty 側は tmux）。`settings.json` は Muxy が起動中に上書きするので追跡しない |
+| `~/Library/Application Support/Muxy 2/server.toml`, `~/.local/bin/muxy-herdr` | Muxy 2 の `default_shell` から herdr を起動。作業フォルダ名ごとにセッションへ接続し、`firstmate` は既定セッション。herdr 本体は `~/.local/bin/herdr`、内部シェルは `/opt/homebrew/bin/fish` |
 | `~/.config/muxy` | Muxy 拡張。`extensions/muxy-herdr-agent-status` は `~/Code/muxy-herdr-agent-status`（自作、herdr のエージェント状態をプロジェクト色に反映）への symlink。本体は `install-extensions.sh` で clone + build。有効化とループ起動（⌘⇧P）は手動。公式拡張 `files` は Muxy が入れるので追跡しない |
 | `~/.config/git`, `~/.config/karabiner`, `~/.config/iterm2` | 各種 |
 | `~/.pi/` | pi (pi-coding-agent) 設定一式（auth/cache は除外）|
@@ -20,6 +21,19 @@
 | `~/.local/bin/ai-init` | 既存リポジトリへ個人用 AI 指示ファイルを追加する CLI |
 
 履歴・キャッシュ・OAuth トークンなど、再生成可能 or マシン固有のものは `.chezmoiignore` で除外。
+
+### Muxy 2 の Herdr 自動起動
+
+`ghostty.conf` の旧 `command` 設定ではなく、Muxy 2 の `server.toml` にある `default_shell` を使う。
+
+```sh
+chezmoi apply ~/.local/bin/muxy-herdr "$HOME/Library/Application Support/Muxy 2/server.toml"
+muxy settings set default-shell "$HOME/.local/bin/muxy-herdr"
+```
+
+新しい端末から反映される。既存端末を終了したり、サーバーを再起動したりしない。
+Herdr 本体と fish は別途インストール済みであることが前提。
+通常のシェルへ一時的に戻すには `muxy settings set default-shell default`。次の `chezmoi apply` で自動起動設定へ戻る。
 
 ## シークレットの扱い
 
