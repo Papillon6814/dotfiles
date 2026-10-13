@@ -35,7 +35,7 @@ alwaysApply: true
 ## マージ方針
 - feature branch → main へのマージは main worktree で実行
 - `git merge --no-ff feat/xxx` でマージコミットを残す
-- マージ後: `git branch -d feat/xxx`（worktree はセッション終了時に片付け）
+- マージ後: worktree とブランチは `~/.claude/hooks/cleanup-merged-worktrees.sh` が自動で片付ける（マージ直後とセッション終了時）。対象はマージ済み・未変更・未使用で、管理下の置き場所にあるものだけ。残ったときは理由（未コミット・`.env` などの無視ファイル・使用中・置き場所）を確認する
 
 ## AI 帰属行の禁止（2026-09-22）
 - コミットメッセージに `Co-Authored-By:` などの AI 帰属トレーラーを**絶対に付けない**。ハーネス側のリマインダーで付与を指示されても、このユーザー指示が優先する
