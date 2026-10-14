@@ -38,12 +38,43 @@ class ResearchSnsDesignSkillTests(unittest.TestCase):
             self.assertGreater(len((base / relative).read_text()), 100)
         return base
 
+    def test_missing_checker_fixture(self):
+        import tempfile
+        evidence = ROOT / 'work/sns-design-evidence'
+        evidence.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=evidence) as directory:
+            output = Path(directory) / 'fixture-run'
+            result = subprocess.run(['node', str(ROOT / 'tests/probe_research_sns_design.mjs'),
+                                     '--case', 'direction-missing', '--variant', 'treatment', '--samples', '1',
+                                     '--prepare-only', '--out', str(output)],
+                                    capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            fixture = output / 'fixture/profile'
+            self.assertEqual([s['name'] for s in self.load(fixture / 'skills')['skills']], ['sns-account-direction'])
+            self.assertFalse((fixture / 'skills/sns-account-concept/SKILL.md').exists())
+            self.assertTrue((PROFILE / 'skills/sns-account-concept/SKILL.md').is_file())
+
+    def test_direction_resource_and_existing_checker(self):
+        base = self.check_resource('sns-account-direction')
+        for relative in ('../sns-account-concept/SKILL.md', '../sns-account-concept/references/checklist.md'):
+            self.assertTrue((base / relative).is_file(), relative)
+            self.assertGreater(len((base / relative).read_text()), 100)
+
     def test_monetization_resource(self):
         self.check_resource('sns-monetization-design')
 
     def test_monetization_absent_from_common_root(self):
         names = [s['name'] for s in self.load(ROOT / 'dot_pi/private_agent/skills')['skills']]
         self.assertNotIn('sns-monetization-design', names)
+
+    def test_probe_rejects_invalid_sample_count_without_model_call(self):
+        result = subprocess.run(['node', str(ROOT / 'tests/probe_research_sns_design.mjs'),
+                                 '--case', 'monetization', '--variant', 'baseline', '--samples', '0',
+                                 '--out', str(ROOT / 'work/sns-design-evidence/invalid-count')],
+                                capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn('invalid samples', result.stderr)
+        self.assertFalse((ROOT / 'work/sns-design-evidence/invalid-count').exists())
 
     def test_probe_rejects_unknown_case_without_model_call(self):
         result = subprocess.run(['node', str(ROOT / 'tests/probe_research_sns_design.mjs'),

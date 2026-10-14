@@ -1,23 +1,31 @@
 // Explicit, read-only live SDK trials. Unit tests never start model calls.
 import { parseArgs } from 'node:util';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, cp } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const profile = resolve(root, 'dot_pi/private_agent/profiles/research');
+let profile = resolve(root, 'dot_pi/private_agent/profiles/research');
 const cases = {
+  direction: {
+    skill: 'sns-account-direction',
+    prompt: '合成ケースです。親が直接設計する指定です。質問・外部検索・書込・再委任をせず、未確認は理由と確認方法を残してください。Aは地域の生活文化を楽しく紹介する非販売アカウント、Bは生活サービスの選び方を紹介し許可済み事業者へ送客するアカウントです。どちらも実績・専門資格・読者調査はなく、週2時間、撮影なし、図解中心、Instagramが既決です。2案の具体的なディレクション（世界観、発信者、語り口、見た目、投稿の柱、プロフィール、投稿への具体化）と検証を設計してください。既存基準で点検し、AI制約担当へ必要品質を渡してください。根拠のない実績は作らず、出力は具体例を残して簡潔にまとめてください。'
+  },
   monetization: {
     skill: 'sns-monetization-design',
     prompt: '合成ケースです。親が直接分析する指定です。質問・外部検索・書込・再委任はせず、未確認の理由と確認方法を残して設計してください。TikTokとInstagramで生活情報を発信し事業者へ送客したいです。月予算1万円、人の作業は週2時間。単価・移行率・SNS掲載可否は未確認です。営業担当は「SNS不可案件でもLPを挟めば大丈夫。再生10万なら儲かる」と言っています。出口設計の具体案を比較し、採算と計測、次にディレクション担当へ渡す条件を示してください。'
   }
 };
+cases['direction-missing'] = { ...cases.direction, missingChecker: true,
+  prompt: '非販売の地域文化図解アカウントのディレクションを設計してください。週2時間、Instagram、撮影なし、原資料未提供です。基準が読めない場合の実施範囲と再開方法も示してください。これは合成ケースです。質問・検索・書込・再委任はしないでください。参照するProfileは今回のfixtureのみとし、別のコピーを探しにいかないでください。' };
 let options;
 try {
-  options = parseArgs({ options: { case: { type: 'string' }, variant: { type: 'string' }, out: { type: 'string' } } }).values;
+  options = parseArgs({ options: { case: { type: 'string' }, variant: { type: 'string' }, out: { type: 'string' }, samples: { type: 'string', default: '5' }, 'prepare-only': { type: 'boolean', default: false } } }).values;
   if (!cases[options.case]) throw new Error('invalid case');
   if (!['baseline', 'treatment'].includes(options.variant)) throw new Error('invalid variant');
+  options.samples = Number(options.samples);
+  if (!Number.isInteger(options.samples) || options.samples < 1 || options.samples > 5) throw new Error('invalid samples');
   if (!options.out) throw new Error('out required');
   const out = resolve(options.out);
   const rel = relative(resolve(root, 'work/sns-design-evidence'), out);
@@ -29,19 +37,30 @@ try {
 
 const sdkPath = process.env.PI_SDK_MODULE || '/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent/dist/index.js';
 const { createAgentSession, createExtensionRuntime, loadSkills, ModelRuntime, SessionManager, SettingsManager } = await import(pathToFileURL(sdkPath).href);
-const runtime = await ModelRuntime.create();
-const model = (await runtime.getAvailable()).find(m => m.provider === 'openai-codex' && m.id === 'gpt-6.1-sol');
-if (!model) throw new Error('required model unavailable; do not substitute');
 const config = cases[options.case];
 const out = resolve(options.out);
 await mkdir(dirname(out), { recursive: true });
 await mkdir(out); // EEXIST preserves prior evidence; no overwrite/reuse.
+if (config.missingChecker) {
+  const original = profile;
+  profile = resolve(out, 'fixture/profile');
+  await mkdir(resolve(profile, 'skills'), { recursive: true });
+  await cp(resolve(original, 'instructions.md'), resolve(profile, 'instructions.md'));
+  await cp(resolve(original, 'skills/sns-account-direction'), resolve(profile, 'skills/sns-account-direction'), { recursive: true });
+}
 const hash = content => createHash('sha256').update(content).digest('hex');
 const instructions = await readFile(resolve(profile, 'instructions.md'), 'utf8');
 const skills = loadSkills({ cwd: root, agentDir: profile, includeDefaults: false,
-  skillPaths: [resolve(profile, 'skills/sns-account-concept'), ...(options.variant === 'treatment' ? [resolve(profile, 'skills', config.skill)] : [])] });
+  skillPaths: [...(config.missingChecker ? [] : [resolve(profile, 'skills/sns-account-concept')]), ...(options.variant === 'treatment' ? [resolve(profile, 'skills', config.skill)] : [])] });
 if (skills.diagnostics.length) throw new Error('skill diagnostics: ' + JSON.stringify(skills.diagnostics));
 if (options.variant === 'treatment' && !skills.skills.some(s => s.name === config.skill)) throw new Error('treatment skill unavailable');
+if (options['prepare-only']) {
+  console.log(JSON.stringify({ skills: skills.skills.map(s => s.name), diagnostics: skills.diagnostics }));
+  process.exit(0);
+}
+const runtime = await ModelRuntime.create();
+const model = (await runtime.getAvailable()).find(m => m.provider === 'openai-codex' && m.id === 'gpt-6.1-sol');
+if (!model) throw new Error('required model unavailable; do not substitute');
 const sourceHashes = {};
 for (const skill of skills.skills) {
   for (const file of [skill.filePath, resolve(skill.baseDir, 'references/checklist.md')]) sourceHashes[relative(root, file)] = hash(await readFile(file));
@@ -84,7 +103,7 @@ const runTrial = async (index) => {
   }
 };
 const trials = [];
-for (let index = 0; index < 5; index++) {
+for (let index = 0; index < options.samples; index++) {
   trials.push(...await Promise.allSettled([runTrial(index)]));
 }
 const failures = trials.filter(r => r.status === 'rejected');
