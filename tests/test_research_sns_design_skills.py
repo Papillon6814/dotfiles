@@ -60,6 +60,9 @@ class ResearchSnsDesignSkillTests(unittest.TestCase):
             self.assertTrue((base / relative).is_file(), relative)
             self.assertGreater(len((base / relative).read_text()), 100)
 
+    def test_feasibility_resource(self):
+        self.check_resource('sns-ai-feasibility')
+
     def test_monetization_resource(self):
         self.check_resource('sns-monetization-design')
 
