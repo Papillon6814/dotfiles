@@ -38,6 +38,45 @@ class ResearchSnsDesignSkillTests(unittest.TestCase):
             self.assertGreater(len((base / relative).read_text()), 100)
         return base
 
+    def test_all_three_discoverable_only_in_research(self):
+        expected = {'sns-monetization-design', 'sns-account-direction', 'sns-ai-feasibility'}
+        result = self.load(PROFILE / 'skills')
+        self.assertEqual(result['diagnostics'], [])
+        names = [s['name'] for s in result['skills']]
+        for name in expected:
+            self.assertEqual(names.count(name), 1)
+        common = {s['name'] for s in self.load(ROOT / 'dot_pi/private_agent/skills')['skills']}
+        self.assertFalse(expected & common)
+
+    def test_existing_checker_and_profile_config_unchanged(self):
+        for file in ('profile.json', 'skills/sns-account-concept/SKILL.md', 'skills/sns-account-concept/references/checklist.md'):
+            path = PROFILE / file
+            old = subprocess.run(['git', '-C', str(ROOT), 'show', '8ad9116:' + str(path.relative_to(ROOT))],
+                                 capture_output=True, check=True).stdout
+            self.assertEqual(path.read_bytes(), old)
+
+    def test_route_instructions(self):
+        # Routing evidence exercises the consumer; without evidence this is explicitly unverified.
+        directory = os.environ.get('SNS_DESIGN_ROUTING_EVIDENCE_DIR')
+        if not directory:
+            self.skipTest('Live routing evidence not supplied')
+        import hashlib
+        data = json.loads((Path(directory) / 'summary.json').read_text())
+        self.assertEqual(data['instructionsSha256'], hashlib.sha256((PROFILE / 'instructions.md').read_bytes()).hexdigest())
+        for relative, digest in data['sourceHashes'].items():
+            self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), digest)
+        self.assertEqual(len(data['samples']), 7)
+        expected = [ {'sns-monetization-design'}, {'sns-account-direction', 'sns-account-concept'},
+                     {'sns-ai-feasibility'}, {'sns-monetization-design', 'sns-account-direction', 'sns-ai-feasibility', 'sns-account-concept'},
+                     set(), {'sns-account-concept'}, {'sns-monetization-design', 'sns-account-direction', 'sns-ai-feasibility', 'sns-account-concept'} ]
+        new = {'sns-monetization-design', 'sns-account-direction', 'sns-ai-feasibility'}
+        for sample, required in zip(data['samples'], expected):
+            self.assertEqual(sample['stopReason'], 'stop')
+            used = {Path(r['args'].get('path', '')).parent.name for r in sample['reads'] if Path(r['args'].get('path', '')).name == 'SKILL.md'}
+            self.assertTrue(required <= used, (sample['index'], required, used))
+            if sample['index'] in (4, 5):
+                self.assertFalse(used & new)
+
     def test_missing_checker_fixture(self):
         import tempfile
         evidence = ROOT / 'work/sns-design-evidence'

@@ -23,6 +23,15 @@ const cases = {
 };
 cases['direction-missing'] = { ...cases.direction, missingChecker: true,
   prompt: '非販売の地域文化図解アカウントのディレクションを設計してください。週2時間、Instagram、撮影なし、原資料未提供です。基準が読めない場合の実施範囲と再開方法も示してください。これは合成ケースです。質問・検索・書込・再委任はしないでください。参照するProfileは今回のfixtureのみとし、別のコピーを探しにいかないでください。' };
+cases.routing = { allSkills: true, prompts: [
+  '生活情報SNSから事業者へ送客する出口設計だけを見直して。単価と率は未確認。仮の売上を作らず導線比較と計測を簡潔に。世界観や投稿案は不要。',
+  'Instagramの非販売の地域文化図解アカウントのディレクションを設計して。週2時間、撮影なし。世界観・語り口・見た目・投稿の柱を具体化し既存基準で点検して。地域は未定。',
+  'SNS企画のAI実現制約だけを評価して。毎日AI人物動画、月3000円、週30分。生成100円、品質・権利・API資格は未確認。代替案と試験条件を簡潔に。',
+  'SNSマネタイズ全体を設計して。生活情報をInstagramで届けて既決の事業者へ送客。週2時間、月3000円。毎日AI人物動画を考えているが性能・権利・単価・API資格が未確認。出口、ディレクション、AI制約を分けて既存基準で点検し、変更提案と保留条件を示して。',
+  'JavaScriptの配列mapとforEachの違いだけを、短いコード例で説明して。SNSの調査は不要。',
+  '参考アカウントのコンセプト分析だけをして。合成資料：毎金曜に地域文化を図解し、プロフィールは季節・言葉・道具の発見を約束。提供した3投稿は暦、言葉、道具。読者1人の「次も見たい」は主張で継続率は不明。売上・工数は非公開。自作のネタやディレクションは不要。既存10項目で観察・解釈・限界・転用条件を整理して。',
+  '途中再開の統合ケース。①既決：Instagram→既決事業者へ送客、月3000円・週30分、単価と移行率は未確認。②は毎日同じ人物が話す動画を仮置き。③の観察：生成100円/回、31日で最低3100円、人物一貫性・音声権利・本人API資格は未確認。③を確認して②の静止画主体・無音案と①の費用/頻度仮説を見直し、既存基準で点検。媒体・販売先・予算と未確認を維持し、変更は提案として残して。'
+].map(prompt => '合成ケース。親の直接分析指定。質問・検索・外部書込・再委任・画像動画音声の素材生成は行わず、未確認と次の確認を残してください。利用可能なスキルを読んで、出力は要点を簡潔に。' + prompt) };
 let options;
 try {
   options = parseArgs({ options: { case: { type: 'string' }, variant: { type: 'string' }, out: { type: 'string' }, samples: { type: 'string', default: '5' }, 'prepare-only': { type: 'boolean', default: false } } }).values;
@@ -55,9 +64,9 @@ if (config.missingChecker) {
 const hash = content => createHash('sha256').update(content).digest('hex');
 const instructions = await readFile(resolve(profile, 'instructions.md'), 'utf8');
 const skills = loadSkills({ cwd: root, agentDir: profile, includeDefaults: false,
-  skillPaths: [...(config.missingChecker ? [] : [resolve(profile, 'skills/sns-account-concept')]), ...(options.variant === 'treatment' ? [resolve(profile, 'skills', config.skill)] : [])] });
+  skillPaths: config.allSkills ? [resolve(profile, 'skills')] : [...(config.missingChecker ? [] : [resolve(profile, 'skills/sns-account-concept')]), ...(options.variant === 'treatment' ? [resolve(profile, 'skills', config.skill)] : [])] });
 if (skills.diagnostics.length) throw new Error('skill diagnostics: ' + JSON.stringify(skills.diagnostics));
-if (options.variant === 'treatment' && !skills.skills.some(s => s.name === config.skill)) throw new Error('treatment skill unavailable');
+if (!config.allSkills && options.variant === 'treatment' && !skills.skills.some(s => s.name === config.skill)) throw new Error('treatment skill unavailable');
 if (options['prepare-only']) {
   console.log(JSON.stringify({ skills: skills.skills.map(s => s.name), diagnostics: skills.diagnostics }));
   process.exit(0);
@@ -67,12 +76,16 @@ const model = (await runtime.getAvailable()).find(m => m.provider === 'openai-co
 if (!model) throw new Error('required model unavailable; do not substitute');
 const sourceHashes = {};
 for (const skill of skills.skills) {
-  for (const file of [skill.filePath, resolve(skill.baseDir, 'references/checklist.md')]) sourceHashes[relative(root, file)] = hash(await readFile(file));
+  for (const file of [skill.filePath, resolve(skill.baseDir, 'references/checklist.md'), resolve(skill.baseDir, 'assets/output-template.md')]) {
+    try { sourceHashes[relative(root, file)] = hash(await readFile(file)); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
 }
 await writeFile(resolve(out, 'manifest.json'), JSON.stringify({ model: `${model.provider}/${model.id}`, thinking: 'medium', case: options.case,
   variant: options.variant, instructionsSha256: hash(instructions), sourceHashes, input: config.prompt, guidanceInjected: false }, null, 2), { flag: 'wx' });
 
 const runTrial = async (index) => {
+  const prompt = config.prompts ? config.prompts[index] : config.prompt;
   const reads = [];
   const loader = {
     getExtensions: () => ({ extensions: [], errors: [], runtime: createExtensionRuntime() }),
@@ -93,10 +106,10 @@ const runTrial = async (index) => {
   try {
     session.subscribe(event => { if (event.type === 'tool_execution_start') reads.push({ tool: event.toolName, args: event.args }); });
     timer = setTimeout(() => { void session.abort(); }, 300000);
-    await session.prompt(config.prompt);
+    await session.prompt(prompt);
     const messages = session.messages;
     const last = [...messages].reverse().find(m => m.role === 'assistant');
-    const sample = { index, input: config.prompt, output: session.getLastAssistantText(), stopReason: last?.stopReason, errorMessage: last?.errorMessage, reads };
+    const sample = { index, input: prompt, output: session.getLastAssistantText(), stopReason: last?.stopReason, errorMessage: last?.errorMessage, reads };
     await writeFile(resolve(out, `sample-${index}.json`), JSON.stringify(sample, null, 2), { flag: 'wx' });
     console.log(JSON.stringify({ index, stopReason: sample.stopReason, readCount: reads.length, chars: sample.output?.length || 0 }));
     if (sample.stopReason !== 'stop' || !sample.output) throw new Error(`sample ${index} did not finish successfully`);
@@ -107,7 +120,7 @@ const runTrial = async (index) => {
   }
 };
 const trials = [];
-for (let index = 0; index < options.samples; index++) {
+for (let index = 0; index < (config.prompts?.length || options.samples); index++) {
   trials.push(...await Promise.allSettled([runTrial(index)]));
 }
 const failures = trials.filter(r => r.status === 'rejected');
