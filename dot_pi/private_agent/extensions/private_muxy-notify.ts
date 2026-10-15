@@ -66,10 +66,8 @@ export default function (pi: ExtensionAPI) {
   };
 
   const sendEvent = async (phase: string, title = "", body = "") => {
-    if (await invokeHookBinary(phase, title, body)) return;
-    process.stderr.write(
-      `[muxy-pi] muxy-hook binary is not staged; skipping ${phase} event\n`,
-    );
+    // muxy-hook は Muxy 1.x だけが置く。Muxy Beta（2.x）だけの端末では無いので黙って飛ばす
+    await invokeHookBinary(phase, title, body);
   };
   let latestBody = "Session completed";
   let fallback: ReturnType<typeof setTimeout> | undefined;
