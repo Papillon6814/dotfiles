@@ -7,7 +7,7 @@ thinking: medium
 inheritProjectContext: true
 inheritSkills: false
 allowedAgents: researcher
-maxSubagentDepth: 1
+maxSubagentDepth: 2
 defaultProgress: true
 output: research-report.md
 ---
