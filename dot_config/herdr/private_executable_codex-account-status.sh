@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-codex_home_dir=${CODEX_HOME:-/Users/papillon/.codex}
+codex_home_dir=${CODEX_HOME:-$HOME/.codex}
 auth_file="$codex_home_dir/auth.json"
 workspace_id=${HERDR_WORKSPACE_ID:-}
 tab_id=${HERDR_TAB_ID:-}
