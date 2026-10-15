@@ -1,7 +1,7 @@
 ---
 name: research-manager
 description: "Research Profile の調査全体を管理する。重要な問いと調査範囲を決め、論点を分けて researcher を並列に起動し、根拠を確かめて統合した報告書と JSON ロジックツリーを親へ返す。Notion には書き込まない。"
-tools: read, write, grep, find, ls, subagent, web_search, fetch_content, get_search_content, source_check
+tools: read, write, grep, find, ls, subagent, subagent_supervisor, contact_supervisor, bg_wait, web_search, fetch_content, get_search_content, source_check
 model: openai-codex/gpt-6-sol
 thinking: medium
 inheritProjectContext: true
@@ -48,6 +48,8 @@ output: research-report.md
 - researcher 以外の担当は起動しない。
 
 ## 親への確認
+
+researcher からの問い合わせには `subagent_supervisor` で答える（`action: "pending"` で確認し、`action: "reply"` で返す）。researcher を背景で起動したら、結果は完了通知か `bg_wait` で受け取る。
 
 範囲が変わる判断、合意と違う進め方、調査の打ち切りが要るときは、`contact_supervisor` に `reason: "need_decision"` を付けて親に聞き、返事を待つ。進捗の報告は、計画が変わるほどの発見があったときだけ `reason: "progress_update"` で送る。
 
