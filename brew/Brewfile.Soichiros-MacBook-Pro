@@ -293,6 +293,27 @@ cask "visual-studio-code"
 cask "wireshark-app"
 # Gecko based web browser
 cask "zen"
+mas "Amphetamine", id: 937984704
+mas "BarCounter", id: 1464372559
+mas "Developer", id: 640199958
+mas "Hand Mirror", id: 1502839586
+mas "Keynote", id: 409183694
+mas "Kindle", id: 302584613
+mas "Klack", id: 6446206067
+mas "LINE", id: 539883307
+mas "Messenger", id: 1480068668
+mas "Microsoft Excel", id: 462058435
+mas "Microsoft PowerPoint", id: 462062816
+mas "Microsoft Word", id: 462054704
+mas "Numbers", id: 409203825
+mas "Pages", id: 361309726
+mas "Pages", id: 409201541
+mas "Prime Video", id: 545519333
+mas "reMarkable", id: 1276493162
+mas "RunCat", id: 1429033973
+mas "Trello", id: 1278508951
+mas "WhatsApp", id: 310633997
+mas "Xcode", id: 497799835
 vscode "evaera.vscode-rojo"
 vscode "jonathan-yeung.mark-sharp"
 vscode "ms-vscode-remote.remote-containers"
