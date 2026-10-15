@@ -1,0 +1,76 @@
+tap "openclaw/tap"
+tap "oven-sh/bun", trusted: { formulae: ["bun"] }
+tap "rjyo/moshi", trusted: true
+tap "steipete/tap"
+tap "vjeantet/tap", trusted: { formulae: ["alerter"] }
+# Simple, modern, secure file encryption
+brew "age"
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
+# Incredibly fast JavaScript runtime, bundler, test runner, and package manager
+brew "bun"
+# Manage your dotfiles across multiple diverse machines, securely
+brew "chezmoi"
+# Modern, maintained replacement for ls
+brew "eza"
+# User-friendly command-line shell for UNIX-like operating systems
+brew "fish"
+# GitHub command-line tool
+brew "gh"
+# Git extension for versioning large files
+brew "git-lfs"
+# Audit git repos for secrets
+brew "gitleaks"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
+# Agent multiplexer that lives in your terminal
+brew "herdr"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Simple terminal UI for git commands
+brew "lazygit"
+# Postgres C API library
+brew "libpq"
+# Remote terminal application
+brew "mosh"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Development kit for the Java programming language
+brew "openjdk"
+# Simplistic interactive filtering tool
+brew "peco"
+# Fast, disk space efficient package manager
+brew "pnpm"
+# PDF rendering library (based on the xpdf-3.0 code base)
+brew "poppler"
+# Python version management
+brew "pyenv"
+# Ruby version manager
+brew "rbenv"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Editor of encrypted files
+brew "sops"
+# Send macOS User Notifications from the command-line
+brew "terminal-notifier"
+# Terminal multiplexer
+brew "tmux"
+# JavaScript toolchain manager for reproducible environments
+brew "volta"
+# Pluggable terminal workspace, with terminal multiplexer as the base feature
+brew "zellij"
+# Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
+brew "rjyo/moshi/moshi-hook"
+# Password manager that keeps all passwords secure behind one password
+cask "1password"
+# Command-line interface for 1Password
+cask "1password-cli"
+# Clipboard extension app
+cask "clipy"
+cask "font-iosevka"
+# Set of tools to manage resources and applications hosted on Google Cloud
+cask "gcloud-cli"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
