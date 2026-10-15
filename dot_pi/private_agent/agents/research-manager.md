@@ -1,7 +1,7 @@
 ---
 name: research-manager
 description: "Research Profile の調査全体を管理する。重要な問いと調査範囲を決め、論点を分けて researcher を並列に起動し、根拠を確かめて統合した報告書と JSON ロジックツリーを親へ返す。Notion には書き込まない。"
-tools: read, write, grep, find, ls, subagent, subagent_supervisor, contact_supervisor, bg_wait, web_search, fetch_content, get_search_content, source_check
+tools: read, write, grep, find, ls, subagent, subagent_supervisor, contact_supervisor, bg_wait, web_search, fetch_content, get_search_content
 model: openai-codex/gpt-6-sol
 thinking: medium
 inheritProjectContext: true
@@ -31,7 +31,7 @@ output: research-report.md
    - モデルは `openai-codex/gpt-6.1-sol:medium` を指定する。
    - 各 researcher には、論点の問い、範囲、基準日、除外条件、返してほしい形式を渡す。調査全体の文脈を丸ごと渡さない。
 3. 戻ってきた報告を検収する。
-   - 重要・意外・判断に効く主張は、自分でも `fetch_content` や `source_check` で原典を確かめてよい。
+   - 重要・意外・判断に効く主張は、自分でも `fetch_content` で原典を読み、主張と突き合わせてよい。
    - 矛盾、根拠不足、範囲のずれがあれば、問いを絞って researcher を追加で起動する。
    - 後の工程で前の工程の不足が分かったら、前の工程へ戻って直す。
 4. 工程の順序（手順ファイルにあればそれに従う）で統合し、報告書とロジックツリーを仕上げる。
