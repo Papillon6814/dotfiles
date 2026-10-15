@@ -7,7 +7,7 @@
   ],
   "lastChangelogVersion": "1.1.0",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-6-luna",
+  "defaultModel": "gpt-6.1-sol",
   "packages": [
     "npm:pi-ask-user",
     "npm:@coctostan/pi-exa-gh-web-tools",
@@ -93,7 +93,7 @@
   },
   "autocompleteMaxVisible": 5,
   "theme": "ansi-dark",
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "medium",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "collapseChangelog": true,
