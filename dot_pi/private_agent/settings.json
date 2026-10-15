@@ -72,22 +72,25 @@
     "enabled": true,
     "modelOverrides": {
       "openai-codex/gpt-6-astra": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
       },
       "openai-codex/gpt-6-sol": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
+      },
+      "openai-codex/gpt-6.1-sol": {
+        "reserveTokens": 250000
       },
       "openai-codex/gpt-6-luna": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
       },
       "openai-codex/gpt-5.6-sol": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
       },
       "openai-codex/gpt-5.6-terra": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
       },
       "openai-codex/gpt-5.6-luna": {
-        "reserveTokens": 100000
+        "reserveTokens": 250000
       }
     }
   },
