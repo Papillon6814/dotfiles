@@ -62,14 +62,10 @@ fi
 clear_notice branch; clear_notice midop
 
 # --- 1. chezmoi の状態を見て、外れた symlink を直し、コピー型のずれを集める ---
-# 1Password を読めない環境（SSH 越し・Mac mini など）ではテンプレートの展開に失敗するので、
-# そのときはテンプレートを除いて続ける（macOS の bash 3.2 は空配列の展開に注意）
-cz_exclude=()
-if ! status_out="$(chezmoi status 2>/dev/null)"; then
-  cz_exclude=(--exclude=templates)
-  status_out="$(chezmoi status ${cz_exclude[@]+"${cz_exclude[@]}"} 2>/dev/null)" || status_out=""
-  log "テンプレートを除いて確認（1Password を読めない可能性）"
-fi
+# テンプレートは常に除く。展開に 1Password を読むので、MacBook では5分ごとに承認画面が出てしまう
+# （launchd からは承認できず時間切れになるだけ）。テンプレートの反映は本人がターミナルで chezmoi apply する
+cz_exclude=(--exclude=templates)
+status_out="$(chezmoi status "${cz_exclude[@]}" 2>/dev/null)" || status_out=""
 copy_drift=""
 while IFS= read -r line; do
   [ -n "$line" ] || continue
@@ -210,7 +206,7 @@ if [ "$behind" -gt 0 ]; then
   else
     clear_notice pull
     # 取り込んだ変更のうち、コピー型のファイルはホームへ反映が必要
-    run chezmoi apply --force ${cz_exclude[@]+"${cz_exclude[@]}"} >/dev/null 2>&1 || notify_once apply "dotfiles: 反映に失敗" "chezmoi apply を手で実行してください"
+    run chezmoi apply --force "${cz_exclude[@]}" >/dev/null 2>&1 || notify_once apply "dotfiles: 反映に失敗" "chezmoi apply を手で実行してください"
     ahead="$(git rev-list --count origin/main..main)"
   fi
 fi
