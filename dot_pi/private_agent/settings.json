@@ -32,7 +32,7 @@
     "npm:@piex-dev/dap",
     "npm:@schovest/pi-goal",
     "npm:@davidroman/pi-loop",
-    "~/.pi/agent/local/pi-subagents-bfdec53d",
+    "~/.pi/agent/local/pi-subagents-a7d3dcb7",
     "npm:pi-filler",
     "npm:@335g/pi-autocommit",
     "npm:pi-pr-review",
