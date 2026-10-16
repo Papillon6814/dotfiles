@@ -57,6 +57,8 @@ brew "sops"
 brew "terminal-notifier"
 # Terminal multiplexer
 brew "tmux"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
 # JavaScript toolchain manager for reproducible environments
 brew "volta"
 # Pluggable terminal workspace, with terminal multiplexer as the base feature
@@ -67,6 +69,8 @@ brew "rjyo/moshi/moshi-hook"
 cask "1password"
 # Command-line interface for 1Password
 cask "1password-cli"
+# 3D creation suite
+cask "blender"
 # Clipboard extension app
 cask "clipy"
 cask "font-iosevka"
@@ -74,3 +78,10 @@ cask "font-iosevka"
 cask "gcloud-cli"
 # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "ghostty"
+# 2D and 3D game engine
+cask "godot"
+uv "gdtoolkit"
+uv "ruff"
+npm "@earendil-works/pi-coding-agent"
+npm "@gltf-transform/cli"
+npm "pi-profile"
