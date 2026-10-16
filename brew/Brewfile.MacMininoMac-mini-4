@@ -1,8 +1,11 @@
 tap "muxy-app/tap"
 tap "rjyo/moshi", trusted: true
 tap "supabase/tap"
+tap "vjeantet/tap"
 # Simple, modern, secure file encryption
 brew "age"
+# Incredibly fast JavaScript runtime, bundler, test runner, and package manager
+brew "bun"
 # Manage your dotfiles across multiple diverse machines, securely
 brew "chezmoi"
 # Tool for emulating mouse and keyboard events
@@ -61,6 +64,8 @@ brew "zellij"
 brew "rjyo/moshi/moshi-hook"
 # Supabase CLI
 brew "supabase/tap/supabase", trusted: true
+# macOS notification CLI — send native notifications and capture user interactions
+brew "vjeantet/tap/alerter", trusted: true
 # Password manager that keeps all passwords secure behind one password
 cask "1password"
 # Command-line interface for 1Password
