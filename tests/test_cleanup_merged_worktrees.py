@@ -31,17 +31,34 @@ class Cleanup(unittest.TestCase):
   self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_dirty(self):
   p=self.wt("feat-a");(p/"new.txt").write_text("x");self.run_(str(self.repo));self.assertTrue(p.exists())
- def test_keeps_valuable_ignored_but_not_node_modules(self):
+ def test_removes_merged_worktree_with_ignored_files(self):
   p=self.wt("env");(p/".env").write_text("SECRET=1");q=self.wt("nm");(q/"node_modules").mkdir();(q/"node_modules/a.js").write_text("")
-  self.run_(str(self.repo));self.assertTrue(p.exists());self.assertFalse(q.exists())
+  self.run_(str(self.repo));self.assertFalse(p.exists());self.assertFalse(q.exists())
  def test_removes_agent_logs_build_and_test_outputs(self):
   p=self.wt("logs")
   for f in [".pi/loops/a.json",".superpowers/sdd/plan.md",".scaffold-logs/a.log","target/debug/app","src-tauri/gen/schema.json","e2e/artifacts/shot.png"]:
    (p/f).parent.mkdir(parents=True,exist_ok=True);(p/f).write_text("x")
   self.run_(str(self.repo));self.assertFalse(p.exists())
- def test_keeps_other_ignored_files_next_to_logs(self):
+ def test_removes_other_ignored_files_next_to_logs(self):
   p=self.wt("db");(p/".pi").mkdir();(p/".pi/a").write_text("x");(p/"keep.db").write_text("x")
-  self.run_(str(self.repo));self.assertTrue(p.exists())
+  self.run_(str(self.repo));self.assertFalse(p.exists())
+ def log(self):
+  f=self.root/".local/state/cleanup-merged-worktrees.log";return f.read_text() if f.exists() else ""
+ def test_logs_reason_when_keeping_dirty(self):
+  p=self.wt("feat-a");(p/"new.txt").write_text("x");r=self.run_(str(self.repo))
+  self.assertTrue(p.exists());self.assertIn("kept: "+str(p),r.stdout);self.assertIn("未コミット",self.log())
+ def test_logs_reason_when_keeping_in_use(self):
+  p=self.wt("feat-a");self.lsof.write_text("p1\nn"+str(p)+"\n");self.run_(str(self.repo))
+  self.assertTrue(p.exists());self.assertIn("使用中",self.log())
+ def test_logs_reason_when_keeping_branch_without_commits(self):
+  p=self.wt("fresh",commit=False,merge=False);self.run_(str(self.repo))
+  self.assertTrue(p.exists());self.assertIn("コミットなし",self.log())
+ def test_unmerged_is_not_logged(self):
+  self.wt("feat-a",merge=False);self.run_(str(self.repo));self.assertEqual(self.log(),"")
+ def test_claude_post_tool_use_reports_kept(self):
+  p=self.wt("feat-a");(p/"new.txt").write_text("x")
+  r=self.run_("--claude-post-tool-use",stdin=json.dumps({"cwd":str(self.repo),"tool_input":{"command":"git merge --no-ff feat-a"}}))
+  self.assertIn("kept: "+str(p),json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"])
  def detached(self,name,extra_commit=False):
   path=(self.repo/".claude/worktrees"/name).resolve();git("worktree","add","-q","--detach",str(path),"main",cwd=self.repo)
   if extra_commit:(path/"t.txt").write_text("x");git("add","t.txt",cwd=path);git("commit","-qm","t",cwd=path)

@@ -6,7 +6,8 @@
  *
  * Behavior:
  * - After a successful bash call that runs `git merge`, cleans up that
- *   repository and appends what was removed to the tool result.
+ *   repository and appends what was removed (or kept, with the reason)
+ *   to the tool result.
  * - On quit, sweeps the repository of the session's cwd.
  */
 

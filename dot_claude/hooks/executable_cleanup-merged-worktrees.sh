@@ -59,15 +59,15 @@ in_use() {
   printf '%s\n' "$cwds" | grep -qF -e "$wt/"
 }
 
-# worktree remove は無視ファイルも消すため、作り直せるもの以外があれば残す
-# 作り直せるもの: 依存、エージェントの作業ログ、ビルド出力・キャッシュ、テストの出力（2026-10-13 に範囲を拡大）
-disposable_dirs='node_modules|\.venv|__pycache__|\.pi|\.superpowers|\.scaffold-logs|\.task-artifacts|\.test-evidence|\.pi-lens-probe-home|target|dist|out|\.build|\.wrangler|\.pytest_cache|\.ruff_cache|src-tauri/gen|e2e/artifacts|test-artifacts|test-results|playwright-report|coverage'
-valuable_ignored() {
-  git -C "$1" status --porcelain --ignored -uall 2>/dev/null | sed -n 's/^!! //p' \
-    | grep -vE "(^|/)($disposable_dirs)/|(^|/)\.DS_Store\$|\.tsbuildinfo\$" | grep -q .
+# 無視ファイル（.env など）は残す理由にしない。マージ済みなら worktree ごと消す（2026-10-17）
+# マージ済みなのに残したものは、理由をログに書く（後から原因を追えるように）
+log_file="$HOME/.local/state/cleanup-merged-worktrees.log"
+removed=""; kept=""
+keep() {
+  kept+="kept: $1 (${2:-detached}): $3"$'\n'
+  [ $dry = 0 ] && mkdir -p "${log_file%/*}" 2>/dev/null &&
+    printf '%s kept: %s (%s): %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "${2:-detached}" "$3" >>"$log_file"
 }
-
-removed=""
 check_and_remove() {
   local wt=$1 br=$2 head=$3
   { [ "$wt" = "$main_root" ] || [ "$br" = "$def" ]; } && return
@@ -75,16 +75,15 @@ check_and_remove() {
   if [ -n "$br" ]; then
     g merge-base --is-ancestor "refs/heads/$br" "refs/heads/$def" 2>/dev/null || return
     # 作っただけでコミットのないブランチも「祖先」になるため、reflog で除外する
-    [ "$(g reflog show --format=%H "refs/heads/$br" 2>/dev/null | wc -l)" -ge 2 ] || return
+    [ "$(g reflog show --format=%H "refs/heads/$br" 2>/dev/null | wc -l)" -ge 2 ] || { keep "$wt" "$br" "コミットなし（作りかけ）"; return; }
   else
     # ブランチなし（検証・レビュー用）: HEAD が既定ブランチに含まれていれば消せる
     [ -n "$head" ] && g merge-base --is-ancestor "$head" "refs/heads/$def" 2>/dev/null || return
   fi
-  [ -z "$(git -C "$wt" status --porcelain -uall 2>/dev/null)" ] || return
-  valuable_ignored "$wt" && return
-  in_use "$wt" && return
+  [ -z "$(git -C "$wt" status --porcelain -uall 2>/dev/null)" ] || { keep "$wt" "$br" "未コミットの変更あり"; return; }
+  in_use "$wt" && { keep "$wt" "$br" "使用中のプロセスあり"; return; }
   if [ $dry = 0 ]; then
-    g worktree remove "$wt" 2>/dev/null || return
+    g worktree remove "$wt" 2>/dev/null || { keep "$wt" "$br" "git worktree remove が失敗"; return; }
     [ -n "$br" ] && g branch -d "$br" >/dev/null 2>&1
   fi
   removed+="removed: $wt (${br:-detached})"$'\n'
@@ -102,10 +101,10 @@ while IFS= read -r line; do
 done < <(g worktree list --porcelain; echo)
 [ $dry = 0 ] && g worktree prune
 
-[ -n "$removed" ] || exit 0
+[ -n "$removed$kept" ] || exit 0
 if [ $mode = claude ]; then
-  jq -n --arg c "マージ済み worktree を片付けました:"$'\n'"$removed" \
+  jq -n --arg c "マージ済み worktree の片付け結果:"$'\n'"$removed$kept" \
     '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$c}}'
 else
-  printf '%s' "$removed"
+  printf '%s' "$removed$kept"
 fi
