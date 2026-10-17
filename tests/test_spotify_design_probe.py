@@ -89,16 +89,23 @@ class SpotifyDesignProbeTests(unittest.TestCase):
         control = project / '.claude/agents/spotify-control-ux.md'
         self.assertTrue(control.is_file())
         self.assertNotIn('skills:', control.read_text())
-        self.assertEqual(manifest['effectiveToolIntent']['pi'], ['read', 'anchor_grep'])
+        self.assertEqual(manifest['effectiveToolIntent']['pi'], ['read', 'anchor_grep', 'contact_supervisor'])
         self.assertEqual(manifest['effectiveToolIntent']['claude'], ['Read', 'Grep', 'Glob'])
 
     def test_missing_treatment_is_not_silently_substituted(self):
-        if (ROOT / 'dot_agents/skills/spotify-design/SKILL.md').exists():
-            self.skipTest('Missing-resource boundary is exercised before assets are authored')
-        result = self.call('--variant', 'treatment')
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertIn('target skill unavailable', result.stderr)
-        self.assertFalse(self.out.exists())
+        with tempfile.TemporaryDirectory() as directory:
+            fixture_root = Path(directory).resolve()
+            (fixture_root / 'tests').mkdir()
+            shutil.copy2(PROBE, fixture_root / 'tests' / PROBE.name)
+            shutil.copytree(ROOT / 'tests/fixtures/spotify-design', fixture_root / 'tests/fixtures/spotify-design')
+            out = fixture_root / 'work/spotify-design-validation/missing'
+            result = subprocess.run([NODE, str(fixture_root / 'tests' / PROBE.name),
+                                     '--runtime', 'pi', '--role', 'ux', '--case', 'micro',
+                                     '--variant', 'treatment', '--out', str(out), '--prepare-only'],
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertIn('target skill unavailable', result.stderr)
+            self.assertFalse(out.exists())
 
     def test_native_claude_proof_reads_complete_stdout_not_bounded_display(self):
         self.out.mkdir()
@@ -172,7 +179,7 @@ console.log(JSON.stringify(cases.map(x=>{{try{{validateNativeTerminal('owned-run
         import copy
         good = {'phase': 'before_agent_start', 'sessionFile': '/owned/session.jsonl',
                 'cwd': '/owned/fixture', 'model': 'provider/model',
-                'activeTools': ['read', 'anchor_grep'], 'commands': [], 'canaryHits': []}
+                'activeTools': ['read', 'anchor_grep', 'contact_supervisor'], 'commands': [], 'canaryHits': []}
         cases = [[good], [], [dict(good, phase='session_start')],
                  [dict(good, activeTools=['read', 'anchor_grep', 'bash'])],
                  [dict(good, sessionFile='/foreign/session.jsonl')],

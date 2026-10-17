@@ -239,7 +239,7 @@ work/spotify-design-validation/  # 実行ログ・評価結果。公開対象は
 | 定義 | 共有`~/.pi/agent/agents/`内の専用2ファイル | `~/.claude/agents/`内の専用2ファイル |
 | 共通知識 | `~/.agents/skills/spotify-design` | 同じ正本へ`~/.claude/skills/spotify-design`をリンク |
 | 起動時 | `skills`による明示読込。必要ならインストール後の位置で`skillPath`を指定 | `skills`による明示読込 |
-| tools | `read`と`anchor_grep`だけを予定。実際に登録された名前を確認 | `Read`、`Grep`、`Glob`だけを予定 |
+| tools | `read`, `anchor_grep`, `contact_supervisor`。親への相談の例外を2026-10-17承認 | `Read`、`Grep`、`Glob`だけを予定 |
 | 権限なし | シェル、編集、外部操作、別エージェント起動 | シェル、編集、外部操作、Agent起動 |
 | モデル | 既定を継承 | 既定を継承 |
 

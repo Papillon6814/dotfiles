@@ -18,7 +18,7 @@
 
 - `spotify-inspired`／`brand-adapted`を案件ごとに明示。欠落は確認。ブランド優先時に黒・緑・Mixを要求しない。
 - マネージャーは読取・返答のみ。コード編集・シェル・外部操作・再委任なし。
-- Piの予定toolsは`read, anchor_grep`、Claudeは`Read, Grep, Glob`。名前が実登録と合わなければ停止。欠落ツールを無断で別経路に置換しない。
+- Piの許可toolsは`read, anchor_grep, contact_supervisor`（2026-10-17改訂：親への相談だけをユーザー承認）、Claudeは`Read, Grep, Glob`。名前が実登録と合わなければ停止。欠落ツールを無断で別経路に置換しない。
 - スキル本文にランタイム固有の権限を混ぜない。エージェントの実効toolsで制約する。
 - モデル・認証・MCP・Profile・フック・AGENTS.md／CLAUDE.mdは変更しない。既存既定モデルが使えなければ停止し、別モデルへ黙って切り替えない。
 - 根拠を`public-principle`／`case-study`／`external-standard`／`our-recommendation`に分離。未公開値・事例数値の普遍化・画像からの動作保証をしない。

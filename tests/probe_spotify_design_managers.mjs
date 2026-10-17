@@ -130,7 +130,7 @@ const manifest = {
   schema: 1, state: 'prepared', runtime: options.runtime, role: options.role, case: options.case,
   variant: options.variant, samples: options.samples, modelRequests: 0,
   targetSkills: target ? ['spotify-design'] : [], sourceHashes,
-  effectiveToolIntent: { pi: ['read', 'anchor_grep'], claude: ['Read', 'Grep', 'Glob'] },
+  effectiveToolIntent: { pi: ['read', 'anchor_grep', 'contact_supervisor'], claude: ['Read', 'Grep', 'Glob'] },
   definitionHashes, isolation: { canaries, ancestorSkill: 'spotify-ancestor-sentinel', homeSkill: 'spotify-home-sentinel' },
   fixture: project,
   jobs: Array.from({ length: options.samples }, (_, index) => ({

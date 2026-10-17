@@ -24,8 +24,8 @@ export function validateNativeTerminal(runId, agent, completion, status) {
 export function validatePiObservations(rows, sessionFile, cwd) {
   const scoped = rows.filter(row => row.phase === 'before_agent_start' && row.sessionFile === sessionFile);
   if (!scoped.length || scoped.some(row => row.cwd !== cwd ||
-      !Array.isArray(row.activeTools) || row.activeTools.length !== 2 ||
-      new Set(row.activeTools).size !== 2 || row.activeTools.some(tool => !['read', 'anchor_grep'].includes(tool)) ||
+      !Array.isArray(row.activeTools) || row.activeTools.length !== 3 ||
+      new Set(row.activeTools).size !== 3 || row.activeTools.some(tool => !['read', 'anchor_grep', 'contact_supervisor'].includes(tool)) ||
       !Array.isArray(row.canaryHits) || row.canaryHits.length ||
       !Array.isArray(row.commands) || row.commands.some(command => /spotify-(ancestor|home)-sentinel/.test(command.name)))) {
     throw new Error('Pi child observation/tools/isolation proof is incomplete');
@@ -91,7 +91,10 @@ export async function runNativeTrials(manifest, out) {
   const loader = new sdk.DefaultResourceLoader({
     cwd: manifest.fixture, agentDir: hostDir, settingsManager: settings, eventBus: bus,
     additionalExtensionPaths: [join(packageRoot, 'index.ts'), hashline, join(out, 'observer.mjs')],
-    noSkills: true, noContextFiles: true, noPromptTemplates: true, noThemes: true,
+    noSkills: manifest.variant !== 'treatment', noContextFiles: true, noPromptTemplates: true, noThemes: true,
+    additionalSkillPaths: manifest.variant === 'treatment' ? [join(manifest.fixture, '.agents/skills/spotify-design')] : [],
+    skillsOverride: base => ({ skills: base.skills.filter(skill => skill.name === 'spotify-design' &&
+      skill.filePath.startsWith(join(manifest.fixture, '.agents/skills/spotify-design') + '/')), diagnostics: base.diagnostics }),
     systemPrompt: 'Validation transport host. Do not generate model responses.'
   });
   await loader.reload();
