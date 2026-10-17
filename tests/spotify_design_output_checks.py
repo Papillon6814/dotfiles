@@ -16,7 +16,9 @@ def review_language_errors(report):
         for key, value in finding.get('acceptance', {}).items():
             fields.append((f'findings[{i}].acceptance.{key}', value))
     return [name + ': expected Japanese prose' for name, value in fields
-            if isinstance(value, str) and value.strip() and not re.search(r'[ぁ-んァ-ヶ一-龠]', value)]
+            if isinstance(value, str) and value.strip() and not re.search(r'[ぁ-んァ-ヶ一-龠]', value)
+            and not ('.acceptance.condition' in name and re.fullmatch(
+                r'(?:iOS|Android|VoiceOver|TalkBack)(?:[/×・＋+ ]+(?:iOS|Android|VoiceOver|TalkBack))*', value))]
 
 
 def design_state_label_errors(text):

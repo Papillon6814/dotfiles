@@ -21,6 +21,13 @@ class OutputChecks(unittest.TestCase):
                   'findings': [{'change': 'Resend without checking.', 'observation': '応答なし。', 'impact': '誤操作の可能性。'}]}
         self.assertIn('findings[0].change: expected Japanese prose', review_language_errors(report))
 
+    def test_technical_only_accessibility_condition_is_not_an_english_report(self):
+        report = {'summary': '読み上げを確認する。', 'good_points': [],
+                  'findings': [{'observation': '実機記録なし。', 'impact': '対象を誤認する可能性。',
+                                'change': '実機で確認する。', 'acceptance': {'condition': 'VoiceOver/TalkBack',
+                                 'action': '各要素へ移動。', 'expected': '名前を区別できる。', 'evidence': 'OS別の記録。'}}]}
+        self.assertEqual(review_language_errors(report), [])
+
     def test_c1_missing_state_labels_are_not_hidden_by_communication_table(self):
         text = '通常の予約確認→日付選択→確定。未送信・確定失敗・結果不明・成功。読込中、期限切れ、再送、取消と復帰。'
         self.assertEqual(design_state_label_errors(text), ['missing state label: initial', 'missing state label: empty', 'missing state label: permission'])
