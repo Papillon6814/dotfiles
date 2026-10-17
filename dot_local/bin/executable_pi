@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# ~/.local/bin/pi: 全ての pi 起動を pi-profile 経由にする shim。
+# 本物の pi は PI_REAL_PI（既定 /opt/homebrew/bin/pi）。
+set -euo pipefail
+
+real="${PI_REAL_PI:-/opt/homebrew/bin/pi}"
+
+if [[ "${PI_PROFILE_LAUNCHER:-}" == "0" || "${PI_SUBAGENT_CHILD:-}" == "1" || -n "${PI_PROFILE_LAUNCH_CONTEXT:-}" ]]; then
+  exec "$real" "$@"
+fi
+
+# 再開するセッションが muu/rbx のものなら、そのアカウントで起動する
+# --session <パス> と --session=<パス> の両方を見る
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+  session=""
+  if [[ "${args[i]}" == "--session" && $((i + 1)) -lt ${#args[@]} ]]; then
+    session="${args[i+1]}"
+  elif [[ "${args[i]}" == --session=* ]]; then
+    session="${args[i]#--session=}"
+  else
+    continue
+  fi
+  case "$session" in
+    "$HOME/.pi/agent-muu/"*) exec pi-account muu "$@" ;;
+    "$HOME/.pi/agent-rbx/"*) exec pi-account rbx "$@" ;;
+  esac
+  break
+done
+
+export PI_PROFILE_PI_BIN="$real"
+exec pi-profile launch -- "$@"
