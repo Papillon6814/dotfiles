@@ -78,6 +78,20 @@ basisの配列要素は必ず出典1件です。source_idにスラッシュ・�
 必要入力が欠けた場合も同じ外側の欄を返し、status=needs-clarification、findings=[]、unverifiedとparent_decisionsに確認事項を置きます。未指定のtargetやvisual_modeはnullにします。推測のレビューを埋めません。
 設計（task_mode=design）はJSON例の対象外で、上記の設計成果を返します。
 
+## 親の形式検査と1回だけの補修
+
+レビュー返答を受けた親は、採用前に外側のunverified／handoffとfindings、各findingの9欄を機械的に検査します。handoffのchanges／preserve／parent_decisions、priorityのlevel／reason、basisのID／年次／区分／scope、acceptanceのcondition／action／expected／evidenceも確認します。空の文字列や型違いは有効な必須欄とみなしません。空のfindingsやunverified配列は許容します。設計出力をレビューJSONの欠落と誤判定しません。
+
+1. 揃っていれば、その返答を内容確認へ進めます。形式合格は意味・実装の合格ではありません。
+2. 欠落があれば、その欄名だけを挙げて補修を1回依頼します。runtimeが正規のcontinue（ClaudeのSendMessage、pi-subagentsのresumeなど）を提供していれば同じ子への継続を優先します。未対応なら、同じ定義・同じtoolsの子を新たに1回だけ起動します。認証拒否や権限不足の迂回には使いません。
+3. 補修へ渡すデータはoriginal_input（元の入力）、previous_response（前回の返答の全文）、missing_fields（欠けている欄名の一覧）の3つだけです。依頼文は「前回の返答を保ったまま、欠けた欄だけを補った完全な JSON を返す」。修正案や業務要件の答えを親が足しません。
+4. 補修後、必須欄と既存JSON値の保持を再検査します。既存の観察・根拠・確度等の書き換え、新規findingの追加、依頼外の欄追加も採用しません。JSON外の保存先注記は原文として別に保持します。
+5. 2回目も欠落、既存値の改変、解析不能等なら失格として本人へ返します。3回目を依頼せず、親が推測で補完しません。継続失敗や必要な検査手段の不足は阻害として報告します。
+
+検査の参照実装はソースリポジトリのtests/spotify_design_output_checks.pyのassess_parent_replyです。親から同ファイルの`--parent-check`へJSONをstdinで渡しても呼べます（response、original_input、task_mode、repair_count、previous_response）。stdoutは判定と不足欄、必要時のみ3項目の補修payloadです。これは親の検査用入口であり、子へPythonやシェルを追加するものではありません。検査器が利用不能なら未確認を合格にせず本人へ返します。
+
+元入力、初回原文、補修原文、検査結果、採否、各run／session IDを追跡できるよう保持します。補修起動は元の論理試行に付随させ、論理数を増やしません。ただし実際の子の起動数・継続回数・usageを別記し、補修後合格と初回合格を区別します。1論理試行の子の起動は最大2回です。
+
 ## status
 
 | 値 | 意味 |

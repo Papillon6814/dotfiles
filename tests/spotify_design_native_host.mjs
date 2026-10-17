@@ -6,6 +6,58 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { realpathSync, lstatSync, readdirSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+
+export function parentReviewCheck(request) {
+  return new Promise((resolve, reject) => {
+    const script = new URL('./spotify_design_output_checks.py', import.meta.url);
+    const child = execFile('python3', [decodeURIComponent(script.pathname), '--parent-check'],
+      { timeout: 15000, maxBuffer: 2_000_000, env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } },
+      (error, stdout) => {
+        if (error) { reject(new Error('Parent contract checker failed; no model fallback')); return; }
+        try { resolve(JSON.parse(stdout)); } catch { reject(new Error('Invalid parent contract checker result')); }
+      });
+    child.stdin.on('error', () => {});
+    child.stdin.end(JSON.stringify(request));
+  });
+}
+
+export function planContractRepair(job, decision, runner, runId) {
+  if (job.repairOf !== undefined || decision.action !== 'repair') throw new Error('One repair only');
+  const resume = runner?.capabilities?.resume === true || runner === undefined;
+  return { ...job, index: String(job.index) + '-repair', repairOf: job.index,
+    originalTask: job.task, previousResponse: decision.repair_payload.previous_response,
+    task: decision.repair_instruction + '\n' + JSON.stringify(decision.repair_payload),
+    correctionMode: resume ? 'resume' : 'repair-start', ...(resume ? { resumeRunId: runId } : {}) };
+}
+
+export async function executeContractTrials(jobs, runOne, check = parentReviewCheck) {
+  if (!Array.isArray(jobs) || jobs.length < 1 || jobs.length > 5 || jobs.some(job => job.repairOf !== undefined)) throw new Error('Invalid logical trial budget');
+  const trials = [], children = [];
+  for (const job of jobs) {
+    const first = await runOne(job);
+    children.push(first);
+    const mode = job.task.startsWith('task_mode=design;') ? 'design' : 'review';
+    const initial = await check({ response: first.response, original_input: job.task, task_mode: mode });
+    const trial = { index: job.index, initialRunId: first.runId, initial, repairs: 0,
+      finalRunId: first.runId, finalAction: initial.action, final: initial };
+    if (initial.action === 'repair') {
+      const repairJob = planContractRepair(job, initial, first.runner, first.runId);
+      const repaired = await runOne(repairJob);
+      children.push(repaired);
+      const final = await check({ response: repaired.response, original_input: job.task,
+        task_mode: mode, repair_count: 1, previous_response: first.response });
+      Object.assign(trial, { repairs: 1, correctionMode: repairJob.correctionMode,
+        repairRunId: repaired.runId, finalRunId: repaired.runId, final,
+        finalAction: final.action === 'accept' ? 'accept' : 'reject' });
+    }
+    trials.push(trial);
+  }
+  return { logicalTrials: jobs.length, childLaunches: children.length,
+    maxChildLaunches: jobs.length * 2, repairs: trials.reduce((n, trial) => n + trial.repairs, 0),
+    accepted: trials.filter(trial => ['accept', 'not-applicable'].includes(trial.finalAction)).length,
+    trials, children };
+}
 
 const saveNew = (path, value) => writeFile(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
 
@@ -271,7 +323,7 @@ export async function runNativeTrials(manifest, out) {
       hostTools: session.getActiveToolNames()
     });
     if (!ping.events?.asyncComplete) throw new Error('Native async completion event unavailable');
-    for (const job of manifest.jobs) {
+    const runOne = async job => {
       const supervisor = supervisorRouter(bus, async request => {
         const childFile = join(out, 'child-sessions', request.runId, 'run-0/session.jsonl');
         const entries = (await readFile(childFile, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
@@ -287,7 +339,10 @@ export async function runNativeTrials(manifest, out) {
       }, requestId => replyReceipts.get(requestId) === activeRun);
       let expectedId;
       const signals = nativeSignals(bus, ping.events);
-      const launched = await rpc('spawn', {
+      const launched = job.resumeRunId ? await rpc('resume', {
+        id: job.resumeRunId, message: job.task,
+        output: join(out, 'output-' + job.index + '.md'), outputMode: 'file-only'
+      }) : await rpc('spawn', {
         agent: job.agent, task: job.task, cwd: job.cwd, context: 'fresh',
         agentScope: 'project', async: true, artifacts: true,
         sessionDir: join(out, 'child-sessions'), timeoutMs: 240000,
@@ -313,8 +368,11 @@ export async function runNativeTrials(manifest, out) {
       activeRun = undefined;
       const output = await readFile(join(out, 'output-' + job.index + '.md'), 'utf8');
       if (!output.trim()) throw new Error('Native output empty');
+      let response = output, externalUsage;
       if (manifest.runtime === 'claude') {
         const proof = await readClaudeProof(completion, launched);
+        response = proof.result.result;
+        externalUsage = proof.result.usage;
         await saveNew(join(out, 'claude-proof-' + job.index + '.json'), proof);
         await writeFile(join(out, 'answer-' + job.index + '.md'), proof.result.result, { flag: 'wx' });
         if (manifest.variant === 'treatment') {
@@ -342,8 +400,17 @@ export async function runNativeTrials(manifest, out) {
       }
       console.log(JSON.stringify({ index: job.index, runId: expectedId, state: 'completed', chars: output.length }));
       if (errors.length) throw new Error('Host/runtime error; inspect preserved artifacts');
-    }
-    await saveNew(join(out, 'summary.json'), { state: 'executed-ungraded', jobs: manifest.jobs.length, hostModelRequests, parentUsage: session.getSessionStats(), errors, events });
+      return { index: job.index, repairOf: job.repairOf, runId: expectedId, response,
+        runner: completion.results[0].runner, usage: completion.results[0].usage, externalUsage };
+    };
+    const contractGate = manifest.parentContractGate ? await executeContractTrials(manifest.jobs, runOne) : undefined;
+    if (!manifest.parentContractGate) for (const job of manifest.jobs) await runOne(job);
+    if (contractGate) await saveNew(join(out, 'contract-gate.json'), contractGate);
+    await saveNew(join(out, 'summary.json'), { state: contractGate ? 'contract-checked' : 'executed-ungraded',
+      jobs: manifest.jobs.length, hostModelRequests, parentUsage: session.getSessionStats(), errors, events,
+      ...(contractGate ? { contractGate: { logicalTrials: contractGate.logicalTrials,
+        childLaunches: contractGate.childLaunches, repairs: contractGate.repairs, accepted: contractGate.accepted } } : {}) });
+    return { contractGate };
   } catch (error) {
     let stop, terminalConfirmed = !activeRun;
     if (activeRun) {

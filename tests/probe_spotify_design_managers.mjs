@@ -33,11 +33,13 @@ try {
     runtime: { type: 'string' }, role: { type: 'string' }, case: { type: 'string' },
     variant: { type: 'string' }, samples: { type: 'string', default: '1' },
     out: { type: 'string' }, 'prepare-only': { type: 'boolean', default: false },
+    'parent-contract-gate': { type: 'boolean', default: false },
     upstream: { type: 'string' }
   } }).values;
   if (!['pi', 'claude'].includes(options.runtime)) throw new Error('invalid runtime');
   if (!['ux', 'ui'].includes(options.role)) throw new Error('invalid role');
   if (!['baseline', 'treatment'].includes(options.variant)) throw new Error('invalid variant');
+  if (options['parent-contract-gate'] && options.variant !== 'treatment') throw new Error('parent gate requires treatment');
   const cases = JSON.parse(await readFile(join(fixtures, 'cases.json'), 'utf8'));
   if (!Object.hasOwn(cases, options.case)) throw new Error('invalid case');
   config = cases[options.case];
@@ -144,6 +146,7 @@ const manifest = {
   schema: 1, state: 'prepared', runtime: options.runtime, role: options.role, case: options.case,
   variant: options.variant, samples: options.samples, modelRequests: 0,
   targetSkills: target ? ['spotify-design'] : [], sourceHashes,
+  parentContractGate: options['parent-contract-gate'],
   skillRoot,
   effectiveToolIntent: { pi: ['read', 'anchor_grep', 'contact_supervisor'], claude: ['Read', 'Grep', 'Glob'] },
   definitionHashes, isolation: { canaries, ancestorSkill: 'spotify-ancestor-sentinel', homeSkill: 'spotify-home-sentinel' },
@@ -157,7 +160,8 @@ console.log(JSON.stringify({ state: manifest.state, out, jobs: manifest.jobs.len
 if (!options['prepare-only']) {
   try {
     const { runNativeTrials } = await import('./spotify_design_native_host.mjs');
-    await runNativeTrials(manifest, out);
+    const outcome = await runNativeTrials(manifest, out);
+    if (outcome?.contractGate && outcome.contractGate.accepted !== manifest.jobs.length) process.exitCode = 1;
   } catch (error) {
     await jsonNew(join(out, 'blocker.json'), { state: 'blocked', error: error.message, at: new Date().toISOString() });
     console.error('Native validation blocked; no execution-path fallback: ' + error.message);
