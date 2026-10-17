@@ -148,6 +148,11 @@ console.log(JSON.stringify(outcomes));'''
             {'accepted': 0, 'childLaunches': 2, 'repairs': 1, 'action': 'reject'},
             {'accepted': 1, 'childLaunches': 1, 'repairs': 0, 'action': 'accept'}])
 
+    @unittest.skipUnless(HISTORY.is_file(), 'original local failure absent')
+    def test_failure_fixture_is_byte_identical_to_recorded_a8ffddd2(self):
+        original = ROOT / 'work/spotify-design-validation/claude-ux-micro-adapterfix-20261017j/answer-0.md'
+        self.assertEqual(BAD.read_bytes(), original.read_bytes())
+
     @unittest.skipUnless(HISTORY.is_file(), 'historical local evidence absent; portable real-failure fixture still tested')
     def test_all_43_previously_accepted_reports_have_zero_false_repairs(self):
         data = json.loads(HISTORY.read_text())

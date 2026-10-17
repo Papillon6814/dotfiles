@@ -1,113 +1,120 @@
 # Spotify UX／UIマネージャー — 検証記録
 
-> 作成・更新：2026-10-17。出所：承認済み設計、固定架空課題、Pi／Claudeのネイティブ原本、独立レビュー。目的：共通知識と専用定義の受入れを判断します。**Task 1・2は作成済み。Task 3は形式欠落1件が残り不合格。Task 4の公開・導入は未実施です。**
+> 作成・更新：2026-10-17。出所：承認済み設計、監督経由の本人承認済み補修方針、固定架空課題、ネイティブ原本、独立レビュー。目的：共通知識と専用定義の受入れを判断します。**Task 3は改訂受入基準で合格。Task 4のmain統合・push・apply・公開・導入は未実施です。**
 
 ## 目次
 1. 結論・決定事項
-2. 最終の評価対象と結果
-3. 独立レビューの指摘対応
-4. 残る未達と次のアクション
-5. 証拠・限界・履歴
+2. 親側ゲートとTDD
+3. 追加live 5試行
+4. 過去の検証と指摘対応
+5. 限界・残課題・関連資料
 
 # 1．結論・決定事項
 
-共通スキル、Pi／ClaudeのUX・UI各定義、読取専用の評価環境を作成しました。累計147論理試行を回収しました。親相談、出典追跡、設計の状態網羅、日本語本文は改善を確認しました。一方、Claude UXのmicro 1件で修正案・確認条件・引き渡し等の必須欄が欠落しました。**正常終了や他の成功出力でこの失格を覆いません。**【確度：高／固定課題の観測結果】
+共通スキルとPi／ClaudeのUX・UI各専用定義を作成しました。残っていた形式欠落には、指示文の追加反復ではなく、**親側の形式検査＋1回だけの補修**を実装しました。失格した実出力で不足検出・依頼生成を確認し、合格済み43件の誤差し戻しは0でした。
 
-指示文の強化と反復だけでは出力契約を保証できていません。追加試行で偶然の全件合格を待たず、ここで停止します。方式変更の調査・計画、追加モデル予算、公開・導入はそれぞれ別承認です。
+承認されたClaude UX microの追加5試行は、**5件とも初回で必須欄が揃い合格**でした。補修起動0回、子の起動5回です。累計152論理試行で停止します。【確度：高／固定課題の観測結果】
 
 | 論点 | 決定 | 理由・補足 |
 |---|---|---|
-| 実装 | **別担当** | マネージャーは設計・レビュー・引き渡しのみ |
-| Pi子の実効tools | **read / anchor_grep / contact_supervisor** | 親相談例外を承認済み。編集・シェル・外部操作・再委任なし |
-| Claude子の実効tools | **Read / Grep / Glob** | native initと本文読込を別に検査 |
-| 視覚モード | **案件別の2モード** | spotify-inspired / brand-adapted。未指定を推測しない |
-| 読込 | **親が解決済みskill_rootを明示** | 実HOME探索や拒否回避で救済しない |
-| Pi親相談 | **既存モデルの正規tool callで返信** | 2026-10-17改訂。model-only toolをコードから直接実行しない。未決業務要件は未決のまま返す |
-| 試行上限 | **147論理試行、使用147** | 81→追加44→追加22を明示承認。モデル0の起動前設定失敗1件は別記。API往復数ではない |
-| 最終の修正範囲 | **Claude2定義の提出前確認のみ** | 日本語本文と共有UXチェックリストの適用確認。共有スキル・Pi定義・host・課題は不変 |
-| 公開・導入 | **保留** | 未合格。main統合は自動pushへつながり得るため、実行直前の別承認が必要 |
+| 実装 | **別担当** | マネージャーは設計・レビュー・引き渡し |
+| Pi子tools | **read / anchor_grep / contact_supervisor** | 親相談例外を承認済み。変更なし |
+| Claude子tools | **Read / Grep / Glob** | 全5件のnative initで確認。変更なし |
+| 実行経路 | **変更しない** | Claudeは既存external-cli、--no-session-persistence、resume:falseを維持 |
+| 補修経路 | **正規continueを優先、未対応なら補修起動1回** | 同じ定義・同じtools。今回のClaude経路は継続非対応 |
+| 補修入力 | **元入力・前回返答全文・不足欄名の3項目だけ** | 親は欄の答えを推測・追加しない |
+| 失格 | **補修後の不足、既存値改変、解析不能等を採用しない** | 3回目は起動せず本人へ返す |
+| 試行上限 | **152論理試行、使用152** | 今回5論理試行、子起動は最大10回の承認。実際は5回 |
+| 受入れ | **Task 3合格** | 今回承認された「必須欄5/5、補修後も可」という基準。実際は初回5/5 |
+| Task 4 | **未実施** | main統合・push・apply・公開・導入を行わず停止 |
 
-# 2．最終の評価対象と結果
+# 2．親側ゲートとTDD
 
-- 共通知識・Pi定義：`6290fa9`。ホスト：`7acce09`。
-- Claude定義：`0be2a48`。追加22試行をこの版で実行しました。
-- 検証補助の言語判定は、技術名だけの条件`VoiceOver/TalkBack`を英語本文と誤認したため、条件欄に限る狭い例外をRED→GREENで追加しました。元回答は変更せず、同じ原本をモデル0で再検査しています。
+実装commit：`0a215b1`。子定義の本文・tools、認証・モデル・MCP・Profile・グローバル指示は変更していません。共有スキルの親手順とcontracts.mdへ方針を追加しました。
 
-**評価対象セットは、未変更Piの既存22件＋修正後Claudeの新規22件です。単一commitで44件を新規実行したとは主張しません。** Piの実際の定義と共有9資料、課題、runnerは変更0。旧Pi manifestには未使用のClaude定義・aliasの旧hashもあるため、その差を22件分記録しています。Pi子の指定agentはPi定義、読込traceはinputと共有スキル内で、未使用Claude定義の本文は読みません。manifest全体が最新版と一致するという扱いはしません。
+親の入口は`tests/spotify_design_output_checks.py`の`assess_parent_reply`です。`python3 tests/spotify_design_output_checks.py --parent-check`へJSONをstdinで渡しても使えます。通常の評価起動では`--parent-contract-gate`で有効化します。子へのPython・シェル追加ではありません。
 
-C1のUIには各runtimeで当該評価時のUX実出力を渡し、upstream hashを確認しました。
-
-| 検証 | 結果 | 解釈 |
-|---|---|---|
-| unit／静的 | **91 tests、失敗0、既存live gate 5件skip** | モデル呼出し0。実モデル行動の代替ではない |
-| native終了・読込 | **Pi22/22、今回Claude22/22** | exact runの成功とprocess-terminal observed、必須資料、実効tools、検索を含む読込範囲を確認 |
-| レビュー形式 | **39/40** | Pi20/20＋今回Claude19/20。C1設計4件はレビューJSON対象外 |
-| micro重要条件・形式 | **19/20** | Claude UXで必須欄欠落1件。各組5/5基準には未達 |
-| C1〜C6の内容 | **24/24、固定課題の範囲内** | 新しいClaudeの状態表と日本語本文を確認。実アプリ品質の認証ではない |
-| 親相談 | 先行Pi評価で4件の正規返信と回収 | Pi両役割のC5/C6。業務条件・権限の追加なし |
-| 配置 | 仮HOME＋対象限定source＋実chezmoiで確認済み | 実HOME applyは0。全repo・全Profileの実導入は未検証 |
-
-| 環境・役割 | micro | C1〜C6 | 現状 |
-|---|---|---|---|
-| Pi UX | 5/5 | 6/6 | 未変更版の検証を保持 |
-| Pi UI | 5/5 | 6/6 | 未変更版の検証を保持 |
-| Claude UX | **4/5** | 6/6 | micro sample0の形式欠落で未合格 |
-| Claude UI | 5/5 | 6/6 | 本文の日本語化を確認 |
-
-C1は未送信・確定拒否・結果不明・確定成功を区別し、照合前に未変更と断定しません。新Claude UXは空・権限不足を含む状態表を提示し、初回不要の理由も明記しました。新Claude UI C5の主本文は日本語です。保存先への短い断り書き等は本文と分けて保持しており、全プロトコル文字列の日本語化を保証しません。
-
-これらは設計提案・検証計画です。APIの照合・冪等性、翻訳、実機の読み上げ・操作領域・文字拡大を検証したものではありません。
-
-usageは各原本へ保存しています。先行44件は子turnがPi73・Claude213、親assistantメッセージ37でした。親相談だけでなく完了通知への不要な親応答も含み、親モデル0や無償とは報告しません。論理試行・turn・API要求・実請求額は別です。モデルは既存の`openai-codex/gpt-6.1-sol`／`claude-opus-5-5`から変更していません。
-
-# 3．独立レビューの指摘対応
-
-fresh-contextレビューはworkflow `cbe3533b-ffb0-42cd-8ccb-afe2bafb1f10`、child `625640c3-a356-4e6f-8cab-7d7f69b4fc1a`。当時の判定は**Not ready**です。全文を読み、次を照合・修正しました。最新変更への独立レビュー合格は得ていません。
-
-| 重要指摘 | 対応・証拠 |
+| 対象 | 検査 |
 |---|---|
-| 親相談を返信せずタイムアウト | SDK親にsubagent_supervisorだけを許可。実モデルの正規返信receiptと回収を4件確認。停止受付だけを終端としない回帰検査 |
-| 検索範囲・Claude混入が未監査 | Read/readに加えGrep/Glob/anchor_grepを記録。正規化実パス・symlink・patternを検査。Claudeの固定version／既知builtin／対象skill以外のcatalogは拒否 |
-| C3画像・通常仕様が不一致 | 学習完了用の自作画像と通常仕様へ課題改訂。旧hash・不一致の原本を保存 |
-| Pi baselineの2tools宣言と3tools validator | intercomBridgeの自動追加を確認。controlも3toolsを明示し、宣言と意図の接続をproviderなしで検査。旧対照の全実効tools未観測という限界は維持 |
-| 複数source IDを単一年次へ結合 | 出典ごとの完成例と提出前照合。最終の出典結合は再現せず。ただし別の必須欄欠落1件があるため、形式全体は未合格 |
-| C1の接続断→未変更という断定 | UXの4状態とUIのupstream差し戻しを明文化。反映後の応答消失を課題に追加。最終C1全文・C5指摘を読解 |
+| 外側 | unverified、handoff、findingsの存在・型 |
+| finding | finding_id／target／observation／impact／priority／evidence_status／basis／change／acceptanceの9欄 |
+| 複合欄 | handoffの3配列、priorityのlevel・reason、basisのID・年次・区分・scope、acceptanceの4欄 |
+| 補修後 | 上記に加え、既存JSON値・finding順序・件数の保持。依頼外の追加を拒否 |
+| 対象外 | task_mode=designをレビューJSON欠落と誤判定しない |
 
-# 4．残る未達と次のアクション
+初回の不足は、機械生成した欄名だけを指定して1回補修します。渡すデータは`original_input`／`previous_response`／`missing_fields`。依頼文は「前回の返答を保ったまま、欠けた欄だけを補った完全な JSON を返す」です。今回のClaude経路では公開RPCのspawnを同一定義・同一toolsで使います。正規resume可能なruntimeでは公開resumeを優先します。経路失敗を別CLIや権限拡大で回避しません。
 
-**失格原本：Claude UX micro sample0、run `a8ffddd2-a777-4baa-8341-8b819cf48968`。**
+## モデルを呼ばないRED→GREEN
 
-JSONは閉じていますが、`unverified`／`handoff`、findingの`change`／`acceptance`がありません。したがってバイト切断を推測で原因にせず、「回答内容の必須欄欠落」と扱います。形式・内容は不合格。parentが推測で欄を補完したり、旧版の成功回答へ差し替えたりしません。
+失格原本run `a8ffddd2-a777-4baa-8341-8b819cf48968`を改変せず使用しました。必要な部分は追試可能な自作課題のfixtureとして保持しています。
 
-- [x] 重要6指摘を照合し、修正・判断を記録（2026-10-17）。
-- [x] 追加44試行を回収。内容未達2件を保存（同日）。
-- [x] 承認されたClaude2定義の修正と追加22試行。旧2未達は改善、形式欠落1件を検出（同日）。
-- [ ] 指示文の追加反復ではない方式を相談する。正規の構造化出力・形式修復等が候補ですが、3tools制約との両立は未確認です。
-- [ ] 方式変更の承認・検証後にTask 3を再判定する。追加モデル試行は自動実行しない。
-- [ ] Task 4は対象commit・公開内容・影響を示し、実行直前に別承認を得る。
+検出結果：
 
-後回し（2026-10-17）：malformed source IDのTypeErrorを型ごとの失格一覧で返す改善、不要な親モデル応答の抑制。外側の採点はTypeErrorも失格としており、成功へ格上げしません。
+```text
+unverified
+handoff
+findings[0].change
+findings[0].acceptance
+```
 
-# 5．証拠・限界・履歴
+- `parent-gate-red.log`：親向けAPIがない状態で失敗。
+- `parent-gate-green.log`：実原本の不足検出と3項目だけの補修依頼生成、既存値保持を確認。
+- `parent-orchestrator-red.log`→`parent-orchestrator-green.log`：親の実検査器・経路選択・1回上限を確認。遅いnative/model境界だけを置き換え、実Python検査器を呼びました。
+- 合格済み43件：39レビューJSONをaccept、4設計出力をnot-applicableとして、誤差し戻し0。元の出力hashも照合。
+- 補修後も不足、既存の観察の書き換え、finding追加はreject。再補修依頼なし。
+- 全体suite：**105 tests、失敗0、既存live gate 5件skip**。この検証でモデル呼出しは0です。
 
-生session・OAuth・画像base64は公開せず、原本はGit非追跡の`work/spotify-design-validation/`へ保持します。
+ログは`.superpowers/sdd/2026-10-17-spotify-design-managers/`以下です。過去の失格原本はそのまま失格として保持し、今回の合格回答へ差し替えません。
 
-- 最終Claude22件：`claude-*-*-adapterfix-20261017j/`。
-- 最終判定：`claude-adapterfix-final-assessment.json`。Pi依存照合と未使用Claude hash差分も格納。
-- 新Claude初期スクリーニング：`claude-adapterfix-audit.json`。技術名の偽陽性を含むため、最終判定と分けます。
-- 先行44件：`*-micro-reviewfix-20261017{f,h}`、`pi-ux-C6-reviewfix-20261017g`、`*-C?-reviewfix-20261017i`。
-- 先行判定：`reviewfix-final-assessment-v2.json`。その前のscope-pass案は暫定判定として保存し、最終判定に使いません。
-- 単体回帰：`.superpowers/sdd/2026-10-17-spotify-design-managers/`以下。最終suiteは`final-adapterfix-suite.log`。`output-checks-red-v2.log`／`technical-label-red.log`が追加のRED証拠です。破棄した文言一致テストは行動証拠に数えません。
+# 3．追加live 5試行
 
-履歴：baseline20、初回treatment20、修正後micro20（形式17/20）、旧シナリオ21（正常19・タイムアウト2）、追加44（内容42/44）、今回22（内容21/22）＝147論理試行。旧C3の不一致、旧C1の危険な文言、旧形式失敗を合格へ書き換えません。旧Pi UI C3 `0d978b19-67ed-4880-bf4b-06dcd5afe91e`と旧Pi UX C6 `3e621fea-4056-468b-9e4c-982ed5d233e7`はfailed／terminal observedです。
+原本：`work/spotify-design-validation/claude-ux-micro-parentgate-20261017k/`。
 
-| リスク | 対応・限界 |
+| 論理試行 | exact run | 初回 | 補修回数 | 最終 |
+|---|---|---|---|---|
+| 0 | 4be9c93e-17ca-4128-ada1-a76b53d00a59 | 合格 | 0 | 合格 |
+| 1 | de0e159c-b249-4f62-a420-722688b14fb9 | 合格 | 0 | 合格 |
+| 2 | 86fa188c-b44f-4d6e-9e14-329b5f62d07d | 合格 | 0 | 合格 |
+| 3 | 5638f0b1-e580-4647-b219-e8b951680e6f | 合格 | 0 | 合格 |
+| 4 | dcfa2119-967a-4e45-ab21-1fcb3f142aa1 | 合格 | 0 | 合格 |
+
+全5件で公開RPC経由の成功・process-terminal observed、Read/Grep/Globの3tools、必須資料の読込、範囲監査を確認しました。親の必須欄ゲートだけでなく、既存の出典年次・区分等の`review_errors`も全5件で0でした。親は全5件の観察・修正案を読解しました。
+
+**補修経路は今回のliveでは発動していません。** 実際にモデルが補修できたとは主張しません。実原本による検出・依頼生成と、モデルなしの補修成功／再失格分岐は検証済みです。受入基準は本人承認済みの追加5試行によります。
+
+## 起動数とusage
+
+- 今回：論理5、子起動5（最大10）、補修0、補修後合格0、初回合格5。
+- 子のClaude usage合計：input_tokens 20、output_tokens 25,900、cache_creation_input_tokens 98,409、cache_read_input_tokens 52,238。
+- 親のassistantメッセージ4、tokens合計3,988。完了通知への応答を含みます。親モデル0とは報告しません。
+- これらはnative metadata上の計数で、論理試行数や実請求額と同一ではありません。
+
+`contract-gate.json`に判定・run ID・子別usage、`summary.json`に親usage、`acceptance.json`に受入れ集計を保存しました。初回・補修の原文は別artifactに残す実装です。生session・OAuth・画像base64は公開しません。
+
+# 4．過去の検証と指摘対応
+
+旧評価を遡って合格にしません。今回より前は147論理試行でした：baseline20、初回treatment20、修正後micro20（形式17/20）、旧シナリオ21（正常19・タイムアウト2）、追加44（内容42/44）、追加Claude22（内容21/22）。今回5で152です。モデル0の起動前設定失敗は別記しています。
+
+独立レビューworkflow `cbe3533b-ffb0-42cd-8ccb-afe2bafb1f10`／child `625640c3-a356-4e6f-8cab-7d7f69b4fc1a`の当時の判定はNot readyです。最新変更への独立レビュー合格を取得したとは報告しません。今回の指示に従い追加の子レビューは起動していません。
+
+| 重要指摘・旧失敗 | 対応 |
 |---|---|
-| 正常終了・形式の多くの成功を全件合格と誤認 | nativeと内容を分離。形式1件の失格を維持 |
-| 限定スクリーニングを意味保証と誤認 | 状態名だけでは適用理由を証明しない。親が本文を読解。技術名を言語違反にしない |
-| 読込監査をOS sandboxと誤認 | 可視trace・catalog・canaryの範囲の証明。未観測の内部経路を含む完全隔離ではない |
-| 単一最新版・完全一致実験と誤認 | 版別の試行と実効依存を記録。課題改訂と旧Pi対照toolsの限界を保持 |
-| 実アプリの品質保証と誤認 | 実ユーザー成果・実アプリa11y・全Profile運用は未検証 |
-| main自動pushによる未承認公開 | feature worktreeに保持。main・push・apply・同期ジョブ変更なし |
+| 親相談を返信せずタイムアウト | SDK親の正規subagent_supervisor返信receiptと回収を先行4件確認。停止受付を終端としない |
+| 検索範囲・Claude混入が未監査 | Read/readに加えGrep/Glob/anchor_grepを監査。実パス・symlink・pattern、固定catalogを検査 |
+| C3の画像・通常仕様不一致 | 学習完了用自作画像と通常仕様へ改訂。旧原本を保持 |
+| Pi baselineの2tools宣言とvalidator3tools | 自動追加を確認しcontrolを3toolsへ明示。旧対照の全実効tools未観測という限界を保持 |
+| 出典結合・必須欄欠落 | 出典ごとの完成例、提出前確認に加え、今回親のゲート・1回補修を追加 |
+| 接続断→未変更という断定 | 未送信・確定拒否・結果不明・確定成功を区別。送信後の応答消失条件を追加 |
+| Claudeの状態網羅・日本語本文 | Claude2定義の提出前確認を補強し、前段22試行で対象の改善を確認 |
 
-関連：[設計](superpowers/specs/2026-10-17-spotify-design-managers-design.md)、[計画](superpowers/plans/2026-10-17-spotify-design-managers.md)、[調査](../research_spotify-encore_20261017.md)。GitHub Issue案は設計書末尾。外部投稿は未実施です。
+旧資料・評価一覧は`claude-adapterfix-final-assessment.json`、`reviewfix-final-assessment-v2.json`等に保持します。未変更Pi22と旧Claude評価の異なる版・未使用definition hash差分を記録済みで、最新版全体を44件fresh検証したとは扱いません。今回の合格は**親側ゲート導入後のClaude UX micro 5件という改訂受入基準**に限定します。
+
+# 5．限界・残課題・関連資料
+
+- 形式の合格は意味・実装・実ユーザー成果の合格ではありません。実機a11y、APIの照合・冪等性、全Profile運用は未検証です。
+- 読込trace・catalog・canaryの検査は、OS全体のsandboxや未観測経路の完全な非漏洩証明ではありません。
+- 実HOMEへの配置・公開は未実施です。仮HOME・対象限定source・実chezmoiによる配置検証と区別します。
+- 保留（2026-10-17）：malformed source IDのTypeErrorを型ごとの失格一覧へ改善、完了通知への不要な親モデル応答抑制。今回の形式ゲートによる採用判定と混同しません。
+- Task 4はmain統合・push・applyを含め未実施。今回の作業は結果とcommitの報告で停止します。
+
+関連：[設計](superpowers/specs/2026-10-17-spotify-design-managers-design.md)、[計画](superpowers/plans/2026-10-17-spotify-design-managers.md)、[調査](../research_spotify-encore_20261017.md)。GitHub Issue案は設計書末尾にあり、外部投稿は未実施です。
