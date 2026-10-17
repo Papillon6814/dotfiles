@@ -12,7 +12,7 @@ class AccountLauncher(unittest.TestCase):
       if name.startswith("pi-") and name.endswith("-patch"):file.write_text("#!/bin/sh\nexit 0\n")
       else:file.write_text("#!/bin/sh\nprintf '%s\\n' "+name+" \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\n")
       file.chmod(0o755)
-     real=root/"real-pi";real.write_text(file_text:="#!/bin/sh\nprintf '%s\\n' pi \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\n");real.chmod(0o755)
+     real=root/"real-pi";real.write_text("#!/bin/sh\nprintf '%s\\n' pi \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\n");real.chmod(0o755)
      env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":str(real)}
      if bypass:env["PI_PROFILE_LAUNCHER"]="0"
      result=subprocess.run(["bash",str(SCRIPT),account,"--model","value with space","--","日本語"],env=env,capture_output=True,text=True)
@@ -27,12 +27,14 @@ class AccountLauncher(unittest.TestCase):
    root=pathlib.Path(directory);bin=root/"bin";bin.mkdir();(root/".pi/agent").mkdir(parents=True);log=root/"called"
    for name in ("pi-profile","pi-extension-deps-patch","pi-hermes-realpath-patch"):
     f=bin/name
-    f.write_text("#!/bin/sh\nexit 0\n" if name.endswith("-patch") else "#!/bin/sh\nprintf '%s\\n' \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_PROFILE_PI_BIN\" > "+str(root/"bin-used")+"\n");f.chmod(0o755)
+    f.write_text("#!/bin/sh\nexit 0\n" if name.endswith("-patch") else "#!/bin/sh\nprintf '%s\\n' \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_PROFILE_PI_BIN\" > "+str(root/"bin-used")+"\nprintf '%s' \"${PI_PROFILE_ID-unset}\" > "+str(root/"id-left")+"\n");f.chmod(0o755)
    env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_PROFILE_ID":"developer","PI_REAL_PI":"/real/pi"}
    result=subprocess.run(["bash",str(SCRIPT),"kuno","--model","a b"],env=env,capture_output=True,text=True)
    self.assertEqual(result.returncode,0,result.stderr)
    self.assertEqual(log.read_text().splitlines(),["launch","--profile","developer","--","--model","a b"])
    self.assertEqual((root/"bin-used").read_text(),"/real/pi")
+   # 子の pi の環境に PI_PROFILE_ID を残さない（後で打つ pi-muu --session X が --profile を強制されないように）
+   self.assertEqual((root/"id-left").read_text(),"unset")
  def test_profile_local_state_is_not_linked_or_warned(self):
   for account in ("muu","rbx"):
    with self.subTest(account=account), tempfile.TemporaryDirectory(prefix="account-state-") as directory:

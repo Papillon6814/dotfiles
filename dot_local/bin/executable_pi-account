@@ -21,8 +21,11 @@ launch_pi() {
     exec "$PI_PROFILE_PI_BIN" "$@"
   fi
   command -v pi-profile >/dev/null 2>&1 || { echo 'pi-account: pi-profile launcher is missing; use PI_PROFILE_LAUNCHER=0 for the old path' >&2; exit 127; }
-  if [[ -n "${PI_PROFILE_ID:-}" ]]; then
-    exec pi-profile launch --profile "$PI_PROFILE_ID" -- "$@"
+  # PI_PROFILE_ID は spawn からの一度きりの指定。子の pi の環境には残さない
+  local profile_id="${PI_PROFILE_ID:-}"
+  unset PI_PROFILE_ID
+  if [[ -n "$profile_id" ]]; then
+    exec pi-profile launch --profile "$profile_id" -- "$@"
   fi
   exec pi-profile launch -- "$@"
 }

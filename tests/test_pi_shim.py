@@ -22,11 +22,14 @@ class PiShim(unittest.TestCase):
     d=tempfile.TemporaryDirectory(prefix="pi-shim-");root=pathlib.Path(d.name);bin=root/"bin";bin.mkdir();log=root/"called"
     for n in ("pi-profile","pi-account"):
      f=bin/n;f.write_text("#!/bin/sh\nprintf '%s\\n' "+n+" \"$@\" > "+str(log)+"\n");f.chmod(0o755)
-    sess=str(root)+"/.pi/agent-"+acc+"/sessions/x.jsonl"
-    r=subprocess.run(["bash",str(SCRIPT),"--session",sess],env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":"/nonexistent"},capture_output=True,text=True)
-    self.assertEqual(r.returncode,0,r.stderr)
-    self.assertEqual(log.read_text().splitlines(),["pi-account",acc,"--session",sess])
-    d.cleanup()
+    try:
+     sess=str(root)+"/.pi/agent-"+acc+"/sessions/x.jsonl"
+     for args in (["--session",sess],["--session="+sess]):
+      r=subprocess.run(["bash",str(SCRIPT),*args],env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":"/nonexistent"},capture_output=True,text=True)
+      self.assertEqual(r.returncode,0,r.stderr)
+      self.assertEqual(log.read_text().splitlines(),["pi-account",acc,*args])
+    finally:
+     d.cleanup()
  def test_kuno_session_goes_through_launcher(self):
   d=tempfile.TemporaryDirectory(prefix="pi-shim-");root=pathlib.Path(d.name);bin=root/"bin";bin.mkdir();log=root/"called"
   for n in ("pi-profile","pi-account"):
