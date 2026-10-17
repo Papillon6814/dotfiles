@@ -221,7 +221,7 @@ export async function runNativeTrials(manifest, out) {
     cwd: manifest.fixture, agentDir: hostDir, modelRuntime, model,
     resourceLoader: loader, settingsManager: settings,
     sessionManager: sdk.SessionManager.create(manifest.fixture, join(hostDir, 'sessions')),
-    tools: []
+    tools: manifest.runtime === 'pi' ? ['subagent_supervisor'] : []
   });
   const errors = [];
   const events = [];
