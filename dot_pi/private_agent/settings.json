@@ -91,6 +91,12 @@
       },
       "openai-codex/gpt-5.6-luna": {
         "reserveTokens": 320000
+      },
+      "claude-local/claude-local-sonnet": {
+        "reserveTokens": 320000
+      },
+      "claude-local/claude-local-opus": {
+        "reserveTokens": 320000
       }
     },
     "keepRecentTokens": 60000
