@@ -132,6 +132,7 @@
 - 独立して進められる調査・レビューは並列化してよい。重複した依頼や、同じ作業領域への複数 writer は避ける。
 - 非同期実行を基本とし、結果が次の判断に必要な場合のみその場で待つ。Piの完了通知がある通常の非同期subagentに対して、通知待ち目的だけのpollingはしない。
 - 変更を伴う作業は既存のGit worktree規則に従う。複数writerが必要なら作業範囲とworktreeを分離し、1つのworktreeにはwriterを1人だけ置く。
+- herdrのpaneで子のPiを起動するときは `pi-profile spawn --pane <ID> [--name <名前>]` を使う。親のProfileとアカウントを引き継ぐ。`herdr agent start --kind pi` や `herdr pane run <pane> pi` はProfileのツール（pi-gh・pi-scaffold）が入らないため使わない（Piの親からは拒否される）。
 - 子には目的、repo/cwd、編集権限と範囲、関連ファイル・制約、受け入れ条件、検証方法、期待する報告形式を渡す。
 - サブエージェントの報告だけで完了扱いにしない。親が差分を読み、適切なテスト・lint・type-checkを実行して結果を確認する。
 
