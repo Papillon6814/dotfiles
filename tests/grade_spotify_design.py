@@ -71,6 +71,9 @@ def review_errors(value):
 
 def parse_review(text):
     stripped = text.strip()
-    if stripped.startswith('```json') and stripped.endswith('```'):
-        stripped = stripped[7:-3].strip()
+    blocks = re.findall(r'```json\s*\n(.*?)\n```', stripped, re.S)
+    if blocks:
+        if len(blocks) != 1:
+            raise ValueError('Expected one review JSON block')
+        stripped = blocks[0]
     return json.loads(stripped)

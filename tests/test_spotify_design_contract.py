@@ -48,6 +48,16 @@ class ReviewContractTests(unittest.TestCase):
             mutate(value)
             self.assertTrue(self.validate(value))
 
+    def test_one_fenced_review_is_parsed_without_treating_parent_note_as_json(self):
+        self.assertTrue(MODULE.is_file())
+        spec = importlib.util.spec_from_file_location('spotify_grade_parse', MODULE)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        self.assertEqual(module.parse_review('保存は親へ。\n```json\n{"status":"needs-evidence"}\n```\n未保存です。'),
+                         {'status': 'needs-evidence'})
+        with self.assertRaises(ValueError):
+            module.parse_review('```json\n{}\n```\n```json\n{}\n```')
+
     def test_clarification_does_not_invent_missing_inputs(self):
         value = self.good()
         value.update(target=None, visual_mode=None, status='needs-clarification', findings=[])

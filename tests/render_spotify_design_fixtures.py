@@ -27,11 +27,30 @@ def render(dark):
     return image
 
 
+def render_learning():
+    image = Image.new('RGB', (390, 680), '#ffffff')
+    draw = ImageDraw.Draw(image)
+    title = ImageFont.load_default(size=30)
+    body = ImageFont.load_default(size=19)
+    draw.text((24, 32), 'Session complete', fill='#10223c', font=title)
+    draw.rounded_rectangle((20, 112, 370, 270), radius=14, fill='#eef4fc')
+    draw.text((36, 140), 'Today: 20 minutes', fill='#10223c', font=body)
+    draw.text((36, 190), 'Lesson: Everyday phrases', fill='#10223c', font=body)
+    draw.rounded_rectangle((24, 330, 366, 388), radius=20, fill='#1e65b8')
+    draw.text((48, 348), 'Choose next session', fill='#ffffff', font=body)
+    draw.text((172, 434), 'Done', fill='#1e65b8', font=body)
+    draw.text((24, 590), 'Synthetic learning sample', fill='#10223c', font=body)
+    return image
+
+
 if __name__ == '__main__':
-    for name, dark in [('ui-light.png', False), ('ui-dark.png', True)]:
+    import sys
+    variants = [('ui-learning.png', render_learning())] if '--learning-only' in sys.argv else [
+        ('ui-light.png', render(False)), ('ui-dark.png', render(True))]
+    for name, image in variants:
         path = ROOT / name
         if path.exists():
             raise SystemExit(f'Refusing to overwrite existing fixture: {path}')
         with path.open('xb') as output:
-            render(dark).save(output, format='PNG')
+            image.save(output, format='PNG')
         print(path)

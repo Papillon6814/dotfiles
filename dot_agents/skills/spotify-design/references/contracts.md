@@ -63,6 +63,17 @@ blocker＝主要タスク不能・重大な誤操作/損失/アクセス不能�
 ```
 
 basis.categoryはpublic-principle / case-study / external-standard / our-recommendation。独自提案だけならsource_id="our"、year="2026"、scopeに理由を明記します。更新型の標準はyear="更新型"。S01は2020、S03は2022、S04は2023など台帳と合わせます。
+basisの配列要素は必ず出典1件です。source_idにスラッシュ・カンマ・複数IDを入れません。複数出典は次の完成例のように別オブジェクトへ分け、それぞれの年次を保持します。
+
+```json
+[
+  {"source_id":"S11","year":"2020","category":"case-study","scope":"特定のハート実験。一般の時間規則ではない"},
+  {"source_id":"S15","year":"2020","category":"case-study","scope":"Shortcutsの個別事例。表示件数の規則ではない"},
+  {"source_id":"S12","year":"2024","category":"case-study","scope":"Mix発表。本案件の許諾は未確認"}
+]
+```
+
+返答前に各findingの9欄、各basisの単一ID・年次・区分・範囲、acceptanceの4欄を照合してから提出します。
 優先度・証拠状態は一つだけ選びます。視覚上の事実と未検証動作が混ざる場合、指摘を分けるか動作の判定をneeds-evidenceへ残します。
 必要入力が欠けた場合も同じ外側の欄を返し、status=needs-clarification、findings=[]、unverifiedとparent_decisionsに確認事項を置きます。未指定のtargetやvisual_modeはnullにします。推測のレビューを埋めません。
 設計（task_mode=design）はJSON例の対象外で、上記の設計成果を返します。

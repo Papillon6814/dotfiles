@@ -67,11 +67,17 @@ for (const part of ['.git/objects', '.git/refs/heads', '.pi/agents', '.claude/ag
 await writeNew(join(project, '.git/HEAD'), 'ref: refs/heads/fixture\n');
 await writeNew(join(project, '.git/config'), '[core]\nrepositoryformatversion = 0\nbare = false\n');
 const sourceHashes = {};
-for (const name of ['cases.json', 'source-facts.md', config.visual_mode === 'spotify-inspired' ? 'ui-dark.png' : 'ui-light.png']) {
+const imageName = config.image ?? (config.visual_mode === 'spotify-inspired' ? 'ui-dark.png' : 'ui-light.png');
+for (const name of ['cases.json', 'source-facts.md', imageName]) {
   sourceHashes[name] = digest(await readFile(join(fixtures, name)));
 }
 if (!config.image_only) await copyFile(join(fixtures, 'source-facts.md'), join(project, 'input/source-facts.md'));
-await copyFile(join(fixtures, config.visual_mode === 'spotify-inspired' ? 'ui-dark.png' : 'ui-light.png'), join(project, 'input/screen.png'));
+await copyFile(join(fixtures, imageName), join(project, 'input/screen.png'));
+if (config.normal_spec) {
+  const spec = await readFile(join(fixtures, config.normal_spec));
+  sourceHashes['normal-spec.md'] = digest(spec);
+  await writeNew(join(project, 'input/normal-spec.md'), spec);
+}
 if (options.upstreamText) {
   await writeNew(join(project, 'input/upstream.md'), options.upstreamText);
   sourceHashes.upstream = digest(options.upstreamText);
@@ -88,7 +94,7 @@ if (target) {
   await copyFile(join(root, `dot_claude/agents/${roleName}.md`), join(project, `.claude/agents/${roleName}.md`));
   await copyFile(join(root, `dot_pi/private_agent/agents/${roleName}.md`), join(project, `.pi/agents/${roleName}.md`));
 } else {
-  await writeNew(join(project, `.pi/agents/${roleName}.md`), `---\nname: ${roleName}\ndescription: Synthetic ${options.role} control only\ntools: read, anchor_grep\nsystemPromptMode: replace\ninheritProjectContext: false\ninheritGlobalContext: false\ninheritSkills: false\nacceptanceRole: read-only\n---\n${roleBody}\n`);
+  await writeNew(join(project, `.pi/agents/${roleName}.md`), `---\nname: ${roleName}\ndescription: Synthetic ${options.role} control only\ntools: read, anchor_grep, contact_supervisor\nsystemPromptMode: replace\ninheritProjectContext: false\ninheritGlobalContext: false\ninheritSkills: false\nacceptanceRole: read-only\n---\n${roleBody}\n`);
   await writeNew(join(project, `.claude/agents/${roleName}.md`), `---\nname: ${roleName}\ndescription: Synthetic ${options.role} control only\ntools: Read, Grep, Glob\nomitClaudeMd: true\n---\n${roleBody}\n`);
 }
 // A generic external runner starts Claude's actual --agent mode, not a prompt-only imitation.
@@ -130,6 +136,7 @@ if (target) for (const prefix of ['.agents/skills/spotify-design', '.claude/skil
 }
 const task = `task_mode=${options.case === 'C1' ? 'design' : 'review'}; role=${options.role}; visual_mode=${config.visual_mode ?? '未指定'}\n${config.prompt}\n画像: ${join(project, 'input/screen.png')}\n` +
   (config.image_only ? '' : `同じ公開資料の要約: ${join(project, 'input/source-facts.md')}\n`) +
+  (config.normal_spec ? `通常時仕様: ${join(project, 'input/normal-spec.md')}\n` : '') +
   (options.upstreamText ? `UX upstream: ${join(project, 'input/upstream.md')}\n` : '') +
   (skillRoot ? `skill_root=${skillRoot}\n親が解決済みの共通スキルです。SKILL.mdと担当の必須referencesはこの絶対パスで読み、別HOMEや祖先を探索しないでください。\n` : '') +
   '明示された入力以外を探索しないでください。成果は親へ返答だけ。1200〜2000字程度を目安にしてください。';
