@@ -15,10 +15,15 @@ esac
 
 launch_pi() {
   export PI_SCAFFOLD_DIR="${PI_SCAFFOLD_DIR-$HOME/.pi/agent/pi-scaffold}"
+  # shim（~/.local/bin/pi）に戻って無限ループしないよう、本物の pi を固定する
+  export PI_PROFILE_PI_BIN="${PI_REAL_PI:-/opt/homebrew/bin/pi}"
   if [[ "${PI_PROFILE_LAUNCHER:-1}" == "0" ]]; then
-    exec pi "$@"
+    exec "$PI_PROFILE_PI_BIN" "$@"
   fi
   command -v pi-profile >/dev/null 2>&1 || { echo 'pi-account: pi-profile launcher is missing; use PI_PROFILE_LAUNCHER=0 for the old path' >&2; exit 127; }
+  if [[ -n "${PI_PROFILE_ID:-}" ]]; then
+    exec pi-profile launch --profile "$PI_PROFILE_ID" -- "$@"
+  fi
   exec pi-profile launch -- "$@"
 }
 
