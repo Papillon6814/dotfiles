@@ -1,6 +1,6 @@
 // Explicit native trials. --prepare-only and unit tests never initialize a provider.
 import { parseArgs } from 'node:util';
-import { mkdir, readFile, writeFile, copyFile, cp, lstat, realpath } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, cp, lstat, realpath, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, relative, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -122,14 +122,22 @@ export default function (pi) {
 `);
 const definitionHashes = {};
 for (const path of [`.pi/agents/${roleName}.md`, `.claude/agents/${roleName}.md`, `.pi/agents/${claudeRunnerName}.md`]) definitionHashes[path] = digest(await readFile(join(project, path)));
+const skillRoot = target ? join(project, options.runtime === 'pi' ? '.agents/skills/spotify-design' : '.claude/skills/spotify-design') : null;
+if (target) for (const prefix of ['.agents/skills/spotify-design', '.claude/skills/spotify-design']) {
+  for (const file of ['SKILL.md', ...(await readdir(join(project, prefix, 'references'))).map(name => 'references/' + name)]) {
+    definitionHashes[prefix + '/' + file] = digest(await readFile(join(project, prefix, file)));
+  }
+}
 const task = `task_mode=${options.case === 'C1' ? 'design' : 'review'}; role=${options.role}; visual_mode=${config.visual_mode ?? '未指定'}\n${config.prompt}\n画像: ${join(project, 'input/screen.png')}\n` +
   (config.image_only ? '' : `同じ公開資料の要約: ${join(project, 'input/source-facts.md')}\n`) +
   (options.upstreamText ? `UX upstream: ${join(project, 'input/upstream.md')}\n` : '') +
+  (skillRoot ? `skill_root=${skillRoot}\n親が解決済みの共通スキルです。SKILL.mdと担当の必須referencesはこの絶対パスで読み、別HOMEや祖先を探索しないでください。\n` : '') +
   '明示された入力以外を探索しないでください。成果は親へ返答だけ。1200〜2000字程度を目安にしてください。';
 const manifest = {
   schema: 1, state: 'prepared', runtime: options.runtime, role: options.role, case: options.case,
   variant: options.variant, samples: options.samples, modelRequests: 0,
   targetSkills: target ? ['spotify-design'] : [], sourceHashes,
+  skillRoot,
   effectiveToolIntent: { pi: ['read', 'anchor_grep', 'contact_supervisor'], claude: ['Read', 'Grep', 'Glob'] },
   definitionHashes, isolation: { canaries, ancestorSkill: 'spotify-ancestor-sentinel', homeSkill: 'spotify-home-sentinel' },
   fixture: project,

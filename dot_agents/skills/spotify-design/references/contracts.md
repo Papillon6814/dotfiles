@@ -18,7 +18,7 @@ task_mode、role、visual_mode、objective、platform、scope、constraints、ev
 
 冒頭に対象・証拠・visual_mode・status・総合所見。続いて実際に確認できた良い点、findings、未検証事項、実装担当への引き渡し。良い点は観察と理由を書く。指摘を作るための指摘は不要です。
 
-各findingは下記9欄を一組にして返します。表、箇条書き、構造化データのいずれでも、名前を明記します。
+各findingは下記9欄を一組にして返します。レビューは後述のJSONを一つ返し、欄名をそのまま使います。finding_idは見出しへの置換、evidence_statusは複数値の混在、basisはIDだけへの省略をしません。短くする場合は近い指摘を集約し、全必須欄を保持します。
 
 | 欄 | 内容 |
 |---|---|
@@ -35,6 +35,37 @@ task_mode、role、visual_mode、objective、platform、scope、constraints、ev
 blocker＝主要タスク不能・重大な誤操作/損失/アクセス不能。major＝理解/操作/再利用への大きな影響。minor＝局所的表現。優先度は事実の確度ではありません。証拠不足はblockerの確定不具合にしません。
 
 例：observation=画像で同じ「詳細」が2つ／impact=対象を取り違える可能性／evidence_status=needs-evidence／change=読み上げ名の実装と実機記録を親に依頼。可視ラベルだけから「読み上げで区別不能」と結論しません。
+
+## レビューJSONの完成例
+
+```json
+{
+  "target": "予約確認画面 / iOS・Android",
+  "evidence": ["静止画。意味構造・実機記録は未提供"],
+  "visual_mode": "brand-adapted",
+  "status": "needs-evidence",
+  "summary": "視覚の確認と操作の未検証を分ける",
+  "good_points": ["カードごとに予約名がまとまっているため対象を視覚で追いやすい"],
+  "findings": [{
+    "finding_id": "UX-01",
+    "target": "詳細リンク",
+    "observation": "画像に同じ可視ラベルが2つある",
+    "impact": "読み上げ時に対象を取り違える可能性。未実測",
+    "priority": {"level": "major", "reason": "主要タスクの対象選択に関係する"},
+    "evidence_status": "needs-evidence",
+    "basis": [{"source_id": "S06", "year": "2023", "category": "case-study", "scope": "主にWebの体験全体の検証。nativeへの確認手順は独自推奨"}],
+    "change": "カード構造は維持。読み上げ名の仕様とVoiceOver/TalkBack記録を親へ依頼する",
+    "acceptance": {"condition": "両OSの読み上げを使用", "action": "各リンクへ移動", "expected": "対象名を区別できる", "evidence": "名前・OS・条件付き実機記録"}
+  }],
+  "unverified": ["読み上げ名・順序・フォーカス復帰"],
+  "handoff": {"changes": ["意味構造の確認後に必要な修正を判断"], "preserve": ["承認済みブランド"], "parent_decisions": ["実機証拠の手配"]}
+}
+```
+
+basis.categoryはpublic-principle / case-study / external-standard / our-recommendation。独自提案だけならsource_id="our"、year="2026"、scopeに理由を明記します。更新型の標準はyear="更新型"。S01は2020、S03は2022、S04は2023など台帳と合わせます。
+優先度・証拠状態は一つだけ選びます。視覚上の事実と未検証動作が混ざる場合、指摘を分けるか動作の判定をneeds-evidenceへ残します。
+必要入力が欠けた場合も同じ外側の欄を返し、status=needs-clarification、findings=[]、unverifiedとparent_decisionsに確認事項を置きます。未指定のtargetやvisual_modeはnullにします。推測のレビューを埋めません。
+設計（task_mode=design）はJSON例の対象外で、上記の設計成果を返します。
 
 ## status
 

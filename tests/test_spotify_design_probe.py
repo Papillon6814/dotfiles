@@ -204,6 +204,16 @@ console.log(JSON.stringify(cases.map(rows=>{{try{{validatePiObservations(rows,'/
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Path(result.stdout.strip()).resolve(), project.resolve())
 
+    def test_treatment_handoff_names_exact_local_skill_and_hashes_references(self):
+        result = self.call('--runtime', 'claude', '--variant', 'treatment')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        manifest = json.loads((self.out / 'manifest.json').read_text())
+        skill = self.out / 'fixture/.claude/skills/spotify-design'
+        self.assertIn('skill_root=' + str(skill), manifest['jobs'][0]['task'])
+        self.assertEqual(manifest['skillRoot'], str(skill))
+        self.assertIn('.claude/skills/spotify-design/references/contracts.md', manifest['definitionHashes'])
+        self.assertIn('.agents/skills/spotify-design/references/contracts.md', manifest['definitionHashes'])
+
     def test_prepare_claude_uses_native_role_and_read_only_tool_intent(self):
         result = self.call('--runtime', 'claude', '--role', 'ui', '--case', 'C4')
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -215,6 +225,41 @@ console.log(JSON.stringify(cases.map(rows=>{{try{{validatePiObservations(rows,'/
         self.assertTrue((self.out / 'fixture/input/screen.png').is_file())
         self.assertNotIn('source-facts.md', manifest['jobs'][0]['task'])
         self.assertNotIn('Write', role.read_text().split('---')[1])
+
+
+class NativeSignalTests(unittest.TestCase):
+    def test_native_read_gate_rejects_permission_denials_and_missing_role_reference(self):
+        module = (ROOT / 'tests/spotify_design_native_host.mjs').as_uri()
+        script = f'''import {{ validateReadTrace }} from {json.dumps(module)};
+const root='/fixture/.claude/skills/spotify-design';
+const names=['SKILL.md','references/contracts.md','references/principles.md','references/sources.md','references/inclusive-design.md','references/ui-design-review.md'];
+const calls=names.map(name=>({{path:root+'/'+name,ok:true}}));
+const cases=[[calls,[]],[calls.slice(1),[]],[calls,[{{tool_name:'Read'}}]],[[...calls,{{path:'/real-home/secret',ok:true}}],[]],[[...calls.slice(0,-1),{{path:root+'/'+names.at(-1),ok:false}}],[]]];
+console.log(JSON.stringify(cases.map(([trace,denials])=>{{try{{validateReadTrace(trace,root,'ui','/fixture',denials);return true;}}catch{{return false;}}}})));'''
+        result = subprocess.run([NODE, '--input-type=module', '-e', script], capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), [True, False, False, False, False])
+
+    def test_complete_does_not_settle_before_exact_terminal_event(self):
+        module = (ROOT / 'tests/spotify_design_native_host.mjs').as_uri()
+        script = f'''import {{ nativeSignals }} from {json.dumps(module)};
+const handlers=new Map();
+const bus={{on:(name,fn)=>{{handlers.set(name,fn);return ()=>handlers.delete(name);}}}};
+const signals=nativeSignals(bus,{{asyncComplete:'done',processTerminal:'closed'}});
+signals.bind('owned');
+let settled=false;
+const result=signals.promise.then(x=>{{settled=true;return x;}});
+handlers.get('done')({{runId:'owned',success:true}});
+await Promise.resolve();if(settled)throw Error('settled before terminal');
+handlers.get('closed')({{runId:'foreign',state:'observed'}});
+await Promise.resolve();if(settled)throw Error('accepted foreign terminal');
+handlers.get('closed')({{runId:'owned',state:'observed'}});
+const value=await result;signals.dispose();
+console.log(JSON.stringify({{runId:value.runId,handlers:handlers.size}}));'''
+        result = subprocess.run([NODE, '--input-type=module', '-e', script],
+                                text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {'runId': 'owned', 'handlers': 0})
 
 
 if __name__ == '__main__':

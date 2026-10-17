@@ -8,6 +8,16 @@ import { createRequire } from 'node:module';
 
 const saveNew = (path, value) => writeFile(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
 
+export function nativeSignals(bus, channels) {
+  let runId, settle;
+  const completions = new Map(), terminals = new Set();
+  const promise = new Promise(resolve => { settle = resolve; });
+  const check = () => { if (runId && completions.has(runId) && terminals.has(runId)) settle(completions.get(runId)); };
+  const offComplete = bus.on(channels.asyncComplete, value => { completions.set(value?.runId, value); check(); });
+  const offTerminal = bus.on(channels.processTerminal, value => { if (value?.state === 'observed') terminals.add(value.runId); check(); });
+  return { promise, bind(id) { runId = id; check(); }, dispose() { offComplete(); offTerminal(); } };
+}
+
 export function validateNativeTerminal(runId, agent, completion, status) {
   const row = status.asyncSnapshot?.runs?.find(run => run.id === runId);
   const proof = status.details?.lifecycleStatus?.processTerminal;
@@ -31,6 +41,40 @@ export function validatePiObservations(rows, sessionFile, cwd) {
     throw new Error('Pi child observation/tools/isolation proof is incomplete');
   }
   return scoped;
+}
+
+export function validateReadTrace(trace, skillRoot, role, fixtureRoot, denials = []) {
+  if (denials.length || trace.some(call => !call.ok || !resolve(call.path).startsWith(resolve(fixtureRoot) + '/'))) {
+    throw new Error('Read denied, failed, or escaped the authorized fixture; no permission fallback');
+  }
+  const needed = ['SKILL.md', ...['contracts', 'principles', 'sources', 'inclusive-design', role + '-design-review'].map(name => 'references/' + name + '.md')];
+  const actual = new Set(trace.filter(call => call.ok).map(call => resolve(call.path)));
+  if (needed.some(path => !actual.has(resolve(skillRoot, path)))) throw new Error('Mandatory shared-skill read evidence missing');
+}
+
+function claudeReadTrace(proof) {
+  const calls = new Map(), results = new Map();
+  for (const event of proof.messages) {
+    const parts = event.message?.content;
+    if (!Array.isArray(parts)) continue;
+    for (const part of parts) {
+      if (part.type === 'tool_use' && part.name === 'Read') calls.set(part.id, part.input.file_path);
+      if (part.type === 'tool_result') results.set(part.tool_use_id, part.is_error !== true);
+    }
+  }
+  return [...calls].map(([id, path]) => ({ path, ok: results.get(id) === true }));
+}
+
+function piReadTrace(entries) {
+  const calls = new Map(), results = new Map();
+  for (const entry of entries) {
+    const message = entry.message;
+    if (message?.role === 'toolResult') results.set(message.toolCallId, message.isError !== true);
+    if (Array.isArray(message?.content)) for (const part of message.content) {
+      if (part.type === 'toolCall' && part.name === 'read') calls.set(part.id, part.arguments.path);
+    }
+  }
+  return [...calls].map(([id, path]) => ({ path, ok: results.get(id) === true }));
 }
 
 export async function readClaudeProof(completion, launched) {
@@ -148,12 +192,7 @@ export async function runNativeTrials(manifest, out) {
     for (const job of manifest.jobs) {
       let completionResolve;
       let expectedId;
-      const early = [];
-      const completed = new Promise(resolve => { completionResolve = resolve; });
-      const off = bus.on(ping.events.asyncComplete, value => {
-        if (!expectedId) early.push(value);
-        else if (value?.runId === expectedId) completionResolve(value);
-      });
+      const signals = nativeSignals(bus, ping.events);
       const launched = await rpc('spawn', {
         agent: job.agent, task: job.task, cwd: job.cwd, context: 'fresh',
         agentScope: 'project', async: true, artifacts: true,
@@ -162,16 +201,16 @@ export async function runNativeTrials(manifest, out) {
       });
       await saveNew(join(out, 'launch-' + job.index + '.json'), launched);
       expectedId = launched.details?.asyncId ?? launched.details?.asyncRunId ?? launched.details?.runId;
-      if (!expectedId) { off(); throw new Error('Launch did not return an exact run identity'); }
+      if (!expectedId) { signals.dispose(); throw new Error('Launch did not return an exact run identity'); }
       activeRun = expectedId;
-      for (const value of early) if (value?.runId === expectedId) completionResolve(value);
+      signals.bind(expectedId);
       let timer;
       const timeout = new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('Native completion deadline; run ' + expectedId)), 300000);
       });
       let completion;
-      try { completion = await Promise.race([completed, timeout]); }
-      finally { clearTimeout(timer); off(); }
+      try { completion = await Promise.race([signals.promise, timeout]); }
+      finally { clearTimeout(timer); signals.dispose(); }
       const status = await rpc('status', { id: expectedId });
       await saveNew(join(out, 'sample-' + job.index + '.json'), { job, launched, completion, status });
       validateNativeTerminal(expectedId, job.agent, completion, status);
@@ -182,11 +221,22 @@ export async function runNativeTrials(manifest, out) {
         const proof = await readClaudeProof(completion, launched);
         await saveNew(join(out, 'claude-proof-' + job.index + '.json'), proof);
         await writeFile(join(out, 'answer-' + job.index + '.md'), proof.result.result, { flag: 'wx' });
+        if (manifest.variant === 'treatment') {
+          const trace = claudeReadTrace(proof);
+          validateReadTrace(trace, manifest.skillRoot, manifest.role, manifest.fixture, proof.result.permission_denials ?? []);
+          await saveNew(join(out, 'read-proof-' + job.index + '.json'), { trace, permissionDenials: [] });
+        }
       }
       if (manifest.runtime === 'pi') {
         const rows = (await readFile(join(out, 'pi-observations.jsonl'), 'utf8')).trim().split('\n').map(line => JSON.parse(line));
         const proof = validatePiObservations(rows, completion.results[0].sessionFile, manifest.fixture);
         await saveNew(join(out, 'pi-proof-' + job.index + '.json'), { observations: proof });
+        if (manifest.variant === 'treatment') {
+          const entries = (await readFile(completion.results[0].sessionFile, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+          const trace = piReadTrace(entries);
+          validateReadTrace(trace, manifest.skillRoot, manifest.role, manifest.fixture);
+          await saveNew(join(out, 'read-proof-' + job.index + '.json'), { trace });
+        }
       }
       console.log(JSON.stringify({ index: job.index, runId: expectedId, state: 'completed', chars: output.length }));
       if (errors.length || hostModelRequests) throw new Error('Host/runtime error; inspect preserved artifacts');
