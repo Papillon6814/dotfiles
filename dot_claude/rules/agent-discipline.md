@@ -74,5 +74,6 @@ pi の `~/.pi/agent/AGENTS.md` と同じ規律を、Claude Code のツール名�
 - 調査するファイル数だけを理由に委任を必須にしない。広い調査を分担する場合は、利用可能なエージェント定義を確認し、目的に合う担当へ読み取り専用で委任する。未定義のエージェント名を指定しない。適切な定義がなければ親が直接調査する
 - 独立して進められる調査・レビューは並列化してよい。重複した依頼や、同じ作業領域への複数 writer は避ける
 - 変更を伴う作業は Git worktree の規則に従う。複数 writer が必要なら作業範囲と worktree を分離し、1つの worktree には writer を1人だけ置く
+- herdr の pane で子の pi を起動するときは `pi-profile spawn --pane <ID> [--name <名前>]` を使う。親の Profile とアカウントを引き継ぐ。`herdr agent start --kind pi` や `herdr pane run <pane> pi` は Profile のツール（pi-gh・pi-scaffold）が入らないため使わない（pi の親からは拒否される）
 - 子には目的、repo/cwd、編集権限と範囲、関連ファイル・制約、受け入れ条件、検証方法、期待する報告形式を渡す
 - サブエージェントの報告だけで完了扱いにしない。親が差分を読み、適切なテスト・lint・type-check を実行して結果を確認する
