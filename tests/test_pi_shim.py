@@ -30,6 +30,25 @@ class PiShim(unittest.TestCase):
       self.assertEqual(log.read_text().splitlines(),["pi-account",acc,*args])
     finally:
      d.cleanup()
+ def test_session_id_routes_to_owning_account(self):
+  sid="01a14d1d-8c43-7000-8000-000000000001"
+  for acc,expect in (("muu",["pi-account","muu"]),("rbx",["pi-account","rbx"]),(None,["pi-profile","launch","--"])):
+   with self.subTest(acc=acc):
+    d=tempfile.TemporaryDirectory(prefix="pi-shim-");root=pathlib.Path(d.name);bin=root/"bin";bin.mkdir();log=root/"called"
+    for n in ("pi-profile","pi-account"):
+     f=bin/n;f.write_text("#!/bin/sh\nprintf '%s\\n' "+n+" \"$@\" > "+str(log)+"\n");f.chmod(0o755)
+    try:
+     if acc:
+      sd=root/(".pi/agent-"+acc)/"sessions/--Users-x--";sd.mkdir(parents=True)
+      (sd/("2026-10-18T00-00-00-000Z_"+sid+".jsonl")).write_text("{}")
+     other=root/".pi/agent-muu/sessions/--y--";other.mkdir(parents=True,exist_ok=True)
+     (other/"2026-10-18T00-00-00-000Z_01a14d1d-0000-7000-8000-000000000009.jsonl").write_text("{}")
+     for args in (["--session-id",sid],["--session-id="+sid]):
+      r=subprocess.run(["bash",str(SCRIPT),*args],env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":"/nonexistent"},capture_output=True,text=True)
+      self.assertEqual(r.returncode,0,r.stderr)
+      self.assertEqual(log.read_text().splitlines(),[*expect,*args])
+    finally:
+     d.cleanup()
  def test_kuno_session_goes_through_launcher(self):
   d=tempfile.TemporaryDirectory(prefix="pi-shim-");root=pathlib.Path(d.name);bin=root/"bin";bin.mkdir();log=root/"called"
   for n in ("pi-profile","pi-account"):
@@ -46,4 +65,8 @@ class PiShim(unittest.TestCase):
     with d:
      self.assertEqual(r.returncode,0,r.stderr)
      self.assertEqual(calls,["real","--session","x y","--","日本語"])
+ def test_zshrc_does_not_wrap_pi(self):
+  # 起動の振り分けは shim が持つ。zsh の関数で包むと古い警告が出る（2026-10-18）
+  zshrc=(SCRIPT.parents[2]/"dot_zshrc.tmpl").read_text()
+  self.assertNotRegex(zshrc,r"(?m)^pi\(\)");self.assertNotIn("素の pi は既定",zshrc)
 if __name__=="__main__":unittest.main()

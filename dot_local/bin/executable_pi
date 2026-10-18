@@ -9,8 +9,17 @@ if [[ "${PI_PROFILE_LAUNCHER:-}" == "0" || "${PI_SUBAGENT_CHILD:-}" == "1" || -n
   exec "$real" "$@"
 fi
 
+# セッション id がどのアカウントのものかを、セッションファイルの有無で調べる
+session_by_id() {
+  local acc
+  for acc in muu rbx; do
+    if compgen -G "$HOME/.pi/agent-$acc/sessions/*/*_$1.jsonl" >/dev/null; then echo "$HOME/.pi/agent-$acc/"; return 0; fi
+  done
+  return 0
+}
+
 # 再開するセッションが muu/rbx のものなら、そのアカウントで起動する
-# --session <パス> と --session=<パス> の両方を見る
+# --session <パス>・--session=<パス>・--session-id <id>・--session-id=<id> を見る
 args=("$@")
 for ((i = 0; i < ${#args[@]}; i++)); do
   session=""
@@ -18,6 +27,10 @@ for ((i = 0; i < ${#args[@]}; i++)); do
     session="${args[i+1]}"
   elif [[ "${args[i]}" == --session=* ]]; then
     session="${args[i]#--session=}"
+  elif [[ "${args[i]}" == "--session-id" && $((i + 1)) -lt ${#args[@]} ]]; then
+    session="$(session_by_id "${args[i+1]}")"
+  elif [[ "${args[i]}" == --session-id=* ]]; then
+    session="$(session_by_id "${args[i]#--session-id=}")"
   else
     continue
   fi

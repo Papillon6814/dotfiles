@@ -29,11 +29,7 @@ nvim() {
 . "$HOME/.cargo/env"
 export EXA_API_KEY="{{ onepasswordRead "op://Personal/Exa API Key/credential" }}"
 
-# Warn when starting the shared/default Pi account directly; pi-kuno/pi-muu launchers bypass this shell function.
-pi() {
-    printf '%s\n' '警告: 素の pi は既定（kuno）アカウントです。アカウントを選ぶ場合は pi-kuno / pi-muu を使ってください。' >&2
-    command pi "$@"
-}
+# pi の起動は ~/.local/bin/pi（shim）が pi-profile と muu/rbx のアカウントへ振り分ける（関数で包まない）
 
 
 # --- Claude Code multi-account (claude-profile) ---
