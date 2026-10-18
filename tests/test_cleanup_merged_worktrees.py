@@ -69,6 +69,26 @@ class Cleanup(unittest.TestCase):
   p=self.detached("verify",extra_commit=True);self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_dirty_detached_worktree(self):
   p=self.detached("verify");(p/"new.txt").write_text("x");self.run_(str(self.repo));self.assertTrue(p.exists())
+ def test_keeps_feature_without_commits_that_has_task_artifacts(self):
+  p=self.wt("feat-art",commit=False,merge=False)
+  (self.repo/".gitignore").write_text((self.repo/".gitignore").read_text()+".task-artifacts/\n");git("commit","-qam","ignore artifacts",cwd=self.repo)
+  (p/".task-artifacts").mkdir();(p/".task-artifacts/session.jsonl").write_text("x")
+  self.run_(str(self.repo));self.assertTrue(p.exists());self.assertIn(".task-artifacts",self.log())
+ def test_keeps_merged_worktree_with_task_artifacts(self):
+  (self.repo/".gitignore").write_text((self.repo/".gitignore").read_text()+".task-artifacts/\n");git("commit","-qam","ignore artifacts",cwd=self.repo)
+  p=self.wt("feat-a");(p/".task-artifacts").mkdir();(p/".task-artifacts/x").write_text("x")
+  self.run_(str(self.repo));self.assertTrue(p.exists());self.assertIn("feat-a",self.branches());self.assertIn(".task-artifacts",self.log())
+ def test_keeps_branch_reset_back_to_main_without_own_commits(self):
+  # reflog has several entries, but the branch holds no commit of its own
+  p=self.wt("feat-reset",merge=False);git("reset","-q","--hard","main",cwd=p)
+  self.run_(str(self.repo));self.assertTrue(p.exists());self.assertIn("feat-reset",self.branches())
+ def test_keeps_fast_forwarded_branch(self):
+  p=self.wt("feat-ff",merge=False);git("merge","-q","--ff-only","feat-ff",cwd=self.repo)
+  self.run_(str(self.repo));self.assertTrue(p.exists());self.assertIn("独自のコミット",self.log())
+ def test_keeps_detached_worktree_with_task_artifacts(self):
+  (self.repo/".gitignore").write_text((self.repo/".gitignore").read_text()+".task-artifacts/\n");git("commit","-qam","ignore artifacts",cwd=self.repo)
+  p=self.detached("verify");(p/".task-artifacts").mkdir();(p/".task-artifacts/x").write_text("x")
+  self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_in_use(self):
   p=self.wt("feat-a");self.lsof.write_text("p1\nn"+str(p)+"/sub\n");self.run_(str(self.repo));self.assertTrue(p.exists())
  def test_keeps_unmanaged_location(self):
