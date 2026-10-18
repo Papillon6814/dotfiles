@@ -126,6 +126,7 @@ MCP サーバ実体（使う場合のみ）:
 - **Homebrew**: `brew/Brewfile.<ホスト名>` に一覧を置く。自動では入れない。新しい Mac では `brew bundle --file=brew/Brewfile.<ホスト名>` を手で実行する。更新は `brew bundle dump --file=brew/Brewfile.$(chezmoi execute-template '{{ .chezmoi.hostname }}') --force`
 - **Claude の personal プロファイル**: `~/.claude-profiles/personal/config` の設定は `~/.claude` へのリンク（MacBook のみ）
 - **pi の Development プロファイル**: `~/.pi/agent/profiles/development` は `~/Code/scaffold-profiles/dist/pi/` へのリンク。`pi-gh-permissions.json` と `pi-scaffold/policy.json` は scaffold-profiles の `bin/install-config.sh` が 0600 のコピーで入れる（pi-gh・pi-scaffold がリンクを拒否するため。dotfiles では管理しない）（private リポジトリ KendrickMalar/scaffold-profiles。原本は `src/`、`node bin/generate.ts` で生成）。直接編集は自動同期の点検で通知される
+- **pi-rules は `~/.claude/rules` を読んでいない（2026-10-18 確認）**: pi の `pi-rules`（`@giuseppe.trisciuoglio/pi-rules`）はユーザー規則として `~/.claude/rules/*.md` を探すが、`Dirent.isFile()` が真のものしか拾わない（`src/sources.ts`）。ここのファイルは symlink なので、pi には注入されない。pi には `~/.pi/agent/AGENTS.md`（`dot_pi/private_agent/AGENTS.md`）が同じ規律を入れているので、この状態のままにする。rules を実ファイル（コピー）にすると、pi に同じ規律が二重に入る
 - **テスト**: `python3 -m unittest discover tests`（自動同期の scaffold-profiles の点検は `tests/test_dotfiles_sync_scaffold.py`。仮のホームで本物のスクリプトを dry-run で動かす）
 - **管理しないもの**: `~/.codex/config.toml`（平文の API キーとマシン固有の状態を含み、Codex が実行中に書き換える）、各ツールの認証・履歴・キャッシュ
 
