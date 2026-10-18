@@ -68,17 +68,24 @@ keep() {
   [ $dry = 0 ] && mkdir -p "${log_file%/*}" 2>/dev/null &&
     printf '%s kept: %s (%s): %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "${2:-detached}" "$3" >>"$log_file"
 }
+first_parent=$(g rev-list --first-parent "refs/heads/$def")
+on_first_parent() { printf '%s\n' "$first_parent" | grep -qxF -e "$1"; }
+# 子エージェントの会話記録・証拠は、無視ファイルでも失うと resume できない（2026-10-18）
+has_artifacts() { [ -e "$1/.task-artifacts" ]; }
 check_and_remove() {
   local wt=$1 br=$2 head=$3
   { [ "$wt" = "$main_root" ] || [ "$br" = "$def" ]; } && return
   managed "$wt" || return
   if [ -n "$br" ]; then
     g merge-base --is-ancestor "refs/heads/$br" "refs/heads/$def" 2>/dev/null || return
-    # 作っただけでコミットのないブランチも「祖先」になるため、reflog で除外する
-    [ "$(g reflog show --format=%H "refs/heads/$br" 2>/dev/null | wc -l)" -ge 2 ] || { keep "$wt" "$br" "コミットなし（作りかけ）"; return; }
+    has_artifacts "$wt" && { keep "$wt" "$br" ".task-artifacts あり（子の記録）"; return; }
+    # 作っただけ・既定ブランチに戻しただけのブランチも「祖先」になる。先端が既定ブランチの
+    # first-parent の列に載っていれば、独自のコミットがマージで入ったのではない（2026-10-18）
+    on_first_parent "$(g rev-parse "refs/heads/$br")" && { keep "$wt" "$br" "独自のコミットがマージされていない（コミットなし・早送り）"; return; }
   else
     # ブランチなし（検証・レビュー用）: HEAD が既定ブランチに含まれていれば消せる
     [ -n "$head" ] && g merge-base --is-ancestor "$head" "refs/heads/$def" 2>/dev/null || return
+    has_artifacts "$wt" && { keep "$wt" "$br" ".task-artifacts あり（子の記録）"; return; }
   fi
   [ -z "$(git -C "$wt" status --porcelain -uall 2>/dev/null)" ] || { keep "$wt" "$br" "未コミットの変更あり"; return; }
   in_use "$wt" && { keep "$wt" "$br" "使用中のプロセスあり"; return; }

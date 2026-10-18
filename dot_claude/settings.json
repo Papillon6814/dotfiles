@@ -117,6 +117,9 @@
       "serverName": "claude_ai_Notion"
     }
   ],
+  "enabledMcpjsonServers": [
+    "Roblox_Studio"
+  ],
   "hooks": {
     "Notification": [
       {
