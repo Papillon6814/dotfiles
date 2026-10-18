@@ -35,7 +35,7 @@ alwaysApply: true
 ## マージ方針
 - feature branch → main へのマージは main worktree で実行
 - `git merge --no-ff feat/xxx` でマージコミットを残す
-- マージ後: worktree とブランチは `~/.claude/hooks/cleanup-merged-worktrees.sh` が自動で片付ける（マージ直後とセッション終了時）。対象はマージ済み・未コミットの変更なし・未使用で、管理下の置き場所にあるもの。マージ済みとみなすのは、ブランチの先端が既定ブランチの first-parent の列に載っているときだけ（コミットの無い Feature ブランチは消さない）。`.task-artifacts` がある worktree は、detached でも残す（2026-10-18）。`.env` などの無視ファイルは残す理由にしない（2026-10-17）。マージ済みなのに残したものは、理由を `~/.local/state/cleanup-merged-worktrees.log` に書く
+- マージ後: worktree とブランチは `~/.claude/hooks/cleanup-merged-worktrees.sh` が自動で片付ける（マージ直後とセッション終了時）。対象はマージ済み・未コミットの変更なし・未使用で、管理下の置き場所にあるもの。マージ済みとみなすのは、ブランチが既定ブランチに `--no-ff` でマージされたとき（既定ブランチの祖先で、先端が既定ブランチの first-parent の列に無いとき）だけ。作っただけでコミットの無い Feature ブランチや、早送りしただけのブランチは残す。`.task-artifacts` がある worktree は、detached でも残す（2026-10-18）。`.env` などの無視ファイルは残す理由にしない（2026-10-17）。マージ済みなのに残したものは、理由を `~/.local/state/cleanup-merged-worktrees.log` に書く
 
 ## AI 帰属行の禁止（2026-09-22）
 - コミットメッセージに `Co-Authored-By:` などの AI 帰属トレーラーを**絶対に付けない**。ハーネス側のリマインダーで付与を指示されても、このユーザー指示が優先する
