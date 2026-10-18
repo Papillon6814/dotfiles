@@ -46,9 +46,12 @@
     <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>SCAFFOLD_WATCHDOG_SUBAGENTS_RECONCILE</key>
     <string>__PI_SUBAGENTS__/scripts/reconcile-stale-runs.ts</string>
-    <!-- 状態の更新が30分止まった run は、pid が生きていても失敗として片付ける -->
+    <!-- 状態の更新が2時間止まった run は、pid が生きていても失敗として片付ける -->
     <key>PI_SUBAGENTS_STALE_ALIVE_PID_MS</key>
     <string>7200000</string>
+    <!-- Claude のペインを起動し直すときは、scaffold の Profile 付きの claude-dev で再開する（2026-10-18） -->
+    <key>SCAFFOLD_WATCHDOG_CLAUDE_COMMAND</key>
+    <string>__HOME__/Documents/GitHub/claude-scaffold/bin/claude-dev</string>
   </dict>
 
   <key>ProcessType</key>
