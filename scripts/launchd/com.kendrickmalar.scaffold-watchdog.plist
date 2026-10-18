@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  scaffold-watchdog（60秒ごとに1回だけ確認して終わる）。止まった scaffold の工程ペインを自動で回復する。通知はしない。
+  直接コピーせず scripts/install-scaffold-watchdog.sh で設置する
+  （__HOME__・__PI_SCAFFOLD__・__PI_SUBAGENTS__ を実際のパスに置き換えて ~/Library/LaunchAgents に置き、bootstrap する）。
+
+  状態:     launchctl print gui/$(id -u)/com.kendrickmalar.scaffold-watchdog
+  即時実行: launchctl kickstart -k gui/$(id -u)/com.kendrickmalar.scaffold-watchdog
+  停止:     launchctl bootout gui/$(id -u)/com.kendrickmalar.scaffold-watchdog
+  ログ:     ~/.local/state/scaffold-watchdog.log（処理の記録）、~/.local/state/scaffold-watchdog.launchd.log（標準出力・エラー）
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kendrickmalar.scaffold-watchdog</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>__PI_SCAFFOLD__/bin/scaffold-watchdog</string>
+    <string>--once</string>
+  </array>
+
+  <!-- 60秒ごと。前回が続いている間は多重起動しない（watchdog 自身もロックで防ぐ） -->
+  <key>StartInterval</key>
+  <integer>60</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/.local/state/scaffold-watchdog.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.local/state/scaffold-watchdog.launchd.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>__HOME__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LANG</key>
+    <string>ja_JP.UTF-8</string>
+    <!-- 起動し直しは shim（~/.local/bin/pi）経由にするため、~/.local/bin を先頭に置く -->
+    <key>PATH</key>
+    <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>SCAFFOLD_WATCHDOG_SUBAGENTS_RECONCILE</key>
+    <string>__PI_SUBAGENTS__/scripts/reconcile-stale-runs.ts</string>
+    <!-- 状態の更新が30分止まった run は、pid が生きていても失敗として片付ける -->
+    <key>PI_SUBAGENTS_STALE_ALIVE_PID_MS</key>
+    <string>1800000</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>
