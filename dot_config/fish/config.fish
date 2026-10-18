@@ -152,6 +152,13 @@ alias le='letta -n Finn'
 # マシン固有の設定（dotfiles では管理しない。秘密情報もここに置かない方針だが、置く場合はこのファイルに限る）
 test -f ~/.config/fish/config.local.fish; and source ~/.config/fish/config.local.fish
 
+# --- Muxy では pi の Markdown リンクをクリックできるようにする（2026-10-18） ---
+# pi-tui は TERM_PROGRAM=muxy をリンク非対応と判定し、下線の文字と (パス) を並べるだけになるため、OSC 8 を強制する。
+# herdr の中でも TERM_PROGRAM=muxy が残るので、herdr へ移る前に置いて引き継がせる。
+if test "$TERM_PROGRAM" = muxy
+    set -gx PI_HYPERLINKS 1
+end
+
 # --- Muxy で開いたシェルは herdr に入る（2026-10-15） ---
 # Muxy Beta は端末を muxy-server が fish -l で直接起動し、ghostty.conf の command を使わないため、ここで herdr へ移る。
 # セッション名はディレクトリ名（firstmate だけ default）。herdr がタブ・ペイン・エージェント（resume_agents_on_restore）を復元する。
