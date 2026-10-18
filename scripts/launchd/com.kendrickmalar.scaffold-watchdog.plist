@@ -48,7 +48,7 @@
     <string>__PI_SUBAGENTS__/scripts/reconcile-stale-runs.ts</string>
     <!-- 状態の更新が30分止まった run は、pid が生きていても失敗として片付ける -->
     <key>PI_SUBAGENTS_STALE_ALIVE_PID_MS</key>
-    <string>1800000</string>
+    <string>7200000</string>
   </dict>
 
   <key>ProcessType</key>
