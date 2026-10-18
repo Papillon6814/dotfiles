@@ -18,6 +18,7 @@ class WatchdogPlist(unittest.TestCase):
    self.assertEqual(env["PATH"],str(root)+"/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin")
    self.assertEqual(env["SCAFFOLD_WATCHDOG_SUBAGENTS_RECONCILE"],str(su)+"/scripts/reconcile-stale-runs.ts")
    self.assertEqual(env["PI_SUBAGENTS_STALE_ALIVE_PID_MS"],"7200000")
+   self.assertEqual(env["SCAFFOLD_WATCHDOG_CLAUDE_COMMAND"],str(root)+"/Documents/GitHub/claude-scaffold/bin/claude-dev")
  def test_render_refuses_missing_entry(self):
   with tempfile.TemporaryDirectory(prefix="wd-plist-") as d:
    r=subprocess.run(["bash",str(SCRIPT),"--render",d,d],env={**os.environ,"HOME":d},capture_output=True,text=True)
