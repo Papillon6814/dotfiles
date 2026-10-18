@@ -10,6 +10,11 @@ import tomllib
 
 BEGIN = '# BEGIN MCP SYNC FROM CLAUDE'
 END = '# END MCP SYNC FROM CLAUDE'
+# 各ツールの導入コマンドが Claude と Codex の両方へ自分で書くサーバー。同期の対象にしない（2026-10-18）
+TOOL_OWNED = {'zvec_grep': 'zg install'}
+
+def select_sources(source):
+    return {name: server for name, server in source.items() if name not in TOOL_OWNED}
 
 def render(source, original, timeouts=None):
     if original.count(BEGIN) != original.count(END) or original.count(BEGIN) > 1:
@@ -68,7 +73,10 @@ def main():
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args()
     home = Path.home()
-    source = json.loads((home / '.claude.json').read_text())['mcpServers']
+    all_sources = json.loads((home / '.claude.json').read_text())['mcpServers']
+    source = select_sources(all_sources)
+    for name in sorted(set(all_sources) - set(source)):
+        print('Skipped (managed by ' + TOOL_OWNED[name] + '): ' + name)
     target = home / '.codex/config.toml'
     original = target.read_text()
     settings = json.loads((home / '.claude/settings.json').read_text())

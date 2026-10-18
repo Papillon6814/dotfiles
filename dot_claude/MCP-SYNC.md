@@ -64,4 +64,5 @@ Claude 側で MCP を追加・変更・削除した後に実行する。元フ�
 - そのため同期スクリプトの対象外。Codex 側は `~/.codex/config.toml` の `BEGIN CODEX LOCAL HONEYCOMB MCP` ～ `END CODEX LOCAL HONEYCOMB MCP` に手動で置く（`codex mcp add honeycomb --url https://mcp.honeycomb.io/mcp`）。
 - 認証は OAuth。Claude は対話セッションで `/mcp` から行う。Codex は 2026-09-22 の `codex mcp add` 実行時にブラウザ経由で認証済み（再認証は `codex mcp login honeycomb`）。認証状態は共有されない。
 - 注意: `codex mcp add` は `config.toml` 全体を TOML シリアライザで書き直し、コメント（同期ブロックの BEGIN/END マーカー等）や既定値の行を消す。今後 Codex に MCP を足すときは `codex mcp add` を使わず、config.toml を直接編集する。2026-09-22 はバックアップ `config.toml.before-honeycomb-mcp-20260922` から復元した。
-- 既知の問題: 2026-09-22 時点で `zvec_grep` が Claude 側 `~/.claude.json` と Codex 側の管理ブロック外の両方にあり、同期スクリプトが競合で停止する。次に同期する前に所有元を決める必要がある。
+- `zvec_grep` は `zg install` が Claude 側 `~/.claude.json` と Codex 側（管理ブロック外の `ZVEC_GREP_START` ～ `ZVEC_GREP_END`）の両方へ自分で書く。同期スクリプトは `TOOL_OWNED` で対象外にし、実行時に「Skipped (managed by zg install)」と表示する（2026-10-18。それまでは競合で停止していた）。
+- `Roblox_Studio` は 2026-10-18 に Claude のグローバル設定から外し、Roblox 系リポジトリの `.mcp.json` に移した（全プロジェクトで接続されて Studio と競合したため）。同じ日の同期で Codex の管理ブロックからも消える。Codex で Studio を使うときは、そのリポジトリでプロジェクト単位に設定する。
