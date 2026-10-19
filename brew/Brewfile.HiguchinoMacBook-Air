@@ -13,6 +13,10 @@ brew "bun"
 brew "chezmoi"
 # Modern, maintained replacement for ls
 brew "eza"
+# Send macOS User Notifications from the command-line
+brew "terminal-notifier"
+# Easiest way to build and release mobile apps
+brew "fastlane"
 # User-friendly command-line shell for UNIX-like operating systems
 brew "fish"
 # GitHub command-line tool
@@ -39,6 +43,8 @@ brew "neovim"
 brew "node"
 # Development kit for the Java programming language
 brew "openjdk"
+# Development kit for the Java programming language
+brew "openjdk@17"
 # Simplistic interactive filtering tool
 brew "peco"
 # Fast, disk space efficient package manager
@@ -53,8 +59,6 @@ brew "rbenv"
 brew "ripgrep"
 # Editor of encrypted files
 brew "sops"
-# Send macOS User Notifications from the command-line
-brew "terminal-notifier"
 # Terminal multiplexer
 brew "tmux"
 # Extremely fast Python package installer and resolver, written in Rust
@@ -69,6 +73,8 @@ brew "rjyo/moshi/moshi-hook"
 cask "1password"
 # Command-line interface for 1Password
 cask "1password-cli"
+# Command-line tools for building and debugging Android apps
+cask "android-commandlinetools"
 # 3D creation suite
 cask "blender"
 # Clipboard extension app
