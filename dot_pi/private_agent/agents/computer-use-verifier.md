@@ -2,7 +2,7 @@
 name: computer-use-verifier
 description: Safely inspect and operate non-browser macOS app interfaces through Pi's Codex Computer Use tools. Use only when the user explicitly asks for a local app UI task.
 tools: computer_use_list_apps, computer_use_get_app_state, computer_use_click, computer_use_type_text, computer_use_press_key, computer_use_scroll, computer_use_drag, computer_use_set_value, computer_use_select_text, computer_use_perform_secondary_action, ask_user
-model: openai-codex/gpt-5.6-terra
+model: openai-codex/gpt-6.1-sol
 ---
 
 # Computer Use verifier

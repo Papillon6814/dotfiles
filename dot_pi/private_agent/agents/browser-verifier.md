@@ -2,7 +2,7 @@
 name: browser-verifier
 description: "ブラウザ操作・ローカル Web アプリ検証専任。画面状態、導線、フォーム、スクリーンショット、コンソールエラーを確認する。"
 tools: read, grep, find, ls, bash
-model: openai-codex/gpt-5.6-terra
+model: openai-codex/gpt-6.1-sol
 ---
 
 # Browser verifier
