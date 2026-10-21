@@ -25,10 +25,15 @@ case "${1:-}" in
 esac
 
 scaffold="${1:?pi-scaffold の導入先を指定してください}"; subagents="${2:?pi-subagents の導入先を指定してください}"
-launchctl bootout "$domain/$label" 2>/dev/null || true
 mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state"
-render "$scaffold" "$subagents" > "$dest"
-plutil -lint "$dest" >/dev/null
+# 新しい plist を隣の一時ファイルに作って確かめてから差し替える。失敗しても動いているジョブと今の plist は残す
+tmp="$(mktemp "$dest.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
+render "$scaffold" "$subagents" > "$tmp"
+plutil -lint "$tmp" >/dev/null
+chmod 644 "$tmp"
+launchctl bootout "$domain/$label" 2>/dev/null || true
+mv "$tmp" "$dest"
 launchctl bootstrap "$domain" "$dest"
 echo "設置しました: ${dest}"
 echo "ログ: $HOME/.local/state/scaffold-watchdog.log"
