@@ -23,4 +23,29 @@ class WatchdogPlist(unittest.TestCase):
   with tempfile.TemporaryDirectory(prefix="wd-plist-") as d:
    r=subprocess.run(["bash",str(SCRIPT),"--render",d,d],env={**os.environ,"HOME":d},capture_output=True,text=True)
    self.assertNotEqual(r.returncode,0)
+ def _install(self,root,*args):
+  # launchctl は偽物に差し替え、呼ばれた引数を記録する
+  fake=root/"fakebin";fake.mkdir(exist_ok=True);log=root/"launchctl.log"
+  (fake/"launchctl").write_text("#!/bin/bash\necho \"$*\" >> "+str(log)+"\n");(fake/"launchctl").chmod(0o755)
+  r=subprocess.run(["bash",str(SCRIPT),*args],env={**os.environ,"HOME":str(root),"PATH":str(fake)+":"+os.environ["PATH"]},capture_output=True,text=True)
+  return r,(log.read_text().splitlines() if log.exists() else [])
+ def test_install_with_missing_entry_keeps_running_job_and_plist(self):
+  with tempfile.TemporaryDirectory(prefix="wd-plist-") as d:
+   root=pathlib.Path(d);dest=root/"Library/LaunchAgents/com.kendrickmalar.scaffold-watchdog.plist"
+   dest.parent.mkdir(parents=True);dest.write_text("OLD")
+   r,calls=self._install(root,str(root/"no-scaffold"),str(root/"no-subagents"))
+   self.assertNotEqual(r.returncode,0)
+   self.assertEqual(dest.read_text(),"OLD")
+   self.assertEqual(calls,[])
+ def test_install_replaces_plist_and_restarts_job(self):
+  with tempfile.TemporaryDirectory(prefix="wd-plist-") as d:
+   root=pathlib.Path(d);sc=root/"pi-scaffold";su=root/"pi-subagents"
+   (sc/"bin").mkdir(parents=True);(sc/"bin/scaffold-watchdog").write_text("");(su/"scripts").mkdir(parents=True);(su/"scripts/reconcile-stale-runs.ts").write_text("")
+   dest=root/"Library/LaunchAgents/com.kendrickmalar.scaffold-watchdog.plist"
+   dest.parent.mkdir(parents=True);dest.write_text("OLD")
+   r,calls=self._install(root,str(sc),str(su))
+   self.assertEqual(r.returncode,0,r.stderr)
+   self.assertEqual(plistlib.loads(dest.read_bytes())["ProgramArguments"][1],str(sc)+"/bin/scaffold-watchdog")
+   self.assertEqual([c.split()[0] for c in calls],["bootout","bootstrap"])
+   self.assertEqual(list(dest.parent.iterdir()),[dest])
 if __name__=="__main__":unittest.main()
