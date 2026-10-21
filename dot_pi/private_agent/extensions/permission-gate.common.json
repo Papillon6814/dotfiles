@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "denyBashPatterns": [
+    {
+      "source": "\\brm\\s+(-rf?|--recursive)",
+      "flags": "i"
+    },
+    {
+      "source": "\\bsudo\\b",
+      "flags": "i"
+    },
+    {
+      "source": "\\b(chmod|chown)\\b.*777",
+      "flags": "i"
+    }
+  ]
+}

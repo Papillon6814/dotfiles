@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "denyBashPatterns": [
+    {
+      "source": "(^|[\\s/;&|()\"'`])gh($|[\\s;&|()\"'`])",
+      "flags": "i"
+    }
+  ]
+}
