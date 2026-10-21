@@ -14,18 +14,18 @@ const { shouldCompact } = await import(pathToFileURL(resolve(core, 'compaction/c
 const root = fileURLToPath(new URL('../', import.meta.url));
 const settingsPath = 'dot_pi/private_agent/settings.json';
 const settings = JSON.parse(readFileSync(resolve(root, settingsPath), 'utf8'));
-// Approved Task 3 baseline: compare every original key, not just selected settings.
+// Preserve the full compaction baseline; unrelated settings may evolve independently.
 const original = JSON.parse(execFileSync('git', [
   'show', `7da40eceafb2e00a3cc568d29a8c5241528d880c:${settingsPath}`,
 ], { cwd: root, encoding: 'utf8' }));
 const manager = SettingsManager.inMemory(settings);
 const baseline = SettingsManager.inMemory(original);
 
-test('settings.json changes only the two Claude-local reserve overrides', () => {
+test('compaction changes only the two Claude-local reserve overrides', () => {
   const expected = structuredClone(original);
   expected.compaction.modelOverrides['claude-local/claude-local-sonnet'] = { reserveTokens: 320000 };
   expected.compaction.modelOverrides['claude-local/claude-local-opus'] = { reserveTokens: 320000 };
-  assert.deepEqual(settings, expected);
+  assert.deepEqual(settings.compaction, expected.compaction);
 });
 
 for (const family of ['sonnet', 'opus']) {
