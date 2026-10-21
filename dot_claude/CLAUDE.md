@@ -11,6 +11,7 @@
 - Shell: fish (login shell は zsh、tmux default は fish)
 - Editor: Neovim
 - Coding agent: 普段は pi coding agent を利用している（ただしまだ改善途中であり、不安定な挙動や機能不足がある可能性に留意すること）
+- 他の端末（Mac mini・MacBook Air・iPhone）とは NordVPN Meshnet でつながっている。SSH などで入る前に `~/Code/ai-secretary/reference/meshnet-devices.md`（IP・SSH ユーザー）を読み、`~/Code/ai-secretary/scripts/meshnet-check.sh` で届くか確かめる
 
 ## コミュニケーション
 
