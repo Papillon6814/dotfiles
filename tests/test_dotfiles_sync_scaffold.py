@@ -6,6 +6,7 @@ dry-run で動かし、ログの「通知:」行と「[dry-run] git ... pull」�
 import os, pathlib, shutil, subprocess, tempfile, unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
+PROFILES = ("development", "roblox-game")
 GIT_ENV = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.com", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.com"}
 
 
@@ -36,21 +37,22 @@ class SyncScaffoldChecks(unittest.TestCase):
             "#!/bin/bash\ncd \"$(dirname \"$0\")/..\"\n"
             "if [ -f FAIL_CONFIG ]; then echo '  M /x/pi-gh-permissions.json: 生成物と違います'; exit 1; fi\necho ok\n")
         (self.sp / "bin/install-config.sh").chmod(0o755)
-        for d in ("dist/pi/development", "dist/claude/development/skills", "dist/claude/development/agents", "dist/claude/templates"):
-            (self.sp / d).mkdir(parents=True, exist_ok=True)
-        (self.sp / "dist/claude/development/instructions.md").write_text("x")
+        for prof in PROFILES:
+            for d in (f"dist/pi/{prof}", f"dist/claude/{prof}/skills", f"dist/claude/{prof}/agents", f"dist/claude/{prof}/templates"):
+                (self.sp / d).mkdir(parents=True, exist_ok=True)
+            (self.sp / f"dist/claude/{prof}/instructions.md").write_text("x")
         (self.sp / ".gitignore").write_text("FAIL_CHECK\nFAIL_CONFIG\n")
         git(root, "init", "-q", "-b", "main", str(self.sp))
         git(self.sp, "add", "-A")
         git(self.sp, "commit", "-q", "-m", "init")
         # 正しいリンク
         (self.home / ".pi/agent/profiles").mkdir(parents=True)
-        (self.home / ".pi/agent/profiles/development").symlink_to(self.sp / "dist/pi/development")
         self.cs = root / "claude-scaffold"
-        (self.cs / "profile/development").mkdir(parents=True)
-        for name, target in (("instructions.md", "dist/claude/development/instructions.md"), ("skills", "dist/claude/development/skills"),
-                             ("agents", "dist/claude/development/agents"), ("templates", "dist/claude/templates")):
-            (self.cs / "profile/development" / name).symlink_to(self.sp / target)
+        for prof in PROFILES:
+            (self.home / f".pi/agent/profiles/{prof}").symlink_to(self.sp / f"dist/pi/{prof}")
+            (self.cs / f"profile/{prof}").mkdir(parents=True)
+            for name in ("instructions.md", "skills", "agents", "templates"):
+                (self.cs / f"profile/{prof}" / name).symlink_to(self.sp / f"dist/claude/{prof}/{name}")
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -94,6 +96,22 @@ class SyncScaffoldChecks(unittest.TestCase):
         (self.cs / "profile/development/agents").symlink_to(self.home)
         n = self.notices(self.run_sync())
         self.assertTrue(any("instructions.md がリンクではありません" in l and "agents の指す先が違います" in l for l in n), n)
+
+    def test_roblox_game_links_are_checked_too(self):
+        link = self.home / ".pi/agent/profiles/roblox-game"
+        link.unlink()
+        link.symlink_to(self.sp / "dist/pi/development")
+        (self.cs / "profile/roblox-game/templates").unlink()
+        (self.cs / "profile/roblox-game/templates").symlink_to(self.sp / "dist/claude/development/templates")
+        n = self.notices(self.run_sync())
+        self.assertTrue(any("roblox-game の指す先が違います" in l and "roblox-game/templates の指す先が違います" in l for l in n), n)
+
+    def test_profile_not_linked_yet_is_quiet(self):
+        # まだ chezmoi apply・link-profiles をしていない Profile は点検しない（無いリンクは問題にしない）
+        (self.home / ".pi/agent/profiles/roblox-game").unlink()
+        for name in ("instructions.md", "skills", "agents", "templates"):
+            (self.cs / "profile/roblox-game" / name).unlink()
+        self.assertEqual(self.notices(self.run_sync()), [])
 
     def test_local_change_blocks_pull_but_untracked_does_not(self):
         (self.sp / ".codemogger").mkdir()

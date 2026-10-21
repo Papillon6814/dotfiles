@@ -123,14 +123,17 @@ if [ -f "$sp/bin/generate.ts" ]; then
     elif [ "$(readlink "$1")" != "$2" ]; then link_problems+="$1 の指す先が違います。"
     fi
   }
-  check_link "$HOME/.pi/agent/profiles/development" "$sp/dist/pi/development"
-  cs="${CLAUDE_SCAFFOLD_DIR:-$HOME/Documents/Github/claude-scaffold}/profile/development"
-  if [ -d "$cs" ]; then
-    check_link "$cs/instructions.md" "$sp/dist/claude/development/instructions.md"
-    check_link "$cs/skills" "$sp/dist/claude/development/skills"
-    check_link "$cs/agents" "$sp/dist/claude/development/agents"
-    check_link "$cs/templates" "$sp/dist/claude/templates"
-  fi
+  # Profile ごと（development・roblox-game）。scaffold-profiles の config/profiles.yml と揃える
+  for prof in development roblox-game; do
+    check_link "$HOME/.pi/agent/profiles/$prof" "$sp/dist/pi/$prof"
+    cs="${CLAUDE_SCAFFOLD_DIR:-$HOME/Documents/Github/claude-scaffold}/profile/$prof"
+    if [ -d "$cs" ]; then
+      check_link "$cs/instructions.md" "$sp/dist/claude/$prof/instructions.md"
+      check_link "$cs/skills" "$sp/dist/claude/$prof/skills"
+      check_link "$cs/agents" "$sp/dist/claude/$prof/agents"
+      check_link "$cs/templates" "$sp/dist/claude/$prof/templates"
+    fi
+  done
   if [ -n "$link_problems" ]; then
     notify_once scaffold-link "scaffold-profiles: 生成物へのリンクが外れています" "${link_problems}（中身を src/ に移してから、pi は chezmoi apply、Claude は claude-scaffold の bin/link-profiles）"
   else
