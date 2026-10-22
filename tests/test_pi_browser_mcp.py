@@ -35,7 +35,7 @@ class BrowserMcp(unittest.TestCase):
             "p=Path(os.environ['CAPTURE'])\n"
             "assert not p.exists(), 'multiple launches'\n"
             "p.write_text(json.dumps({'argv':sys.argv[1:], 'env':{k:v for k,v in os.environ.items() if k.startswith('PLAYWRIGHT_MCP_')}}))\n"
-            "print('MCP-STDOUT')\n"
+            "print(json.dumps({'jsonrpc':'2.0','id':1,'result':{'ok':True}}))\n"
             "print('MCP-STDERR',file=sys.stderr)\n"
         )
         fake.chmod(0o755)
@@ -51,10 +51,10 @@ class BrowserMcp(unittest.TestCase):
     def secret(self, account="muu"):
         return self.tokens / account
 
-    def run_helper(self, *args):
+    def run_helper(self, *args, input_text=""):
         self.assertTrue(SCRIPT.exists(), "browser MCP helper is not implemented")
         return subprocess.run([sys.executable, str(SCRIPT), *args], env=self.env,
-                              capture_output=True, text=True, timeout=5)
+                              capture_output=True, text=True, input=input_text, timeout=12)
 
     def assert_rejected(self, result):
         self.assertNotEqual(result.returncode, 0)
@@ -99,7 +99,9 @@ class BrowserMcp(unittest.TestCase):
 
     def test_stdio_passthrough(self):
         result = self.run_helper()
-        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "MCP-STDOUT\n", "MCP-STDERR\n"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {"jsonrpc": "2.0", "id": 1, "result": {"ok": True}})
+        self.assertEqual(result.stderr, "MCP-STDERR\n")
 
     def test_invalid_secret_contents_no_spawn(self):
         for content in (b"", b"\n", b"fake-muu-secret\nextra", b"fake-muu-secret\x00", b"x" * 4097, b"\xff", b"fake-muu-secret\xc2\x80", b"fake-muu-secret\xc2\x9f"):
@@ -178,6 +180,322 @@ class BrowserMcp(unittest.TestCase):
         self.assertEqual(servers["google_calendar"]["env"]["GOOGLE_OAUTH_CREDENTIALS"],
                          str(self.home / ".config/google-calendar-mcp/gcp-oauth.keys.json"))
         self.assertNotIn("fake-muu-secret", result.stdout)
+    def set_server(self, source):
+        import textwrap
+        (self.bin / "npx").write_text(f"#!{sys.executable}\n" + textwrap.dedent(source))
+
+    def test_first_connect_result_redacted(self):
+        self.set_server("""
+            import os,json,sys
+            t=os.environ["PLAYWRIGHT_MCP_EXTENSION_TOKEN"]
+            print(json.dumps({"jsonrpc":"2.0","id":7,"result":{"content":[{"type":"text","text":"Page URL: chrome-extension://fixture/connect.html?token="+t+"&protocolVersion=2"}]}}))
+            print("token was "+t,file=sys.stderr)
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("fake-muu-secret", result.stdout + result.stderr)
+        got = json.loads(result.stdout)
+        self.assertEqual(got["id"], 7)
+        self.assertIn("?token=[REDACTED]&protocolVersion=2", got["result"]["content"][0]["text"])
+        self.assertIn("[REDACTED]", result.stderr)
+
+    def test_encoded_and_escaped_token(self):
+        from urllib.parse import quote
+        token = "Fixture:+/_%secret"
+        self.secret().write_text(token)
+        self.set_server(r"""
+            import os,json
+            from urllib.parse import quote
+            t=os.environ["PLAYWRIGHT_MCP_EXTENSION_TOKEN"]
+            values=[t,quote(t,safe=""),quote(quote(t,safe=""),safe=""),"https://example.com/?token=obsolete-value&keep=ok"]
+            print(json.dumps({"jsonrpc":"2.0","id":11,"result":{"items":values,"unchanged":{"ok":True}}}))
+            escaped="".join("\\u%04x"%ord(c) for c in t)
+            print('{"jsonrpc":"2.0","id":12,"result":"'+escaped+'"}')
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for value in [token, quote(token, safe=""), quote(quote(token, safe=""), safe=""), "obsolete-value"]:
+            self.assertNotIn(value, result.stdout + result.stderr)
+        rows = [json.loads(row) for row in result.stdout.splitlines()]
+        self.assertEqual(rows[0]["result"]["items"], ["[REDACTED]"] * 3 + ["https://example.com/?token=[REDACTED]&keep=ok"])
+        self.assertEqual(rows[0]["result"]["unchanged"], {"ok": True})
+        self.assertEqual(rows[1], {"jsonrpc": "2.0", "id": 12, "result": "[REDACTED]"})
+
+    def test_split_output_and_stderr(self):
+        self.set_server("""
+            import os,json,sys,time
+            t=os.environ["PLAYWRIGHT_MCP_EXTENSION_TOKEN"]
+            for n in range(1,len(t)):
+                line=json.dumps({"jsonrpc":"2.0","id":n,"result":t})+"\\n"
+                i=line.index(t)+n
+                sys.stdout.write(line[:i]);sys.stdout.flush()
+                sys.stderr.write(t[:n]);sys.stderr.flush()
+                time.sleep(0.001)
+                sys.stdout.write(line[i:]);sys.stdout.flush()
+                sys.stderr.write(t[n:]+"\\n");sys.stderr.flush()
+            for n in range(200):
+                print(json.dumps({"jsonrpc":"2.0","id":100+n,"result":"x"*1024}))
+                print("y"*1024,file=sys.stderr)
+            sys.stderr.write(t)
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr[-200:])
+        self.assertNotIn("fake-muu-secret", result.stdout + result.stderr)
+        rows = [json.loads(row) for row in result.stdout.splitlines()]
+        self.assertEqual(len(rows), len("fake-muu-secret") - 1 + 200)
+        self.assertEqual(rows[0]["result"], "[REDACTED]")
+        self.assertTrue(result.stderr.endswith("[REDACTED]"))
+
+    def test_protocol_preserved(self):
+        self.set_server("""
+            import sys,json
+            for line in sys.stdin:
+                request=json.loads(line)
+                print(json.dumps({"jsonrpc":"2.0","method":"notifications/progress","params":{"step":1}}))
+                print(json.dumps({"jsonrpc":"2.0","id":request["id"],"result":request["params"]}))
+                sys.stdout.flush()
+        """)
+        requests = [{"jsonrpc": "2.0", "id": 23, "params": {"value": [True, None, 1.5]}},
+                    {"jsonrpc": "2.0", "id": "second", "params": {"text": "日本語"}}]
+        result = self.run_helper(input_text="".join(json.dumps(r) + "\n" for r in requests))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        rows = [json.loads(row) for row in result.stdout.splitlines()]
+        self.assertEqual(rows[0], {"jsonrpc": "2.0", "method": "notifications/progress", "params": {"step": 1}})
+        self.assertEqual([rows[1]["id"], rows[3]["id"]], [23, "second"])
+        self.assertEqual([rows[1]["result"], rows[3]["result"]], [r["params"] for r in requests])
+
+    def test_invalid_output_fails_closed(self):
+        cases = [
+            ("stdout", b'not-json fake-muu-secret\n'),
+            ("stdout", b'\xff fake-muu-secret\n'),
+            ("stdout", b'{"jsonrpc":"2.0","id":1,"result":"fake-muu-secret"}'),
+            ("stdout", b'{"jsonrpc":"2.0","id":"fake-muu-secret","result":null}\n'),
+            ("stdout", b'{"jsonrpc":"2.0","id":1,"result":{"fake-muu-secret":1,"[REDACTED]":2}}\n'),
+            ("stdout", b'{"jsonrpc":"2.0","id":1,"result":"' + b"x" * (16 * 1024 * 1024) + b'fake-muu-secret"}\n'),
+            ("stderr", b"fake-muu-secret" + b"x" * (64 * 1024) + b"\n"),
+        ]
+        for stream, data in cases:
+            with self.subTest(stream=stream, size=len(data)):
+                payload = self.home / "payload"
+                payload.write_bytes(data)
+                self.set_server(f"""
+                    import sys
+                    from pathlib import Path
+                    sys.{stream}.buffer.write(Path({str(payload)!r}).read_bytes())
+                    sys.{stream}.buffer.flush()
+                """)
+                result = subprocess.run([sys.executable, str(SCRIPT)], env=self.env,
+                                        capture_output=True, input=b"", timeout=12)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, b"")
+                self.assertNotIn(b"fake-muu-secret", result.stderr)
+
+    def test_shutdown_eof_and_signals(self):
+        import signal
+        import time
+        self.set_server("""
+            import os,sys,signal,time
+            from pathlib import Path
+            Path(os.environ["CAPTURE"]).write_text(str(os.getpid()))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            while True: time.sleep(0.05)
+        """)
+        for end in ("eof", "term", "int"):
+            with self.subTest(end=end):
+                self.capture.unlink(missing_ok=True)
+                p = subprocess.Popen([sys.executable, str(SCRIPT)], env=self.env,
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    deadline = time.monotonic() + 3
+                    while not self.capture.exists() and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    self.assertTrue(self.capture.exists(), "fake server did not start")
+                    child = int(self.capture.read_text())
+                    if end == "eof":
+                        p.stdin.close()
+                        p.stdin = None
+                    else:
+                        p.send_signal(signal.SIGTERM if end == "term" else signal.SIGINT)
+                    out, err = p.communicate(timeout=9)
+                    self.assertNotIn(b"fake-muu-secret", out + err)
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(child, 0)
+                finally:
+                    if p.poll() is None:
+                        p.kill()
+                        p.communicate()
+                    if self.capture.exists():
+                        try: os.kill(int(self.capture.read_text()), signal.SIGKILL)
+                        except ProcessLookupError: pass
+
+    def test_mixed_json_escape_in_stderr(self):
+        self.set_server(r"""
+            import sys,json
+            sys.stderr.write('f'+'\\u0061'+'ke-muu-secret')
+            print(json.dumps({'jsonrpc':'2.0','id':1,'result':'ok'}))
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "[REDACTED]")
+
+    def test_frame_size_boundary(self):
+        # Calculate only padding in the fixture, independently of the production limit.
+        frame = b'{"jsonrpc":"2.0","id":1,"result":"' + b'x' * (16 * 1024 * 1024 - len(b'{"jsonrpc":"2.0","id":1,"result":""}')) + b'"}'
+        self.assertEqual(len(frame), 16777216)
+        payload = self.home / "boundary"
+        payload.write_bytes(frame + b"\n")
+        self.set_server(f"""
+            import sys
+            from pathlib import Path
+            sys.stdout.buffer.write(Path({str(payload)!r}).read_bytes())
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["id"], 1)
+        self.assertEqual(len(result.stdout.encode()) - 1, 16777216)
+
+    def test_native_pi_transport_redaction_and_shutdown(self):
+        import shutil
+        import time
+        package = Path("/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent")
+        if not shutil.which("node") or not (package / "dist/extensions/mcp/runtime.js").exists():
+            self.skipTest("native Pi installation unavailable")
+        self.set_server("""
+            import sys,os,json,subprocess,time,signal
+            from pathlib import Path
+            grand=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'])
+            Path(os.environ['CAPTURE']).write_text(json.dumps([os.getpid(),grand.pid,os.getpgrp()]))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            for line in sys.stdin:
+                d=json.loads(line)
+                if 'id' not in d: continue
+                if d['method']=='initialize':
+                    result={'protocolVersion':'2025-06-18','capabilities':{'tools':{}},'serverInfo':{'name':'fixture','version':'1'}}
+                elif d['method']=='tools/list': result={'tools':[]}
+                else: result={'content':[{'type':'text','text':'https://example.com/?token='+os.environ['PLAYWRIGHT_MCP_EXTENSION_TOKEN']}]}
+                print(json.dumps({'jsonrpc':'2.0','id':d['id'],'result':result}),flush=True)
+            while True: time.sleep(0.05)
+        """)
+        js = """
+            import {createDefaultTransport} from 'RUNTIME';
+            import {McpClient} from 'CLIENT';
+            const c=new McpClient({name:'fixture-client',version:'1',requestTimeoutMs:5000});
+            const t=createDefaultTransport({name:'fixture',config:{command:process.env.PYTHON,args:[process.env.HELPER]}},process.cwd());
+            try {
+                await c.connect(t);
+                const r=await c.callTool('probe',{});
+                if(r.content[0].text!=='https://example.com/?token=[REDACTED]') throw Error('redaction failed');
+                console.log('native redaction PASS');
+            } finally { await c.close(); }
+        """.replace("RUNTIME", str(package / "dist/extensions/mcp/runtime.js")).replace("CLIENT", str(package / "node_modules/@earendil-works/pi-mcp/dist/client.js"))
+        env = dict(os.environ, **self.env, HELPER=str(SCRIPT), PYTHON=sys.executable)
+        result = subprocess.run([shutil.which("node"), "--input-type=module"], input=js, env=env,
+                                capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr[-500:])
+        self.assertEqual(result.stdout, "native redaction PASS\n")
+        self.assertNotIn("fake-muu-secret", result.stdout + result.stderr)
+        child, grand, group = json.loads(self.capture.read_text())
+        self.assertNotEqual(group, os.getpgrp())
+        deadline = time.monotonic() + 3
+        remaining = []
+        while time.monotonic() < deadline:
+            remaining = []
+            for pid in [child, grand]:
+                try: os.kill(pid, 0); remaining.append(pid)
+                except ProcessLookupError: pass
+            if not remaining: break
+            time.sleep(0.02)
+        self.assertEqual(remaining, [], "native transport left fixture processes")
+
+    def test_eof_deadline_with_stalled_stdin(self):
+        import signal
+        self.set_server("""
+            import os,signal,time
+            from pathlib import Path
+            Path(os.environ['CAPTURE']).write_text(str(os.getpid()))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            while True: time.sleep(0.05)
+        """)
+        p = subprocess.Popen([sys.executable, str(SCRIPT)], env=self.env,
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            try:
+                out, err = p.communicate(input=b'x' * (1024 * 1024), timeout=7)
+            except subprocess.TimeoutExpired:
+                self.fail("EOF did not stop the helper while child stdin was blocked")
+            self.assertNotIn(b"fake-muu-secret", out + err)
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int(self.capture.read_text()), 0)
+        finally:
+            if p.poll() is None:
+                p.kill(); p.communicate()
+            if self.capture.exists():
+                try: os.kill(int(self.capture.read_text()), signal.SIGKILL)
+                except ProcessLookupError: pass
+
+    def test_signal_during_large_structured_result(self):
+        import signal
+        self.set_server("""
+            import os,sys,json,signal,time
+            from pathlib import Path
+            Path(os.environ['CAPTURE']).write_text(str(os.getpid()))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            print(json.dumps({'jsonrpc':'2.0','id':1,'result':['x']*200000}),flush=True)
+            os.kill(os.getppid(),signal.SIGTERM)
+            while True: time.sleep(0.05)
+        """)
+        p = subprocess.Popen([sys.executable, str(SCRIPT)], env=self.env,
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            try:
+                out, err = p.communicate(timeout=6)
+            except subprocess.TimeoutExpired:
+                self.fail("signal was not handled within the structured-result shutdown bound")
+            self.assertNotIn(b"fake-muu-secret", out + err)
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int(self.capture.read_text()), 0)
+        finally:
+            if p.poll() is None:
+                p.kill(); p.communicate()
+            if self.capture.exists():
+                try: os.kill(int(self.capture.read_text()), signal.SIGKILL)
+                except ProcessLookupError: pass
+
+    def test_mixed_case_url_encoding(self):
+        self.secret().write_text("Fixture:+/_%secret")
+        self.set_server("""
+            import json,sys
+            values=['Fixture%3a%2B%2f_%25secret','Fixture%253a%252B%252f_%2525secret']
+            print(json.dumps({'jsonrpc':'2.0','id':4,'result':values}))
+            print(values[0],file=sys.stderr)
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['result'], ['[REDACTED]','[REDACTED]'])
+        self.assertEqual(result.stderr, '[REDACTED]\n')
+
+    def test_moderate_structured_result_remains_supported(self):
+        self.set_server("""
+            import json
+            print(json.dumps({'jsonrpc':'2.0','id':8,'result':['x']*200000}))
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(json.loads(result.stdout)['result']), 200000)
+
+    def test_traversal_runs_processing_checkpoints(self):
+        loader = importlib.machinery.SourceFileLoader('guard_checkpoint', str(SCRIPT))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
+        calls = []
+        def checkpoint():
+            calls.append(True)
+            if len(calls) == 3:
+                raise ValueError('fixture budget exhausted')
+        with self.assertRaisesRegex(ValueError, 'fixture budget exhausted'):
+            module.sanitize_message({'jsonrpc':'2.0','id':1,'result':['x']*1000}, 'fixture-token', checkpoint)
+        self.assertEqual(len(calls), 3)
 
 if __name__ == "__main__":
     unittest.main()

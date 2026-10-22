@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Start pinned Playwright MCP for the explicitly selected Pi account."""
 from contextlib import ExitStack
+from functools import lru_cache
+import json
+import re
 import os
 from pathlib import Path
 import stat
@@ -58,6 +61,269 @@ def read_token(home: Path, account: str) -> str:
             raise ValueError("browser token content is invalid")
         return token
 
+@lru_cache(maxsize=1)
+def _redactor(token: str):
+    """Compile once; percent-escape hex case varies independently per byte."""
+    from urllib.parse import quote
+    single = quote(token, safe="")
+    uri_patterns = []
+    for depth in (1, 2):
+        parts = []
+        for part in re.split(r"(%[0-9A-Fa-f]{2})", single):
+            if re.fullmatch(r"%[0-9A-Fa-f]{2}", part):
+                value = part if depth == 1 else "%25" + part[1:]
+                parts.append("(?i:" + re.escape(value) + ")")
+            else:
+                parts.append(re.escape(part))
+        uri_patterns.append("".join(parts))
+    escaped_chars = []
+    for char in token:
+        unicode_form = "\\u%04x" % ord(char) if ord(char) <= 0xffff else json.dumps(char, ensure_ascii=True)[1:-1]
+        upper_form = "\\u".join(part.upper() for part in unicode_form.split("\\u"))
+        choices = {char, json.dumps(char, ensure_ascii=True)[1:-1], unicode_form, upper_form}
+        if char == "/":
+            choices.add("\\/")
+        escaped_chars.append("(?:" + "|".join(re.escape(value) for value in sorted(choices, key=len, reverse=True)) + ")")
+    patterns = uri_patterns[::-1] + [re.escape(token), "".join(escaped_chars)]
+    return re.compile("|".join(patterns))
+
+
+def redact_text(text: str, token: str) -> str:
+    """Remove known credentials and ordinary URL token queries, not image pixels."""
+    if len(text) < min(len(token), 8):
+        return text
+    text = _redactor(token).sub("[REDACTED]", text)
+    return re.sub(r"([?&]token=)[^&#\s\"'<>]*", r"\1[REDACTED]", text, flags=re.IGNORECASE)
+
+
+class _RelayInterrupted(Exception):
+    def __init__(self, signum):
+        self.signum = signum
+
+
+def sanitize_message(message: dict, token: str, checkpoint=None) -> dict:
+    """Protect complete decoded JSON, preserving its JSON-RPC routing envelope."""
+    if not isinstance(message, dict) or message.get("jsonrpc") != "2.0":
+        raise ValueError("invalid MCP envelope")
+    for field in ("jsonrpc", "id"):
+        value = message.get(field)
+        if isinstance(value, str) and redact_text(value, token) != value:
+            raise ValueError("unsafe routing envelope")
+
+    visited = 0
+    if checkpoint:
+        checkpoint()
+    def clean(value):
+        nonlocal visited
+        visited += 1
+        if checkpoint and visited % 128 == 0:
+            checkpoint()
+        if isinstance(value, str):
+            return redact_text(value, token)
+        if isinstance(value, list):
+            return [clean(item) for item in value]
+        if isinstance(value, dict):
+            result = {}
+            for key, item in value.items():
+                safe_key = redact_text(key, token)
+                if safe_key in result:
+                    raise ValueError("redacted key collision")
+                result[safe_key] = clean(item)
+            return result
+        return value
+
+    return clean(message)
+
+
+def relay_mcp(argv: list[str], env: dict[str, str], token: str) -> int:
+    """Bounded stdio relay. Pi retains ownership of the shared process group."""
+    import selectors
+    import signal
+    import subprocess
+    import time
+
+    frame_limit, stderr_limit, queue_limit = 16 * 1024 * 1024, 64 * 1024, 32 * 1024 * 1024
+    _redactor(token)  # Prepare matching machinery once, before starting the child.
+    child = subprocess.Popen(argv, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    selector = selectors.SelectSelector()
+    incoming = {"stdout": bytearray(), "stderr": bytearray()}
+    pending = {"stdin": bytearray(), "out": bytearray(), "err": bytearray()}
+    fd = {"stdin": child.stdin.fileno(), "stdout": child.stdout.fileno(), "stderr": child.stderr.fileno(),
+          "in": sys.stdin.fileno(), "out": sys.stdout.fileno(), "err": sys.stderr.fileno()}
+    blocking = {number: os.get_blocking(number) for number in fd.values()}
+    handlers = {}
+    stopping = False
+    processing_started = None
+    eof = False
+    exit_seen = None
+    deadline = None
+    stage = 0
+
+    def request_stop(signum, _frame):
+        if not stopping:
+            raise _RelayInterrupted(signum)
+
+    def unregister(number):
+        try:
+            selector.unregister(number)
+        except KeyError:
+            pass
+
+    def watch_write(name):
+        if pending[name]:
+            try:
+                selector.register(fd[name], selectors.EVENT_WRITE, name)
+            except KeyError:
+                pass
+
+    def queue(name, data):
+        pending[name].extend(data)
+        if len(pending[name]) > queue_limit:
+            raise ValueError("backpressure limit exceeded")
+        watch_write(name)
+
+    def processing_checkpoint():
+        if processing_started is not None and time.monotonic() - processing_started > 1:
+            raise ValueError("frame processing budget exceeded")
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if len(result) % 128 == 0:
+                processing_checkpoint()
+            if key in result:
+                raise ValueError("duplicate JSON key")
+            result[key] = value
+        return result
+
+    def emit(name, data):
+        nonlocal processing_started
+        processing_started = time.monotonic()
+        text = data.decode("utf-8")
+        if name == "stderr":
+            queue("err", redact_text(text, token).encode("utf-8"))
+        elif text.strip():
+            message = json.loads(text, object_pairs_hook=unique_object,
+                                 parse_constant=lambda _value: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+            safe = sanitize_message(message, token, processing_checkpoint)
+            encoded = json.dumps(safe, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
+            if len(encoded) > frame_limit:
+                raise ValueError("encoded frame too large")
+            processing_checkpoint()
+            queue("out", encoded + b"\n")
+
+    try:
+        for number in fd.values():
+            os.set_blocking(number, False)
+        for name in ("stdout", "stderr", "in"):
+            selector.register(fd[name], selectors.EVENT_READ, name)
+        for signum in (signal.SIGTERM, signal.SIGINT):
+            handlers[signum] = signal.signal(signum, request_stop)
+        while True:
+            now = time.monotonic()
+            if eof and not pending["stdin"] and not child.stdin.closed:
+                unregister(fd["stdin"])
+                child.stdin.close()
+                deadline = deadline or now + 2
+            if child.poll() is not None and exit_seen is None:
+                exit_seen = now
+                unregister(fd["in"])
+                unregister(fd["stdin"])
+                pending["stdin"].clear()
+            if deadline is not None and now >= deadline and child.poll() is None:
+                if stage == 0:
+                    child.terminate()
+                    stage, deadline = 1, now + 2
+                elif stage == 1:
+                    child.kill()
+                    stage, deadline = 2, now + 2
+                else:
+                    raise ValueError("child did not stop")
+            if exit_seen is not None:
+                readable = any(key.data in ("stdout", "stderr") for key in selector.get_map().values())
+                if not readable and not pending["out"] and not pending["err"]:
+                    break
+                if now - exit_seen > 2:
+                    raise ValueError("child output did not close or drain")
+            for key, mask in selector.select(0.05):
+                name, number = key.data, key.fd
+                if mask & selectors.EVENT_WRITE:
+                    try:
+                        count = os.write(number, pending[name])
+                        del pending[name][:count]
+                    except BlockingIOError:
+                        continue
+                    except BrokenPipeError:
+                        if name != "stdin":
+                            raise
+                        pending[name].clear()
+                    if not pending[name]:
+                        unregister(number)
+                    continue
+                try:
+                    data = os.read(number, 65536)
+                except BlockingIOError:
+                    continue
+                if name == "in":
+                    if data:
+                        queue("stdin", data)
+                    else:
+                        eof = True
+                        deadline = deadline or time.monotonic() + 2
+                        unregister(number)
+                    continue
+                buffer = incoming[name]
+                if data:
+                    buffer.extend(data)
+                    while b"\n" in buffer:
+                        end = buffer.index(b"\n")
+                        if end > (frame_limit if name == "stdout" else stderr_limit):
+                            raise ValueError("output line too large")
+                        line = bytes(buffer[:end + 1])
+                        del buffer[:end + 1]
+                        emit(name, line)
+                    if len(buffer) > (frame_limit if name == "stdout" else stderr_limit):
+                        raise ValueError("output line too large")
+                else:
+                    unregister(number)
+                    if buffer:
+                        if name == "stdout" and bytes(buffer).strip():
+                            raise ValueError("incomplete JSON frame")
+                        if name == "stderr":
+                            emit(name, bytes(buffer))
+                        buffer.clear()
+        return child.returncode if child.returncode >= 0 else 128 - child.returncode
+    except _RelayInterrupted as stop:
+        return 128 + stop.signum
+    except (OSError, ValueError, RecursionError):
+        # No exception text or raw child output crosses this boundary.
+        try:
+            os.write(fd["err"], b"pi-browser-mcp: unsafe MCP output or transport failure; connection stopped\n")
+        except OSError:
+            pass
+        return 2
+    finally:
+        stopping = True
+        selector.close()
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                try:
+                    child.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    pass
+        for stream in (child.stdin, child.stdout, child.stderr):
+            stream.close()
+        for number, was_blocking in blocking.items():
+            try:
+                os.set_blocking(number, was_blocking)
+            except OSError:
+                pass
+        for signum, handler in handlers.items():
+            signal.signal(signum, handler)
+
 
 def main() -> int:
     account = os.environ.get("PI_BROWSER_ACCOUNT", "")
@@ -74,7 +340,7 @@ def main() -> int:
     env["PLAYWRIGHT_MCP_EXTENSION_TOKEN"] = token
     argv = ["npx", "-y", PACKAGE, "--extension", "--profile-dir-name", PROFILES[account]]
     try:
-        os.execvpe(argv[0], argv, env)
+        return relay_mcp(argv, env, token)
     except OSError:
         print("pi-browser-mcp: unable to start pinned Playwright MCP", file=sys.stderr)
         return 127
