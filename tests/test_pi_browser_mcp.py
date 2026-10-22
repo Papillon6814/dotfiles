@@ -153,6 +153,31 @@ class BrowserMcp(unittest.TestCase):
             with self.assertRaises(ValueError):
                 module.read_token(self.home, "muu")
 
+    def test_shared_mcp_entry(self):
+        import shutil
+        chezmoi = shutil.which("chezmoi")
+        self.assertIsNotNone(chezmoi, "chezmoi is needed to render the real MCP template")
+        fake_op = self.bin / "op"
+        fake_op.write_text("#!/bin/sh\nprintf '%s' fixture-secret\n")
+        fake_op.chmod(0o755)
+        config = self.home / "chezmoi.toml"
+        config.write_text("")
+        template = (ROOT / "dot_pi/private_agent/private_mcp.json.tmpl").read_text()
+        result = subprocess.run([chezmoi, "--config", str(config), "--source", str(self.home),
+                                 "--destination", str(self.home), "execute-template"],
+                                input=template, env=self.env, text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        servers = json.loads(result.stdout)["mcpServers"]
+        self.assertEqual(servers["playwright-browser"], {
+            "command": str(self.home / ".local/bin/pi-browser-mcp"),
+            "exposure": "codemode", "timeout": 120,
+            "description": "Control only the Chrome profile assigned to the Pi account; use only within the user's authorized browser task."
+        })
+        self.assertEqual(servers["slack"]["env"]["SLACK_BOT_TOKEN"], "fixture-secret")
+        self.assertEqual(servers["honeycomb"]["url"], "https://mcp.honeycomb.io/mcp")
+        self.assertEqual(servers["google_calendar"]["env"]["GOOGLE_OAUTH_CREDENTIALS"],
+                         str(self.home / ".config/google-calendar-mcp/gcp-oauth.keys.json"))
+        self.assertNotIn("fake-muu-secret", result.stdout)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,11 @@
 {
   "mcpServers": {
+    "playwright-browser": {
+      "command": "{{ .chezmoi.homeDir }}/.local/bin/pi-browser-mcp",
+      "exposure": "codemode",
+      "timeout": 120,
+      "description": "Control only the Chrome profile assigned to the Pi account; use only within the user's authorized browser task."
+    },
     "codemogger": {
       "command": "npx",
       "args": [
