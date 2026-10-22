@@ -407,5 +407,95 @@ class BrowserMcp(unittest.TestCase):
             time.sleep(0.02)
         self.assertEqual(remaining, [], "native transport left fixture processes")
 
+    def test_eof_deadline_with_stalled_stdin(self):
+        import signal
+        self.set_server("""
+            import os,signal,time
+            from pathlib import Path
+            Path(os.environ['CAPTURE']).write_text(str(os.getpid()))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            while True: time.sleep(0.05)
+        """)
+        p = subprocess.Popen([sys.executable, str(SCRIPT)], env=self.env,
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            try:
+                out, err = p.communicate(input=b'x' * (1024 * 1024), timeout=7)
+            except subprocess.TimeoutExpired:
+                self.fail("EOF did not stop the helper while child stdin was blocked")
+            self.assertNotIn(b"fake-muu-secret", out + err)
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int(self.capture.read_text()), 0)
+        finally:
+            if p.poll() is None:
+                p.kill(); p.communicate()
+            if self.capture.exists():
+                try: os.kill(int(self.capture.read_text()), signal.SIGKILL)
+                except ProcessLookupError: pass
+
+    def test_signal_during_large_structured_result(self):
+        import signal
+        self.set_server("""
+            import os,sys,json,signal,time
+            from pathlib import Path
+            Path(os.environ['CAPTURE']).write_text(str(os.getpid()))
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            print(json.dumps({'jsonrpc':'2.0','id':1,'result':['x']*200000}),flush=True)
+            os.kill(os.getppid(),signal.SIGTERM)
+            while True: time.sleep(0.05)
+        """)
+        p = subprocess.Popen([sys.executable, str(SCRIPT)], env=self.env,
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            try:
+                out, err = p.communicate(timeout=6)
+            except subprocess.TimeoutExpired:
+                self.fail("signal was not handled within the structured-result shutdown bound")
+            self.assertNotIn(b"fake-muu-secret", out + err)
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int(self.capture.read_text()), 0)
+        finally:
+            if p.poll() is None:
+                p.kill(); p.communicate()
+            if self.capture.exists():
+                try: os.kill(int(self.capture.read_text()), signal.SIGKILL)
+                except ProcessLookupError: pass
+
+    def test_mixed_case_url_encoding(self):
+        self.secret().write_text("Fixture:+/_%secret")
+        self.set_server("""
+            import json,sys
+            values=['Fixture%3a%2B%2f_%25secret','Fixture%253a%252B%252f_%2525secret']
+            print(json.dumps({'jsonrpc':'2.0','id':4,'result':values}))
+            print(values[0],file=sys.stderr)
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['result'], ['[REDACTED]','[REDACTED]'])
+        self.assertEqual(result.stderr, '[REDACTED]\n')
+
+    def test_moderate_structured_result_remains_supported(self):
+        self.set_server("""
+            import json
+            print(json.dumps({'jsonrpc':'2.0','id':8,'result':['x']*200000}))
+        """)
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(json.loads(result.stdout)['result']), 200000)
+
+    def test_traversal_runs_processing_checkpoints(self):
+        loader = importlib.machinery.SourceFileLoader('guard_checkpoint', str(SCRIPT))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
+        calls = []
+        def checkpoint():
+            calls.append(True)
+            if len(calls) == 3:
+                raise ValueError('fixture budget exhausted')
+        with self.assertRaisesRegex(ValueError, 'fixture budget exhausted'):
+            module.sanitize_message({'jsonrpc':'2.0','id':1,'result':['x']*1000}, 'fixture-token', checkpoint)
+        self.assertEqual(len(calls), 3)
+
 if __name__ == "__main__":
     unittest.main()
