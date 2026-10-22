@@ -10,13 +10,14 @@ class AccountLauncher(unittest.TestCase):
      for name in ("pi","pi-profile","pi-extension-deps-patch","pi-hermes-realpath-patch"):
       file=bin/name
       if name.startswith("pi-") and name.endswith("-patch"):file.write_text("#!/bin/sh\nexit 0\n")
-      else:file.write_text("#!/bin/sh\nprintf '%s\\n' "+name+" \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\n")
+      else:file.write_text("#!/bin/sh\nprintf '%s\\n' "+name+" \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\nprintf '%s' \"$PI_BROWSER_ACCOUNT\" > "+str(root/"browser-account")+"\n")
       file.chmod(0o755)
-     real=root/"real-pi";real.write_text("#!/bin/sh\nprintf '%s\\n' pi \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\n");real.chmod(0o755)
-     env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":str(real)}
+     real=root/"real-pi";real.write_text("#!/bin/sh\nprintf '%s\\n' pi \"$@\" > "+str(log)+"\nprintf '%s' \"$PI_CODING_AGENT_DIR\" > "+str(root/"agent-used")+"\nprintf '%s' \"$PI_BROWSER_ACCOUNT\" > "+str(root/"browser-account")+"\n");real.chmod(0o755)
+     env={"HOME":str(root),"PATH":str(bin)+":/usr/bin:/bin","PI_REAL_PI":str(real),"PI_BROWSER_ACCOUNT":"inherited-wrong"}
      if bypass:env["PI_PROFILE_LAUNCHER"]="0"
      result=subprocess.run(["bash",str(SCRIPT),account,"--model","value with space","--","日本語"],env=env,capture_output=True,text=True)
      self.assertEqual(result.returncode,0,result.stderr)
+     self.assertEqual((root/"browser-account").read_text(),account)
      calls=log.read_text().splitlines()
      self.assertEqual(calls[0],"pi" if bypass else "pi-profile")
      self.assertEqual(calls[1:],["--model","value with space","--","日本語"] if bypass else ["launch","--","--model","value with space","--","日本語"])
