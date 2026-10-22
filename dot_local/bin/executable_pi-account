@@ -13,6 +13,9 @@ case "$name" in
   *) echo "usage: pi-account <muu|rbx|kuno> [args...]" >&2; exit 2 ;;
 esac
 
+# 認証アカウントにChrome接続先を固定する（kunoの早期起動前に上書き）。
+export PI_BROWSER_ACCOUNT="$name"
+
 launch_pi() {
   export PI_SCAFFOLD_DIR="${PI_SCAFFOLD_DIR-$HOME/.pi/agent/pi-scaffold}"
   # shim（~/.local/bin/pi）に戻って無限ループしないよう、本物の pi を固定する
