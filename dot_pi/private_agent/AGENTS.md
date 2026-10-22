@@ -6,9 +6,11 @@
 
 ## ユーザー環境
 
-- Terminal: Ghostty
-- Multiplexer: tmux (Zellij互換モーダル設定)
-- Shell: fish (login shell は zsh、tmux default は fish)
+- Terminal / workspace: Muxy
+- Multiplexer: Herdr（Muxy 内で利用）
+- Shell: fish（login shell は zsh）
+- 同じ Muxy workspace 内の、別の Herdr セッションで動くエージェントともやり取りできる。必要に応じて `muxy-cli`・`herdr` スキルを参照し、対象のセッション・pane・エージェントを特定して、状態確認やメッセージ送受信を行う。
+- Herdr のセッションごとに接続先・ID のスコープは異なる。現在のセッションと他セッションを混同しない。やり取りが可能であることを、他の作業への介入・変更・停止の包括的な許可とは扱わない。
 - Editor: Neovim
 - Coding agent: 普段は pi coding agent を利用している（ただしまだ改善途中であり、不安定な挙動や機能不足がある可能性に留意すること）
 - 他の端末（Mac mini・MacBook Air・iPhone）とは NordVPN Meshnet でつながっている。SSH などで入る前に `~/Code/ai-secretary/reference/meshnet-devices.md`（IP・SSH ユーザー）を読み、`~/Code/ai-secretary/scripts/meshnet-check.sh` で届くか確かめる
