@@ -102,7 +102,7 @@ class BrowserMcp(unittest.TestCase):
         self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "MCP-STDOUT\n", "MCP-STDERR\n"))
 
     def test_invalid_secret_contents_no_spawn(self):
-        for content in (b"", b"\n", b"fake-muu-secret\nextra", b"fake-muu-secret\x00", b"x" * 4097, b"\xff"):
+        for content in (b"", b"\n", b"fake-muu-secret\nextra", b"fake-muu-secret\x00", b"x" * 4097, b"\xff", b"fake-muu-secret\xc2\x80", b"fake-muu-secret\xc2\x9f"):
             with self.subTest(content_kind=len(content)):
                 self.secret().write_bytes(content)
                 self.assert_rejected(self.run_helper())
