@@ -183,6 +183,20 @@ export default function (pi: ExtensionAPI) {
 	// Active worktree for the session. null = not yet activated (operate in main).
 	let activeWorktree: WorktreeInfo | null = null;
 
+	/**
+	 * Every change goes through here so other extensions can follow it on pi.events
+	 * ("worktree:active", { path, mainRoot }): pi-scaffold checks pinned docs in the active worktree,
+	 * because ctx.cwd stays at the main worktree. path null = back to main.
+	 */
+	function setActiveWorktree(next: WorktreeInfo | null, mainRoot: string | null = null): void {
+		if (activeWorktree?.path === next?.path) {
+			activeWorktree = next;
+			return;
+		}
+		activeWorktree = next;
+		pi.events.emit("worktree:active", { path: next?.path ?? null, mainRoot: next ? mainRoot : null });
+	}
+
 	/** Returns the currently active worktree, or null if not yet activated. */
 	function getActiveWorktree(): WorktreeInfo | null {
 		// Verify cached worktree still exists on disk
@@ -191,7 +205,7 @@ export default function (pi: ExtensionAPI) {
 				statSync(activeWorktree.path);
 				return activeWorktree;
 			} catch {
-				activeWorktree = null;
+				setActiveWorktree(null);
 			}
 		}
 		return activeWorktree;
@@ -205,7 +219,7 @@ export default function (pi: ExtensionAPI) {
 	function activateWorktree(cwd: string, override?: WorktreeInfo): WorktreeInfo | null {
 		const chosen = override ?? selectBestWorktree(getLinkedWorktrees(cwd));
 		if (!chosen) return null;
-		activeWorktree = chosen;
+		setActiveWorktree(chosen, getMainWorktreeRoot(cwd));
 		const branch = chosen.branch.replace(/^refs\/heads\//, "");
 		if (branch) {
 			pi.setSessionName(branch);
@@ -214,11 +228,11 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	function invalidateCache(): void {
-		activeWorktree = null;
+		setActiveWorktree(null);
 	}
 
 	pi.on("session_start", async (_event, ctx) => {
-		activeWorktree = null;
+		setActiveWorktree(null);
 
 		// --- Custom footer: show main / active worktree ---
 		if (!ctx.hasUI) return;
