@@ -6,10 +6,22 @@ import json
 import re
 import os
 from pathlib import Path
+import socket
 import stat
 import sys
 
-PROFILES = {"muu": "Profile 11", "kuno": "Default", "rbx": "Profile 6"}
+# Chrome profile directories differ per machine; match them by the signed-in account.
+DEFAULT_PROFILES = {"muu": "Profile 11", "kuno": "Default", "rbx": "Profile 6"}
+PROFILES_BY_HOST = {
+    "MacMininoMac-mini-4": {"muu": "Profile 6", "kuno": "Profile 8", "rbx": "Profile 7"},
+}
+
+
+def profiles_for_host(hostname: str) -> dict:
+    return PROFILES_BY_HOST.get(hostname.split(".")[0], DEFAULT_PROFILES)
+
+
+PROFILES = profiles_for_host(socket.gethostname())
 PACKAGE = "@playwright/mcp@0.0.83"
 MAX_TOKEN_BYTES = 4096
 

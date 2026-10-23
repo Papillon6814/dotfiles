@@ -15,6 +15,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "dot_local/bin/executable_pi-browser-mcp"
 
 
+def load_helper():
+    loader = importlib.machinery.SourceFileLoader("pi_browser_mcp_profiles", str(SCRIPT))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+HOST_PROFILES = load_helper().PROFILES
+
+
 class BrowserMcp(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="pi-browser-test-")
@@ -64,7 +75,7 @@ class BrowserMcp(unittest.TestCase):
             self.assertNotIn(f"fake-{account}-secret", result.stdout + result.stderr)
 
     def test_account_mapping(self):
-        for account, profile in (("muu", "Profile 11"), ("kuno", "Default"), ("rbx", "Profile 6")):
+        for account, profile in HOST_PROFILES.items():
             with self.subTest(account=account):
                 self.env["PI_BROWSER_ACCOUNT"] = account
                 result = self.run_helper()
@@ -74,6 +85,14 @@ class BrowserMcp(unittest.TestCase):
                 self.assertEqual(got["env"]["PLAYWRIGHT_MCP_EXTENSION_TOKEN"], f"fake-{account}-secret")
                 self.assertNotIn(f"fake-{account}-secret", result.stdout + result.stderr)
                 self.capture.unlink()
+
+    def test_profiles_follow_host(self):
+        module = load_helper()
+        self.assertEqual(module.profiles_for_host("Soichiros-MacBook-Pro.local"),
+                         {"muu": "Profile 11", "kuno": "Default", "rbx": "Profile 6"})
+        self.assertEqual(module.profiles_for_host("MacMininoMac-mini-4.local"),
+                         {"muu": "Profile 6", "kuno": "Profile 8", "rbx": "Profile 7"})
+        self.assertEqual(module.profiles_for_host("unknown-host"), module.DEFAULT_PROFILES)
 
     def test_unknown_account_no_spawn(self):
         for value in (None, "", "other", "../kuno", "muu\n"):
@@ -95,7 +114,7 @@ class BrowserMcp(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         got = json.loads(self.capture.read_text())
         self.assertEqual(got["env"], {"PLAYWRIGHT_MCP_EXTENSION_TOKEN": "fake-muu-secret"})
-        self.assertEqual(got["argv"][-1], "Profile 11")
+        self.assertEqual(got["argv"][-1], HOST_PROFILES["muu"])
 
     def test_stdio_passthrough(self):
         result = self.run_helper()
