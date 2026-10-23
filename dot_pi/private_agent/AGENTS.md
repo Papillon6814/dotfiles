@@ -57,10 +57,11 @@
 
 ### ブラウザ操作
 
-- ブラウザ操作は既存 Chrome を `chrome-cdp` skill で行うことを第一選択とする。Computer Use MCP でブラウザを操作しない。
-- `chrome-cdp` が技術的に対応できない場合に限り、失敗内容・作業状態・切替理由をユーザーへ報告したうえで、`opencli-browser` skill の手順に従い、OpenCLIへ切り替えてよい。サブエージェントは親へ報告する。切替後も対象・許可された操作範囲を維持する。
+- ブラウザ操作は `playwright-browser` MCP（Playwright 拡張機能。起動したアカウントの Chrome プロファイルを操作する）を第一選択とする。Computer Use MCP でブラウザを操作しない。
+- 操作するのは自分で開いたタブだけにし、終わったら閉じる。利用者が開いている既存のタブは操作しない。
+- `playwright-browser` が技術的に対応できない場合に限り、失敗内容・作業状態・切替理由をユーザーへ報告したうえで、`chrome-cdp` skill、次に `opencli-browser` skill の手順に従って切り替えてよい。サブエージェントは親へ報告する。切替後も対象・許可された操作範囲を維持する。
 - 認証・操作許可の不足、MFA・CAPTCHA、想定外の権限要求やセキュリティ上の拒否は、経路切替で回避しない。
-- Chrome の remote debugging が必要な場合は `chrome://inspect/#remote-debugging` で有効化を依頼
+- `chrome-cdp` で Chrome の remote debugging が必要な場合は `chrome://inspect/#remote-debugging` で有効化を依頼
 
 ### デスクトップ操作
 
