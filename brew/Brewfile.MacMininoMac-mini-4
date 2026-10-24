@@ -1,4 +1,5 @@
 tap "muxy-app/tap"
+tap "openclaw/tap"
 tap "rjyo/moshi", trusted: true
 tap "supabase/tap"
 tap "vjeantet/tap"
@@ -60,6 +61,8 @@ brew "uv"
 brew "xcodegen"
 # Pluggable terminal workspace, with terminal multiplexer as the base feature
 brew "zellij"
+# Lightning-fast macOS screenshots & AI vision analysis
+brew "openclaw/tap/peekaboo", trusted: true
 # Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
 brew "rjyo/moshi/moshi-hook"
 # Supabase CLI
