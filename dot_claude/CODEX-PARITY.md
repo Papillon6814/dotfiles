@@ -4,7 +4,7 @@
 
 ## 反映したもの
 
-- `~/.codex/AGENTS.md`: 日本語、ユーザー環境、コミュニケーション、計画、Exa 優先、ブラウザ委任、運用ルールの参照。
+- `~/.codex/AGENTS.md`: 日本語、ユーザー環境、コミュニケーション、計画、Exa 優先、ブラウザ直接操作（2026-10-24改訂。本人操作待ちは接続維持）、運用ルールの参照。
 - `~/.codex/instructions/`: git-workflow / google-services / game-design-knowledge。AGENTS.md から該当タスク時に読む。Codex の rules ディレクトリはコマンド実行ポリシー用なので、文章ルールは別の場所に置いた。
 - `~/.codex/agents/`: game-design-reviewer と review-* 6件を TOML へ変換。Claude の haiku 指定は移植せず親の Codex モデルを継承する。
 - `~/.codex/skills/`: grill-me、research、japanese-english を追加。research は作成したレポートファイルを plannotator annotate で開く。
