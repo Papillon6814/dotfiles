@@ -9,7 +9,7 @@
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "packages": [
-    "npm:pi-ask-user",
+    "~/.local/share/muxy-ask-relay/current/pi-ask-user",
     "npm:@coctostan/pi-exa-gh-web-tools",
     "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
     "git:github.com/leblancfg/pi-ansi-themes",
