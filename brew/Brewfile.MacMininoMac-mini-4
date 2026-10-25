@@ -47,6 +47,8 @@ brew "ripgrep"
 brew "rojo"
 # Editor of encrypted files
 brew "sops"
+# Tool to enforce Swift style and conventions
+brew "swiftlint"
 # Send macOS User Notifications from the command-line
 brew "terminal-notifier"
 # OCR (Optical Character Recognition) engine
