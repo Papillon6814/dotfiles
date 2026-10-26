@@ -47,6 +47,8 @@ brew "openjdk"
 brew "openjdk@17"
 # Simplistic interactive filtering tool
 brew "peco"
+# macOS screen capture, accessibility inspection and UI automation
+brew "peekaboo"
 # Fast, disk space efficient package manager
 brew "pnpm"
 # PDF rendering library (based on the xpdf-3.0 code base)
