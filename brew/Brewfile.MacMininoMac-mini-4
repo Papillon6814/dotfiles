@@ -17,6 +17,10 @@ brew "eza"
 brew "fd"
 # Play, record, convert, and stream select audio and video codecs
 brew "ffmpeg"
+# OCR (Optical Character Recognition) engine
+brew "tesseract"
+# Play, record, convert, and stream many audio and video codecs
+brew "ffmpeg-full"
 # User-friendly command-line shell for UNIX-like operating systems
 brew "fish"
 # Command-line fuzzy finder written in Go
@@ -51,8 +55,6 @@ brew "sops"
 brew "swiftlint"
 # Send macOS User Notifications from the command-line
 brew "terminal-notifier"
-# OCR (Optical Character Recognition) engine
-brew "tesseract"
 # Enables extra languages support for Tesseract
 brew "tesseract-lang"
 # Terminal multiplexer
@@ -85,8 +87,6 @@ cask "ghostty"
 cask "muxy"
 # Control your tools with a few keystrokes
 cask "raycast"
-# Mesh VPN based on WireGuard
-cask "tailscale-app"
 # Messaging app with a focus on speed and security
 cask "telegram"
 uv "serena-agent"
