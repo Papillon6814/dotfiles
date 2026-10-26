@@ -145,6 +145,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "PermissionRequest": [
@@ -177,6 +187,16 @@
             "command": "/bin/bash ~/.claude/hooks/cleanup-merged-worktrees.sh --claude-post-tool-use",
             "if": "Bash(git *)",
             "timeout": 30
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
@@ -212,6 +232,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -242,6 +272,16 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "Stop": [
@@ -268,6 +308,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "StopFailure": [
@@ -289,6 +339,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "SubagentStop": [
@@ -298,6 +358,16 @@
             "type": "command",
             "command": "/bin/bash ~/.claude/hooks/notify.sh",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
@@ -321,6 +391,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -341,6 +421,52 @@
             "type": "command",
             "command": "/bin/sh ~/.claude/hooks/herdr-session-context.sh",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
