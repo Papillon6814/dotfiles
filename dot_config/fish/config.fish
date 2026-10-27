@@ -125,27 +125,6 @@ alias claude-personal='claude-profile -P personal'
 # c / cw: 引数なしの対話起動で Profile（なし／Development）を選ぶ。定義は claude-scaffold 側
 test -f ~/Documents/Github/claude-scaffold/shell/c.fish; and source ~/Documents/Github/claude-scaffold/shell/c.fish
 
-# --- Happy (スマホ承認・通知) ---
-# Happy を通すのは firstmate の親と、明示的に cwh で起動したときだけ。
-# 素の claude / c / cw / co は Happy を通さない。
-# firstmate の親: `fm`
-function fm
-    cd ~/Code/firstmate; and happy claude --dangerously-skip-permissions $argv
-end
-# personal + 権限スキップ + Happy: `cwh`
-# claude-profile も Happy もラッパーで直列につなげないので CLAUDE_CONFIG_DIR を直接渡す
-function cwh
-    env CLAUDE_CONFIG_DIR=$HOME/.claude-profiles/personal/config happy claude --dangerously-skip-permissions $argv
-end
-
-# Codex: skip approvals and sandbox
-alias co='codex --dangerously-bypass-approvals-and-sandbox'
-
-# Codex work account: separate authentication via codex-profile
-function cow
-    codex-profile cli work --dangerously-bypass-approvals-and-sandbox $argv
-end
-
 # Letta: resume Finn
 alias le='letta -n Finn'
 
@@ -161,7 +140,7 @@ end
 
 # --- Muxy で開いたシェルは herdr に入る（2026-10-15） ---
 # Muxy Beta は端末を muxy-server が fish -l で直接起動し、ghostty.conf の command を使わないため、ここで herdr へ移る。
-# セッション名はディレクトリ名（firstmate だけ default）。herdr がタブ・ペイン・エージェント（resume_agents_on_restore）を復元する。
+# セッション名はディレクトリ名（firstmate だけ default。Muxy の Coding Manager がこのフォルダを使う）。herdr がタブ・ペイン・エージェント（resume_agents_on_restore）を復元する。
 # PATH を全部足した後に置くこと（herdr サーバーとプラグインがこの PATH を引き継ぐ）。素の fish が欲しいときは MUXY_NO_HERDR=1。
 if status is-interactive; and test "$TERM_PROGRAM" = muxy; and not set -q HERDR_ENV; and not set -q MUXY_NO_HERDR; and type -q herdr
     set -l __herdr_session (path basename -- $PWD)

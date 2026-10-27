@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ENTRIES = ("dot_claude/CLAUDE.md", "dot_codex/AGENTS.md", "dot_pi/private_agent/AGENTS.md")
+ENTRIES = ("dot_claude/CLAUDE.md", "dot_pi/private_agent/AGENTS.md")
 FORCED = re.compile(r"ブラウザ操作は必ずエージェントチーム|コーディネーターはブラウザツールを直接呼び出さない|ブラウザ操作は利用可能ならサブエージェントに委任")
 
 class BrowserOperationPolicyTests(unittest.TestCase):
@@ -19,14 +19,12 @@ class BrowserOperationPolicyTests(unittest.TestCase):
                 self.assertNotRegex(text, r"(?m)^undefined$")
 
     def test_browser_workers_are_opt_in(self):
-        for name in ("dot_pi/private_agent/agents/browser-verifier.md",
-                     "dot_codex/agents/browser-verifier.toml"):
+        for name in ("dot_pi/private_agent/agents/browser-verifier.md",):
             with self.subTest(path=name):
                 self.assertIn("明示的に委任", (ROOT / name).read_text())
 
     def test_optional_workers_keep_connection_during_human_wait(self):
-        for name in ("dot_pi/private_agent/agents/browser-verifier.md",
-                     "dot_codex/agents/browser-verifier.toml"):
+        for name in ("dot_pi/private_agent/agents/browser-verifier.md",):
             with self.subTest(path=name):
                 text = (ROOT / name).read_text()
                 self.assertTrue("本人操作待ちは終了せず" in text, name)
@@ -41,7 +39,7 @@ class BrowserOperationPolicyTests(unittest.TestCase):
             self.assertIn(fence, text)
 
     def test_existing_safety_boundaries_remain(self):
-        pi = (ROOT / ENTRIES[2]).read_text()
+        pi = (ROOT / ENTRIES[1]).read_text()
         for fence in ("playwright-browser", "自分で開いたタブ", "MFA・CAPTCHA", "経路切替で回避しない"):
             self.assertIn(fence, pi)
         claude = (ROOT / ENTRIES[0]).read_text()

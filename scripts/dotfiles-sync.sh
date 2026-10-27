@@ -89,7 +89,7 @@ else
 fi
 
 # --- 2. 新しい未登録ファイルの通知（既存分は基準として記録し、新顔だけ知らせる） ---
-managed_dirs=( "$HOME/.claude" "$HOME/.pi/agent" "$HOME/.agents/skills" "$HOME/.codex/skills" "$HOME/.codex/agents" "$HOME/.config/fish" "$HOME/.config/herdr" "$HOME/.config/nvim" )
+managed_dirs=( "$HOME/.claude" "$HOME/.pi/agent" "$HOME/.agents/skills""$HOME/.config/fish" "$HOME/.config/herdr" "$HOME/.config/nvim" )
 unmanaged="$(chezmoi unmanaged "${managed_dirs[@]}" 2>/dev/null | grep -v -E '\.bak|backup|\.log$|\.lock$' | sort)"
 baseline="$state/unmanaged-baseline"
 if [ ! -f "$baseline" ]; then

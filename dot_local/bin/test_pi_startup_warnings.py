@@ -13,16 +13,15 @@ PACKAGE_PATHS = (
     "npm/node_modules/pi-hashline-edit-pro",
     "npm/node_modules/@schovest/pi-goal",
     "npm/node_modules/@georgedong32/pi-review",
-    "git/github.com/danecando/pi-codex-computer-use",
     "pi-deep-research-exa",
 )
 HOST_DEPENDENCIES = (
     "@earendil-works/pi-tui", "typebox", "typebox",
-    "@sinclair/typebox", "typebox", "@sinclair/typebox",
+    "@sinclair/typebox", "@sinclair/typebox",
 )
 PEER_DEPENDENCIES = (
     "@earendil-works/pi-tui", "typebox", "typebox",
-    "typebox", "typebox", "@sinclair/typebox",
+    "typebox", "@sinclair/typebox",
 )
 
 

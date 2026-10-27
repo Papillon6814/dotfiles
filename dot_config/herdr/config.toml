@@ -4,7 +4,6 @@ onboarding = false
 agent_panel_sort = "spaces" # herdr-agent-quota
 
 tab_bar_right = [
-  { type = "command", command = "$HOME/.config/herdr/codex-account-status.sh", interval_seconds = 5, timeout_seconds = 2 },
   { type = "command", command = "python3 $HOME/.config/herdr/pi-account-status.py", interval_seconds = 5, timeout_seconds = 3 },
 ]
 tab_bar_right_separator = " · "

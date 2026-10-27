@@ -88,7 +88,6 @@
       "Bash(hostname)",
       "Bash(jq *)",
       "Bash(textutil *)",
-      "Bash(openclaw *)",
       "mcp__blender__*",
       "mcp__claude-in-chrome__*",
       "WebFetch",
@@ -134,11 +133,6 @@
             "type": "command",
             "command": "/bin/bash ~/.claude/hooks/notify.sh",
             "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh notify",
-            "timeout": 5
           }
         ]
       },
@@ -173,18 +167,19 @@
             "timeout": 10
           }
         ]
-      }
-    ],
-    "PostToolUse": [
+      },
       {
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh tool-done",
-            "timeout": 5
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PermissionRequest # muxy-ask-relay",
+            "timeout": 86400
           }
         ]
-      },
+      }
+    ],
+    "PostToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
@@ -205,6 +200,16 @@
             "timeout": 3
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUse # muxy-ask-relay",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -216,16 +221,6 @@
             "command": "cmd=$(jq -r '.tool_input.command // empty'); if printf '%s' \"$cmd\" | grep -qE 'gog[[:space:]]+(gmail|mail|email)[[:space:]]+((draft|drafts)[[:space:]]+(send|post)|send|forward|fwd|autoreply)([[:space:]]|$)'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"メール送信は明示的なユーザー許可が必要（厳格ルール 2026-08-17）\"}}'; fi",
             "if": "Bash(gog *)",
             "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion|ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh ask",
-            "timeout": 5
           }
         ]
       },
@@ -248,18 +243,19 @@
             "timeout": 3
           }
         ]
-      }
-    ],
-    "SessionEnd": [
+      },
       {
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh end",
-            "timeout": 5
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PreToolUse # muxy-ask-relay",
+            "timeout": 10
           }
         ]
-      },
+      }
+    ],
+    "SessionEnd": [
       {
         "matcher": "",
         "hooks": [
@@ -288,6 +284,16 @@
             "timeout": 3
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs SessionEnd # muxy-ask-relay",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
@@ -296,11 +302,6 @@
           {
             "type": "command",
             "command": "/bin/bash ~/.claude/hooks/notify.sh",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh stop",
             "timeout": 5
           }
         ]
@@ -324,18 +325,18 @@
             "timeout": 3
           }
         ]
-      }
-    ],
-    "StopFailure": [
+      },
       {
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh stop",
-            "timeout": 5
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs Stop # muxy-ask-relay",
+            "timeout": 10
           }
         ]
-      },
+      }
+    ],
+    "StopFailure": [
       {
         "matcher": "",
         "hooks": [
@@ -380,15 +381,6 @@
     ],
     "UserPromptSubmit": [
       {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/tabby-indicator.sh prompt",
-            "timeout": 5
-          }
-        ]
-      },
-      {
         "matcher": "",
         "hooks": [
           {
@@ -405,6 +397,15 @@
             "type": "command",
             "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
             "timeout": 3
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs UserPromptSubmit # muxy-ask-relay",
+            "timeout": 10
           }
         ]
       }
@@ -449,6 +450,16 @@
             "type": "command",
             "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
             "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUseFailure # muxy-ask-relay",
+            "timeout": 10
           }
         ]
       }

@@ -13,7 +13,6 @@ packages = (
     ("npm/node_modules/pi-hashline-edit-pro", "typebox"),
     ("npm/node_modules/@schovest/pi-goal", "typebox"),
     ("npm/node_modules/@georgedong32/pi-review", "@sinclair/typebox"),
-    ("git/github.com/danecando/pi-codex-computer-use", "typebox"),
     ("pi-deep-research-exa", "@sinclair/typebox"),
 )
 

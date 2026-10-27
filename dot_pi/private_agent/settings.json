@@ -41,11 +41,6 @@
     "npm:pi-claude-marketplace",
     "npm:@giuseppe.trisciuoglio/pi-rules",
     {
-      "source": "git:github.com/danecando/pi-codex-computer-use@3b00bd4829ccdb0b9797b4101743dd9e883b4e7d",
-      "extensions": [],
-      "skills": []
-    },
-    {
       "source": "npm:pi-deep-research@0.4.1",
       "extensions": [],
       "skills": [],

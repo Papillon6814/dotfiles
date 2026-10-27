@@ -56,15 +56,6 @@
 - CLAUDE.md は ~500行以内を目安に保つ
 - `rules/agent-discipline.md` と全 rules は、pi の `~/.pi/agent/AGENTS.md` と同じ規律を書いたもの。片方を直したら、もう片方も同じ意味に直す（dotfiles の `dot_claude/` と `dot_pi/private_agent/AGENTS.md`）
 
-## MCP 設定の共有
-
-- Claude Code / Codex 間の MCP 設定を追加・変更・同期する際は、先に `/Users/papillon/.claude/MCP-SYNC.md` を読むこと。
-- Claude 側の `~/.claude.json` を元に `python3 ~/.codex/bin/sync-claude-mcp.py --apply` で Codex へ手動同期する。自動同期・双方向同期ではない。
-
-## Codex 側への設定反映
-
-Codex 側の設定対応・更新手順・製品差は `~/.claude/CODEX-PARITY.md` を参照する。MCP 以外は自動同期ではない。
-
 <!-- ZVEC_GREP_START -->
 ## zvec-grep
 
