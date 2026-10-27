@@ -8,6 +8,10 @@ scripts
 brew
 # 試験の証拠置き場（消えた一時フォルダへのリンクを含み、chezmoi apply が止まる）
 work
+# 調査メモ・Python のキャッシュ・fish の退避は、ホームに配らない
+research_*.md
+**/__pycache__
+.config/fish/*.bak.*
 # テストはリポジトリで実行するだけで、ホームには配らない
 **/test_*.py
 
