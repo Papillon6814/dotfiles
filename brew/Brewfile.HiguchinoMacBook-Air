@@ -2,6 +2,7 @@ tap "openclaw/tap"
 tap "oven-sh/bun", trusted: { formulae: ["bun"] }
 tap "rjyo/moshi", trusted: true
 tap "steipete/tap"
+tap "tanabee/tap"
 tap "vjeantet/tap", trusted: { formulae: ["alerter"] }
 # Simple, modern, secure file encryption
 brew "age"
@@ -71,6 +72,8 @@ brew "volta"
 brew "zellij"
 # Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
 brew "rjyo/moshi/moshi-hook"
+# Keep your Mac awake even with the lid closed
+brew "tanabee/tap/awake", trusted: true
 # Password manager that keeps all passwords secure behind one password
 cask "1password"
 # Command-line interface for 1Password
