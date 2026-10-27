@@ -43,6 +43,8 @@ brew "cloudflared"
 brew "delve"
 # Load/unload environment variables based on $PWD
 brew "direnv"
+# More intuitive version of du in rust
+brew "dust"
 # Language Server and Debugger for Elixir
 brew "elixir-ls"
 # Speed up eslint to accelerate your development workflow
@@ -185,6 +187,8 @@ brew "yt-dlp"
 brew "zellij"
 # Named Codex CLI profiles with separate local ChatGPT desktop state
 brew "ducksss/tap/codex-profile", trusted: true
+# Lightning-fast macOS screenshots & AI vision analysis
+brew "openclaw/tap/peekaboo", trusted: true
 # Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
 brew "rjyo/moshi/moshi-hook"
 # Supabase CLI
@@ -317,6 +321,7 @@ mas "Xcode", id: 497799835
 vscode "evaera.vscode-rojo"
 vscode "jonathan-yeung.mark-sharp"
 vscode "ms-vscode-remote.remote-containers"
+vscode "vscodevim.vim"
 vscode "waderyan.gitblame"
 uv "graphifyy[mcp]"
 uv "kabi-discord-cli"

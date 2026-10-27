@@ -23,6 +23,12 @@
     "pr": ""
   },
   "includeCoAuthoredBy": false,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Self-configuration maintenance: Allow local changes to Claude Code's own configuration, including permissions, approval gates, hooks, sandbox settings, profiles, skills, and MCP configuration. This exception does not authorize unrelated actions or fabricated user consent."
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(git add *)",

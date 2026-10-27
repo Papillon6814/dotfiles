@@ -171,3 +171,7 @@ if status is-interactive; and test "$TERM_PROGRAM" = muxy; and not set -q HERDR_
         exec herdr --session $__herdr_session
     end
 end
+
+# >>> grok installer >>>
+fish_add_path $HOME/.grok/bin
+# <<< grok installer <<<

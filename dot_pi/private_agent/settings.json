@@ -1,6 +1,7 @@
 {
   "extensions": [
-    "+builtin:codemode"
+    "+builtin:codemode",
+    "/Users/papillon/Library/Application Support/ai-improvement/extensions/pi/index.ts"
   ],
   "defaultTools": [
     "+codemode"
@@ -55,7 +56,9 @@
     "npm:@injaneity/pi-computer-use@0.5.1",
     "git:github.com/KendrickMalar/pi-model-roles@0cea28dcb976dc79ac12ee7903c79f34a6cd41d3",
     "../../Documents/Github/pi-claude-local",
-    "npm:pi-remote-control"
+    "npm:pi-remote-control",
+    "npm:pi-context-usage@2.1.0",
+    "npm:@cthulberg/pi-autoresume@0.2.0"
   ],
   "skills": [
     "!../../.agents/skills/using-git-worktrees/SKILL.md",
@@ -113,7 +116,8 @@
   "enabledModels": [
     "openai-codex/gpt-6-luna",
     "openai-codex/gpt-6-astra",
-    "openai-codex/gpt-6.1-sol"
+    "openai-codex/gpt-6.1-sol",
+    "xai/grok-4.7"
   ],
   "warnings": {
     "anthropicExtraUsage": false
