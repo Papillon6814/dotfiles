@@ -121,6 +121,7 @@ MCP サーバ実体（使う場合のみ）:
 - **コピーのまま残るもの**: テンプレート（`.tmpl`。秘密情報を 1Password から埋め込むもの）、実行ファイル、`private_` のファイル。これらはホームで編集したら `chezmoi re-add` が必要
 - **置き場所は `~/Code/dotfiles`**。`~/Documents` は macOS のプライバシー保護の対象で、launchd や GUI アプリがリンク越しに読めなくなるため置かない
 - **自動同期**: `scripts/install-dotfiles-sync.sh` で launchd ジョブを設置すると、5分ごとに `scripts/dotfiles-sync.sh` が外れたリンクの修復・検査つきの commit と push・ずれの通知を行う（ログは `~/Library/Logs/dotfiles-sync.log`、通知は `scripts/notify.sh`）
+- **/private/tmp の掃除**: `scripts/install-tmp-cleanup.sh` で launchd ジョブを設置すると、6時間ごとに `scripts/tmp-cleanup.sh` が `/private/tmp` の `ael-*`・`scaffold-pr-*` のうち、3日更新がなく、どのプロセスも開いていないものを消す（ログは `~/.local/state/tmp-cleanup.log`。`--dry-run` で消す対象だけ表示）
 - **このリポジトリの main checkout でブランチを切り替えない**。リンク先が変わり、ホームの設定が即座に変わる。作業は worktree で行い、`chezmoi --source <worktree> add ...` を使う
 - **コミット前の検査**: `scripts/git-hooks/pre-commit`（gitleaks と JSON の構文）。`~/.git-hooks` のディスパッチャから、`.git/hooks/pre-commit` 経由で呼ばれる
 - **Homebrew**: `brew/Brewfile.<ホスト名>` に一覧を置く。自動では入れない。新しい Mac では `brew bundle --file=brew/Brewfile.<ホスト名>` を手で実行する。更新は `brew bundle dump --file=brew/Brewfile.$(chezmoi execute-template '{{ .chezmoi.hostname }}') --force`

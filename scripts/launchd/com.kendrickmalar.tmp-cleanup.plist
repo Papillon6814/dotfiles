@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  tmp-cleanup（6時間ごと）。/private/tmp の ael-*・scaffold-pr-* のうち、3日更新がなく、どのプロセスも開いていないものを消す。
+  直接コピーせず scripts/install-tmp-cleanup.sh で設置する（__HOME__・__REPO__ を置き換えて ~/Library/LaunchAgents に置き、bootstrap する）。
+
+  状態:     launchctl print gui/$(id -u)/com.kendrickmalar.tmp-cleanup
+  即時実行: launchctl kickstart -k gui/$(id -u)/com.kendrickmalar.tmp-cleanup
+  停止:     scripts/install-tmp-cleanup.sh に uninstall を付けて実行
+  ログ:     ~/.local/state/tmp-cleanup.log（消したもの）、~/.local/state/tmp-cleanup.launchd.log（標準出力・エラー）
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kendrickmalar.tmp-cleanup</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO__/scripts/tmp-cleanup.sh</string>
+  </array>
+
+  <!-- 6時間ごと。スリープ明けにも取り残しが少ない -->
+  <key>StartInterval</key>
+  <integer>21600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/.local/state/tmp-cleanup.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.local/state/tmp-cleanup.launchd.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>__HOME__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LANG</key>
+    <string>ja_JP.UTF-8</string>
+    <key>PATH</key>
+    <string>/usr/sbin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>
