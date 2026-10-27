@@ -6,6 +6,8 @@ docs
 tests
 scripts
 brew
+# 試験の証拠置き場（消えた一時フォルダへのリンクを含み、chezmoi apply が止まる）
+work
 # テストはリポジトリで実行するだけで、ホームには配らない
 **/test_*.py
 
