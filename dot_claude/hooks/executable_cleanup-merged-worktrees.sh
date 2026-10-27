@@ -72,16 +72,45 @@ first_parent=$(g rev-list --first-parent "refs/heads/$def")
 on_first_parent() { printf '%s\n' "$first_parent" | grep -qxF -e "$1"; }
 # 子エージェントの会話記録・証拠は、無視ファイルでも失うと resume できない（2026-10-18）
 has_artifacts() { [ -e "$1/.task-artifacts" ]; }
+
+# 親ブランチ（epic/* ＞ feat/* ＞ その他）へ --no-ff で取り込まれたら、worktree だけ先に消す。
+# ブランチは既定ブランチに入るまで残し、入ったら pending の記録から消す（2026-10-27）
+rank() { case "$1" in epic/*) echo 2 ;; feat/*) echo 1 ;; *) echo 0 ;; esac; }
+fp_dir=$(mktemp -d "${TMPDIR:-/tmp}/cleanup-wt.XXXXXX") || exit 0
+trap 'rm -rf "$fp_dir"' EXIT
+merged_parent() {
+  local br=$1 tip=$2 p r f
+  r=$(rank "$br")
+  for p in $(g for-each-ref --contains "$tip" --format='%(refname:short)' refs/heads/epic refs/heads/feat); do
+    [ "$p" = "$br" ] && continue
+    [ "$(rank "$p")" -gt "$r" ] || continue
+    f="$fp_dir/$(printf '%s' "$p" | tr '/' '_')"
+    [ -f "$f" ] || g rev-list --first-parent "refs/heads/$p" >"$f"
+    grep -qxF -e "$tip" "$f" && continue
+    echo "$p"; return 0
+  done
+  return 1
+}
+pending_file="$HOME/.local/state/cleanup-merged-worktrees.branches"
+pending_new=""
+
 check_and_remove() {
-  local wt=$1 br=$2 head=$3
+  local wt=$1 br=$2 head=$3 tip into=""
   { [ "$wt" = "$main_root" ] || [ "$br" = "$def" ]; } && return
   managed "$wt" || return
+  # Epic は段階ごとに何度も既定ブランチへ入り、その後も続く。worktree もブランチも自動では消さない（2026-10-27）
+  case "$br" in epic/*) return ;; esac
   if [ -n "$br" ]; then
-    g merge-base --is-ancestor "refs/heads/$br" "refs/heads/$def" 2>/dev/null || return
-    has_artifacts "$wt" && { keep "$wt" "$br" ".task-artifacts あり（子の記録）"; return; }
-    # 作っただけ・既定ブランチに戻しただけのブランチも「祖先」になる。先端が既定ブランチの
-    # first-parent の列に載っていれば、独自のコミットがマージで入ったのではない（2026-10-18）
-    on_first_parent "$(g rev-parse "refs/heads/$br")" && { keep "$wt" "$br" "独自のコミットがマージされていない（コミットなし・早送り）"; return; }
+    tip=$(g rev-parse "refs/heads/$br")
+    if g merge-base --is-ancestor "$tip" "refs/heads/$def" 2>/dev/null; then
+      has_artifacts "$wt" && { keep "$wt" "$br" ".task-artifacts あり（子の記録）"; return; }
+      # 作っただけ・既定ブランチに戻しただけのブランチも「祖先」になる。先端が既定ブランチの
+      # first-parent の列に載っていれば、独自のコミットがマージで入ったのではない（2026-10-18）
+      on_first_parent "$tip" && { keep "$wt" "$br" "独自のコミットがマージされていない（コミットなし・早送り）"; return; }
+    else
+      into=$(merged_parent "$br" "$tip") || return
+      has_artifacts "$wt" && { keep "$wt" "$br" ".task-artifacts あり（子の記録）"; return; }
+    fi
   else
     # ブランチなし（検証・レビュー用）: HEAD が既定ブランチに含まれていれば消せる
     [ -n "$head" ] && g merge-base --is-ancestor "$head" "refs/heads/$def" 2>/dev/null || return
@@ -91,9 +120,33 @@ check_and_remove() {
   in_use "$wt" && { keep "$wt" "$br" "使用中のプロセスあり"; return; }
   if [ $dry = 0 ]; then
     g worktree remove "$wt" 2>/dev/null || { keep "$wt" "$br" "git worktree remove が失敗"; return; }
-    [ -n "$br" ] && g branch -d "$br" >/dev/null 2>&1
+    if [ -n "$into" ]; then pending_new+="$main_root"$'\t'"$br"$'\n'
+    elif [ -n "$br" ]; then g branch -d "$br" >/dev/null 2>&1; fi
   fi
-  removed+="removed: $wt (${br:-detached})"$'\n'
+  if [ -n "$into" ]; then
+    removed+="removed: $wt ($br): $into に取り込み済み。ブランチは $def に入るまで残す"$'\n'
+  else
+    removed+="removed: $wt (${br:-detached})"$'\n'
+  fi
+}
+
+# worktree だけ消したブランチを、既定ブランチに独自のコミットが入っていれば消す
+sweep_pending() {
+  local root br tip rest="" line wt_branches
+  [ -f "$pending_file" ] || return 0
+  wt_branches=$(g worktree list --porcelain | sed -n 's#^branch refs/heads/##p')
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    root=${line%%$'\t'*}; br=${line#*$'\t'}
+    [ "$root" = "$main_root" ] || { rest+="$line"$'\n'; continue; }
+    tip=$(g rev-parse -q --verify "refs/heads/$br") || continue
+    printf '%s\n' "$wt_branches" | grep -qxF -e "$br" && { rest+="$line"$'\n'; continue; }
+    if g merge-base --is-ancestor "$tip" "refs/heads/$def" 2>/dev/null && ! on_first_parent "$tip"; then
+      g branch -d "$br" >/dev/null 2>&1 && { removed+="removed branch: $br ($def に取り込み済み)"$'\n'; continue; }
+    fi
+    rest+="$line"$'\n'
+  done <"$pending_file"
+  printf '%s' "$rest" >"$pending_file"
 }
 
 wt=""; br=""; head=""; skip=0
@@ -106,7 +159,11 @@ while IFS= read -r line; do
     "") [ -n "$wt" ] && [ $skip = 0 ] && check_and_remove "$wt" "$br" "$head"; wt="" ;;
   esac
 done < <(g worktree list --porcelain; echo)
-[ $dry = 0 ] && g worktree prune
+if [ $dry = 0 ]; then
+  g worktree prune
+  if [ -n "$pending_new" ]; then mkdir -p "${pending_file%/*}" 2>/dev/null && printf '%s' "$pending_new" >>"$pending_file"; fi
+  sweep_pending
+fi
 
 [ -n "$removed$kept" ] || exit 0
 if [ $mode = claude ]; then

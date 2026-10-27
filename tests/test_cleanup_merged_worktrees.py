@@ -11,7 +11,8 @@ class Cleanup(unittest.TestCase):
  def tearDown(self):self.t.cleanup()
  def wt(self,name,commit=True,merge=True,base=".claude/worktrees"):
   path=(self.repo/base/name).resolve();git("worktree","add","-q","-b",name,str(path),cwd=self.repo)
-  if commit:(path/f"{name}.txt").write_text("x");git("add",f"{name}.txt",cwd=path);git("commit","-qm",name,cwd=path)
+  f=name.replace("/","-")+".txt"
+  if commit:(path/f).write_text("x");git("add",f,cwd=path);git("commit","-qm",name,cwd=path)
   if merge:git("merge","-q","--no-ff","-m","m",name,cwd=self.repo)
   return path
  def run_(self,*args,stdin=None):
@@ -107,6 +108,45 @@ class Cleanup(unittest.TestCase):
  def test_claude_post_tool_use_non_merge_is_silent(self):
   self.wt("feat-a");r=self.run_("--claude-post-tool-use",stdin=json.dumps({"cwd":str(self.repo),"tool_input":{"command":"git log"}}))
   self.assertEqual((r.returncode,r.stdout),(0,""))
+ def into(self,child,parent,ff=False):
+  pp=self.repo/".claude/worktrees"/parent
+  git("merge","-q",*(["--ff-only"] if ff else ["--no-ff","-m","m"]),child,cwd=pp)
+ def pending(self):
+  f=self.root/".local/state/cleanup-merged-worktrees.branches";return f.read_text() if f.exists() else ""
+ def test_task_merged_into_feature_removes_worktree_but_keeps_branch(self):
+  self.wt("feat/x",merge=False);t=self.wt("task/1",merge=False);self.into("task/1","feat/x")
+  r=self.run_(str(self.repo))
+  self.assertFalse(t.exists());self.assertIn("task/1",self.branches());self.assertIn("feat/x に取り込み済み",r.stdout);self.assertIn("task/1",self.pending())
+ def test_pending_branch_is_deleted_after_reaching_main(self):
+  f=self.wt("feat/x",merge=False);self.wt("task/1",merge=False);self.into("task/1","feat/x");self.run_(str(self.repo))
+  git("merge","-q","--no-ff","-m","m","feat/x",cwd=self.repo);r=self.run_(str(self.repo))
+  self.assertNotIn("task/1",self.branches());self.assertFalse(f.exists());self.assertNotIn("task/1",self.pending());self.assertIn("removed branch: task/1",r.stdout)
+ def test_pending_branch_stays_until_main(self):
+  self.wt("feat/x",merge=False);self.wt("task/1",merge=False);self.into("task/1","feat/x");self.run_(str(self.repo));self.run_(str(self.repo))
+  self.assertIn("task/1",self.branches());self.assertIn("task/1",self.pending())
+ def test_feature_merged_into_epic_removes_feature_worktree(self):
+  self.wt("epic/e",merge=False);f=self.wt("feat/x",merge=False);self.into("feat/x","epic/e")
+  self.run_(str(self.repo));self.assertFalse(f.exists());self.assertIn("feat/x",self.branches())
+ def test_epic_merged_into_feature_keeps_epic(self):
+  e=self.wt("epic/e",merge=False);self.wt("feat/x",merge=False);self.into("epic/e","feat/x")
+  self.run_(str(self.repo));self.assertTrue(e.exists())
+ def test_task_fast_forwarded_into_feature_is_kept(self):
+  self.wt("feat/x",commit=False,merge=False);t=self.wt("task/1",merge=False);self.into("task/1","feat/x",ff=True)
+  self.run_(str(self.repo));self.assertTrue(t.exists())
+ def test_task_merged_into_non_parent_branch_is_kept(self):
+  self.wt("task/0",merge=False);t=self.wt("task/1",merge=False);self.into("task/1","task/0")
+  self.run_(str(self.repo));self.assertTrue(t.exists())
+ def test_task_in_feature_with_artifacts_or_changes_is_kept(self):
+  (self.repo/".gitignore").write_text((self.repo/".gitignore").read_text()+".task-artifacts/\n");git("commit","-qam","ignore artifacts",cwd=self.repo)
+  self.wt("feat/x",merge=False);a=self.wt("task/a",merge=False);d=self.wt("task/d",merge=False)
+  self.into("task/a","feat/x");self.into("task/d","feat/x");(a/".task-artifacts").mkdir();(a/".task-artifacts/x").write_text("x");(d/"new.txt").write_text("x")
+  self.run_(str(self.repo));self.assertTrue(a.exists());self.assertTrue(d.exists());self.assertEqual(self.pending(),"")
+ def test_epic_merged_into_main_in_stages_is_kept(self):
+  e=self.wt("epic/e");self.run_(str(self.repo))
+  self.assertTrue(e.exists());self.assertIn("epic/e",self.branches())
+ def test_dry_run_does_not_touch_parent_merged_task(self):
+  self.wt("feat/x",merge=False);t=self.wt("task/1",merge=False);self.into("task/1","feat/x")
+  r=self.run_("--dry-run",str(self.repo));self.assertTrue(t.exists());self.assertIn("task/1",r.stdout);self.assertEqual(self.pending(),"")
  def test_outside_git_is_silent(self):
   r=self.run_(str(self.root));self.assertEqual((r.returncode,r.stdout),(0,""))
 if __name__=="__main__":unittest.main()
