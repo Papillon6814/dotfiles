@@ -52,28 +52,33 @@ class MuxyHerdrLauncher(unittest.TestCase):
 
     def test_project_folder_selects_named_session(self):
         arguments, status = self.run_launcher("claude-workflows")
-        self.assertEqual(arguments, ["--session", "claude-workflows"])
+        self.assertEqual(arguments, ["--session", "stable-claude-workflows"])
         self.assertEqual(status, 0)
 
-    def test_firstmate_uses_default_session(self):
+    def test_firstmate_uses_isolated_stable_default_session(self):
         arguments, status = self.run_launcher("firstmate")
-        self.assertEqual(arguments, [])
+        self.assertEqual(arguments, ["--session", "stable-default"])
         self.assertEqual(status, 0)
 
     def test_space_and_unicode_folder_is_one_session_argument(self):
         arguments, status = self.run_launcher("日本語 project")
-        self.assertEqual(arguments, ["--session", "日本語 project"])
+        self.assertEqual(arguments, ["--session", "stable-日本語 project"])
         self.assertEqual(status, 0)
 
     def test_login_shell_argument_is_not_forwarded_to_herdr(self):
         arguments, status = self.run_launcher("project", arguments=("-l",))
-        self.assertEqual(arguments, ["--session", "project"])
+        self.assertEqual(arguments, ["--session", "stable-project"])
         self.assertEqual(status, 0)
 
     def test_herdr_exit_status_is_preserved(self):
         arguments, status = self.run_launcher("project", exit_code=23)
-        self.assertEqual(arguments, ["--session", "project"])
+        self.assertEqual(arguments, ["--session", "stable-project"])
         self.assertEqual(status, 23)
+
+    def test_existing_stable_prefix_is_not_stripped_from_folder(self):
+        arguments, status = self.run_launcher("stable-project")
+        self.assertEqual(arguments, ["--session", "stable-stable-project"])
+        self.assertEqual(status, 0)
 
 
 if __name__ == "__main__":

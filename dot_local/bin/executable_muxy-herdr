@@ -3,6 +3,6 @@ export PATH="/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 export SHELL=/opt/homebrew/bin/fish
 session=$(basename "$PWD")
 if [ "$session" = firstmate ]; then
-    exec "/opt/homebrew/bin/herdr"
+    exec "/opt/homebrew/bin/herdr" --session stable-default
 fi
-exec "/opt/homebrew/bin/herdr" --session "$session"
+exec "/opt/homebrew/bin/herdr" --session "stable-$session"
