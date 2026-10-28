@@ -28,9 +28,14 @@ class MuxyHerdrLauncher(unittest.TestCase):
             binary.chmod(0o755)
             cwd = home / folder
             cwd.mkdir()
+            # Redirect only the fixed executable path into this isolated fixture.
+            source = SCRIPT.read_text()
+            self.assertEqual(source.count('exec "/opt/homebrew/bin/herdr"'), 2)
+            launcher = home / "launcher.sh"
+            launcher.write_text(source.replace('/opt/homebrew/bin/herdr', str(binary)))
             env = {"HOME": str(home), "PATH": "/usr/bin:/bin", "SHELL": str(SCRIPT)}
             process = subprocess.Popen(
-                ["/bin/sh", str(SCRIPT), *arguments], cwd=cwd, env=env,
+                ["/bin/sh", str(launcher), *arguments], cwd=cwd, env=env,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
             )
             stdout, stderr = process.communicate(timeout=5)
