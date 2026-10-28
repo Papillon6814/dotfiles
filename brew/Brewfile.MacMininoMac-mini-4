@@ -33,6 +33,8 @@ brew "gitleaks"
 brew "go"
 # Google Suite CLI
 brew "gogcli"
+# Two-pass large vocabulary continuous speech recognition engine
+brew "julius"
 # Remote terminal application
 brew "mosh"
 # Ambitious Vim-fork focused on extensibility and agility
@@ -94,4 +96,3 @@ npm "@earendil-works/pi-coding-agent"
 npm "@jackwener/opencli"
 npm "@notionhq/notion-mcp-server"
 npm "@zvec/zvec-grep"
-npm "openclaw"
