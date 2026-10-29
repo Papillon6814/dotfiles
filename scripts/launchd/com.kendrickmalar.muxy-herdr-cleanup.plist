@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  muxy-herdr-cleanup（10分ごと）。閉じた Muxy タブの herdr セッションを止める（dot_local/bin/executable_muxy-herdr cleanup）。
+  直接コピーせず scripts/install-muxy-herdr-cleanup.sh で設置する（__HOME__・__REPO__ を置き換えて ~/Library/LaunchAgents に置き、bootstrap する）。
+
+  状態:     launchctl print gui/$(id -u)/com.kendrickmalar.muxy-herdr-cleanup
+  即時実行: launchctl kickstart -k gui/$(id -u)/com.kendrickmalar.muxy-herdr-cleanup
+  停止:     scripts/install-muxy-herdr-cleanup.sh に uninstall を付けて実行
+  ログ:     ~/.local/state/muxy-herdr-cleanup.log（止めたもの・外した紐づけ）、~/.local/state/muxy-herdr-cleanup.launchd.log（標準出力・エラー）
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kendrickmalar.muxy-herdr-cleanup</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO__/dot_local/bin/executable_muxy-herdr</string>
+    <string>cleanup</string>
+  </array>
+
+  <!-- 10分ごと。タブが2回続けて見当たらないと止めるので、閉じてから10〜20分で止まる -->
+  <key>StartInterval</key>
+  <integer>600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/.local/state/muxy-herdr-cleanup.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.local/state/muxy-herdr-cleanup.launchd.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>__HOME__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LANG</key>
+    <string>ja_JP.UTF-8</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/sbin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>

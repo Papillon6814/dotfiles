@@ -1,8 +1,190 @@
-#!/bin/sh
+#!/bin/bash
+# Muxy の端末から herdr に入る。Muxy のタブ（ペイン）ごとに別の herdr セッションへつなぐ（2026-10-29）。
+# 安定版 Muxy は server.toml の default_shell からこのまま、Muxy Beta は fish 設定から --beta 付きで呼ばれる。
+#
+# セッション名: 基本名はフォルダ名（firstmate だけ default）。安定版は stable- を前に付ける。
+#   基本名にどのタブも紐づいていなければ、そのタブが基本名を使う。それ以外は「基本名-<MUXY_SESSION_ID の16進先頭8桁>」。
+#   紐づけは ~/.local/state/muxy-herdr/<beta|stable>.tsv（MUXY_SESSION_ID・セッション名・base|tab）。
+#
+# 片付け（cleanup）: 閉じたタブのセッションを止める。launchd が10分ごとに呼ぶ（scripts/install-muxy-herdr-cleanup.sh）。
+#   タブが desktop-state.json から2回続けて消えていて、どの herdr クライアントもつながっていなければ、
+#   番号付き（tab）は herdr session stop で止め、基本名（base）は紐づけを外すだけにする。delete はしない。
+#
+# 使い方: muxy-herdr [--beta] [--print-name]
+#         muxy-herdr cleanup [--dry-run]
+# 環境変数（テスト用）: MUXY_HERDR_STATE_DIR・MUXY_HERDR_PS_CMD・MUXY_HERDR_BIN・MUXY_HERDR_{BETA,STABLE}_DESKTOP_STATE
+set -u
 export PATH="/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-export SHELL=/opt/homebrew/bin/fish
-session=$(basename "$PWD")
-if [ "$session" = firstmate ]; then
-    exec "/opt/homebrew/bin/herdr" --session stable-default
+
+herdr_bin="${MUXY_HERDR_BIN:-/opt/homebrew/bin/herdr}"
+state_dir="${MUXY_HERDR_STATE_DIR:-$HOME/.local/state/muxy-herdr}"
+ps_cmd="${MUXY_HERDR_PS_CMD:-ps -axE -o pid=,command=}"
+log_file="$HOME/.local/state/muxy-herdr-cleanup.log"
+
+variant=stable; mode=run; dry=0
+for a in "$@"; do
+  case "$a" in
+    --beta) variant=beta ;;
+    --print-name) mode=print ;;
+    cleanup) mode=cleanup ;;
+    --dry-run) dry=1 ;;
+  esac
+done
+
+# 動いている herdr クライアントを「セッション名<TAB>MUXY_SESSION_ID」で並べる（ps -E の環境変数から ID を拾う）
+herdr_clients() {
+  $ps_cmd 2>/dev/null | awk -v self=$$ '
+    $1 == self { next }
+    {
+      n = split($2, p, "/"); if (p[n] != "herdr") next
+      if ($3 == "--session") { name = $4; i = 5 }
+      else if ($3 == "" || index($3, "=") > 0) { name = "default"; i = 3 }
+      else next
+      sid = ""
+      for (j = i; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { sid = substr($j, 17); break }
+      print name "\t" sid
+    }'
+}
+
+# MUXY_SESSION_ID の16進先頭8桁（2^63 を超えるので bc で変換する）
+hex8() {
+  local h; h=$(printf 'obase=16; %s\n' "$1" | bc | tr 'A-F' 'a-f')
+  while [ ${#h} -lt 16 ]; do h="0$h"; done
+  printf '%s\n' "${h:0:8}"
+}
+
+lock_dir() { printf '%s\n' "$state_dir/$1.lock"; }
+# 対応表の書き込みは mkdir ロックで1つずつ。5秒取れなければ、前の持ち主が落ちたとみなして奪う
+lock() {
+  local d; d=$(lock_dir "$1"); mkdir -p "$state_dir"
+  for _ in $(seq 50); do mkdir "$d" 2>/dev/null && return 0; sleep 0.1; done
+  return 0
+}
+unlock() { rmdir "$(lock_dir "$1")" 2>/dev/null; return 0; }
+
+base_name() {
+  local b; b=$(basename "$PWD"); [ "$b" = firstmate ] && b=default
+  [ "$variant" = stable ] && b="stable-$b"
+  printf '%s\n' "$b"
+}
+
+resolve_name() {
+  local id="${MUXY_SESSION_ID:-}" base map name
+  base=$(base_name)
+  case "$id" in ''|*[!0-9]*) printf '%s\n' "$base"; return ;; esac
+  map="$state_dir/$variant.tsv"
+  lock "$variant"
+  name=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$map" 2>/dev/null)
+  if [ -z "$name" ]; then
+    if awk -F'\t' -v b="$base" '$2 == b { f = 1 } END { exit !f }' "$map" 2>/dev/null ||
+       herdr_clients | awk -F'\t' -v b="$base" '$1 == b { f = 1 } END { exit !f }'; then
+      name="$base-$(hex8 "$id")"; printf '%s\t%s\ttab\n' "$id" "$name" >>"$map"
+    else
+      name="$base"; printf '%s\t%s\tbase\n' "$id" "$name" >>"$map"
+    fi
+  fi
+  unlock "$variant"
+  printf '%s\n' "$name"
+}
+
+log() {
+  printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
+  [ $dry = 0 ] && mkdir -p "${log_file%/*}" 2>/dev/null && printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >>"$log_file"
+  return 0
+}
+
+desktop_state() {
+  case "$1" in
+    beta) printf '%s\n' "${MUXY_HERDR_BETA_DESKTOP_STATE:-$HOME/Library/Application Support/Muxy Beta/desktop-state.json}" ;;
+    *) printf '%s\n' "${MUXY_HERDR_STABLE_DESKTOP_STATE:-$HOME/Library/Application Support/Muxy 2/desktop-state.json}" ;;
+  esac
+}
+
+# desktop-state.json に残っている端末の MUXY_SESSION_ID を1行ずつ（読めなければ失敗を返す）
+terminal_ids() {
+  python3 -I - "$1" <<'PY'
+import json, sys
+def walk(o):
+    if isinstance(o, dict):
+        if o.get("type") == "terminal" and isinstance(o.get("session"), int):
+            print(o["session"])
+        for v in o.values():
+            walk(v)
+    elif isinstance(o, list):
+        for v in o:
+            walk(v)
+with open(sys.argv[1]) as f:
+    walk(json.load(f))
+PY
+}
+
+has_line() { grep -qxF -e "$1" <<<"$2"; }
+has_name() { awk -F'\t' -v n="$1" '$1 == n { f = 1 } END { exit !f }' <<<"$2"; }
+
+cleanup_variant() {
+  local v="$1" map="$state_dir/$1.tsv" pending="$state_dir/$1.pending" ds ids clients work new newpend
+  local id name kind cname csid out
+  ds=$(desktop_state "$v")
+  [ -e "$ds" ] || return 0
+  # 書き込み途中・壊れている・端末0件のときは何も止めない
+  ids=$(terminal_ids "$ds" 2>/dev/null) || { log "$v: desktop-state を読めないので中止"; return 0; }
+  [ -n "$ids" ] || return 0
+  clients=$(herdr_clients)
+
+  lock "$v"
+  work=$(mktemp "$state_dir/$v.work.XXXXXX"); new=$(mktemp "$state_dir/$v.new.XXXXXX"); newpend=$(mktemp "$state_dir/$v.pend.XXXXXX")
+  cat "$map" >"$work" 2>/dev/null
+  # 動いているクライアントの紐づけを取り込む（この仕組みより前に開いたタブも対象にする）
+  while IFS=$'\t' read -r cname csid; do
+    case "$csid" in ''|*[!0-9]*) continue ;; esac
+    case "$cname" in stable-*) [ "$v" = stable ] || continue ;; *) [ "$v" = beta ] || continue ;; esac
+    awk -F'\t' -v id="$csid" '$1 == id { f = 1 } END { exit !f }' "$work" && continue
+    kind=base; case "$cname" in *-"$(hex8 "$csid")") kind=tab ;; esac
+    printf '%s\t%s\t%s\n' "$csid" "$cname" "$kind" >>"$work"
+  done <<<"$clients"
+
+  while IFS=$'\t' read -r id name kind; do
+    [ -n "$id" ] || continue
+    if has_line "$id" "$ids"; then
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+    elif has_name "$name" "$clients"; then
+      log "kept: ${name}（タブは閉じたが、herdr クライアントがつながっている）"
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+    elif ! grep -qxF -e "$id" "$pending" 2>/dev/null; then
+      # 1回目はまだ止めない（desktop-state への反映待ちかもしれない）
+      [ $dry = 1 ] && log "would wait: ${name}（タブが見当たらない。次回も無ければ片付ける）"
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"; printf '%s\n' "$id" >>"$newpend"
+    elif [ "$kind" != tab ] && [ $dry = 1 ]; then
+      log "would release: $name"
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+    elif [ "$kind" != tab ]; then
+      log "released: ${name}（タブを閉じたので紐づけを外す。セッションは止めない）"
+    elif [ $dry = 1 ]; then
+      log "would stop: $name"
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+    elif out=$("$herdr_bin" session stop "$name" 2>&1); then
+      log "stopped: ${name}（タブを閉じた）"
+    elif [[ "$out" == *"is not running"* ]]; then
+      log "gone: ${name}（既に止まっていた）"
+    else
+      log "kept: ${name}（止められなかった: ${out}）"
+      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"; printf '%s\n' "$id" >>"$newpend"
+    fi
+  done <"$work"
+
+  if [ $dry = 0 ]; then mv "$new" "$map"; mv "$newpend" "$pending"; else rm -f "$new" "$newpend"; fi
+  rm -f "$work"
+  unlock "$v"
+}
+
+if [ "$mode" = cleanup ]; then
+  cleanup_variant beta
+  cleanup_variant stable
+  exit 0
 fi
-exec "/opt/homebrew/bin/herdr" --session "stable-$session"
+
+name=$(resolve_name)
+if [ "$mode" = print ]; then printf '%s\n' "$name"; exit 0; fi
+export SHELL=/opt/homebrew/bin/fish
+[ "$name" = default ] && exec "$herdr_bin"
+exec "$herdr_bin" --session "$name"

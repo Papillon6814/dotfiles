@@ -140,15 +140,10 @@ end
 
 # --- Muxy で開いたシェルは herdr に入る（2026-10-15） ---
 # Muxy Beta は端末を muxy-server が fish -l で直接起動し、ghostty.conf の command を使わないため、ここで herdr へ移る。
-# セッション名はディレクトリ名（firstmate だけ default。Muxy の Coding Manager がこのフォルダを使う）。herdr がタブ・ペイン・エージェント（resume_agents_on_restore）を復元する。
+# セッション名は Muxy のタブ（ペイン）ごとに ~/.local/bin/muxy-herdr が決める（2026-10-29）。基本はディレクトリ名（firstmate だけ default）で、同じプロジェクトの2つ目以降のタブは「名前-番号」。herdr がタブ・ペイン・エージェント（resume_agents_on_restore）を復元する。
 # PATH を全部足した後に置くこと（herdr サーバーとプラグインがこの PATH を引き継ぐ）。素の fish が欲しいときは MUXY_NO_HERDR=1。
-if status is-interactive; and test "$TERM_PROGRAM" = muxy; and not set -q HERDR_ENV; and not set -q MUXY_NO_HERDR; and type -q herdr
-    set -l __herdr_session (path basename -- $PWD)
-    if test "$__herdr_session" = firstmate
-        exec herdr
-    else
-        exec herdr --session $__herdr_session
-    end
+if status is-interactive; and test "$TERM_PROGRAM" = muxy; and not set -q HERDR_ENV; and not set -q MUXY_NO_HERDR; and type -q herdr; and test -x ~/.local/bin/muxy-herdr
+    exec ~/.local/bin/muxy-herdr --beta
 end
 
 # >>> grok installer >>>
