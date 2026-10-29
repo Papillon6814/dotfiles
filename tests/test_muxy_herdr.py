@@ -17,7 +17,7 @@ class MuxyHerdr(unittest.TestCase):
   self.beta_ds=self.home/"beta.json";self.stable_ds=self.home/"stable.json"
   self.desktop(self.beta_ds,[]);self.desktop(self.stable_ds,[])
   self.proj=self.home/"ai-secretary";self.proj.mkdir()
-  self.lstart=self.home/"lstart";self.lstart.write_text("#!/bin/sh\necho T\n");self.lstart.chmod(0o755)
+  self.lstart=self.home/"lstart";self.lstart.write_text('#!/bin/sh\n[ "$LC_ALL" = C ] && echo T || echo "Mon_$LC_ALL"\n');self.lstart.chmod(0o755)
  def tearDown(self):self.t.cleanup()
  def setps(self,*lines,servers=True):
   # 書式: pid ppid command [環境変数...]
@@ -134,6 +134,11 @@ class MuxyHerdr(unittest.TestCase):
   self.desktop(self.beta_ds,[ID1]);self.write_map(f"{ID1}\tCode\tbase\n")
   self.setps(f"10 {ME} herdr --session Code MUXY_SESSION_ID={ID1}");self.cleanup()
   self.assertEqual(self.map(),f"{ID1}\tCode\tbase\t{CUR}\n")
+ def test_mark_is_locale_independent(self):
+  # launchd（日本語）と Muxy の端末で印がずれないこと
+  e=self.env(ID1);e["LC_ALL"]="ja_JP.UTF-8";e["LANG"]="ja_JP.UTF-8"
+  r=subprocess.run(["bash",str(SCRIPT),"--beta","--print-name"],env=e,capture_output=True,text=True,cwd=self.proj)
+  self.assertEqual(r.returncode,0,r.stderr);self.assertIn(f"{ID1}\tai-secretary\tbase\t{CUR}\n",self.map())
  def test_learned_suffixed_client_is_tab(self):
   self.desktop(self.beta_ds,[ID1])
   self.setps(f"12 {ME} herdr --session Code-fad3c5e7 MUXY_SESSION_ID={ID1}")
