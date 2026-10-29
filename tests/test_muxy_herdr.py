@@ -66,4 +66,56 @@ class MuxyHerdr(unittest.TestCase):
   subprocess.run(["bash",str(SCRIPT),"--beta"],env=self.env(ID2),cwd=fm,check=True)
   self.assertEqual(self.calls_().splitlines(),["--session ai-secretary",""])
 
+ # --- 片付け ---
+ def two_tabs(self):
+  self.desktop(self.beta_ds,[ID2,ID1]);self.name(ID2,"--beta");self.name(ID1,"--beta")
+ def test_learns_live_clients(self):
+  self.desktop(self.beta_ds,[ID1]);self.desktop(self.stable_ds,[ID2])
+  self.ps.write_text(f"10 herdr --session Code TERM=x MUXY_SESSION_ID={ID1}\n11 /opt/homebrew/bin/herdr --session stable-Docs MUXY_SESSION_ID={ID2}\n12 herdr --session Code-fad3c5e7 MUXY_SESSION_ID={ID1}\n")
+  self.cleanup()
+  self.assertIn(f"{ID1}\tCode\tbase",self.map());self.assertIn(f"{ID2}\tstable-Docs\tbase",self.map("stable"))
+  self.assertEqual(self.map().count(ID1),1)
+ def test_learned_suffixed_client_is_tab(self):
+  self.desktop(self.beta_ds,[ID1])
+  self.ps.write_text(f"12 herdr --session Code-fad3c5e7 MUXY_SESSION_ID={ID1}\n")
+  self.cleanup();self.assertIn(f"{ID1}\tCode-fad3c5e7\ttab",self.map())
+ def test_stops_suffixed_after_two_runs(self):
+  self.two_tabs();self.desktop(self.beta_ds,[ID2])
+  self.cleanup();self.assertNotIn("session stop",self.calls_());self.assertIn("ai-secretary-fad3c5e7",self.map())
+  self.cleanup();self.assertIn("session stop ai-secretary-fad3c5e7",self.calls_())
+  self.assertNotIn("fad3c5e7",self.map());self.assertIn("stopped: ai-secretary-fad3c5e7",self.log())
+ def test_tab_back_before_second_run_is_kept(self):
+  self.two_tabs();self.desktop(self.beta_ds,[ID2]);self.cleanup()
+  self.desktop(self.beta_ds,[ID2,ID1]);self.cleanup();self.desktop(self.beta_ds,[ID2]);self.cleanup()
+  self.assertNotIn("session stop",self.calls_())
+ def test_releases_base_without_stop(self):
+  self.two_tabs();self.desktop(self.beta_ds,[ID1]);self.cleanup();self.cleanup()
+  self.assertNotIn("session stop",self.calls_());self.assertNotIn(ID2,self.map());self.assertIn("released: ai-secretary",self.log())
+ def test_keeps_when_client_alive(self):
+  self.two_tabs();self.desktop(self.beta_ds,[ID2])
+  self.ps.write_text("10 herdr --session ai-secretary-fad3c5e7 TERM=x\n")
+  self.cleanup();self.cleanup()
+  self.assertNotIn("session stop",self.calls_());self.assertIn("fad3c5e7",self.map())
+ def test_already_stopped_session_is_dropped(self):
+  self.state.mkdir(parents=True);(self.state/"beta.tsv").write_text(f"{ID1}\tgone\ttab\n")
+  self.desktop(self.beta_ds,[ID2]);self.cleanup();self.cleanup()
+  self.assertEqual(self.map(),"");self.assertIn("gone",self.log())
+ def test_aborts_on_unreadable_or_empty_state(self):
+  self.two_tabs()
+  for content in ["{broken","{\"projects\":[]}"]:
+   self.beta_ds.write_text(content);self.cleanup();self.cleanup()
+  self.beta_ds.unlink();self.cleanup();self.cleanup()
+  self.assertNotIn("session stop",self.calls_());self.assertEqual(self.map().count("\n"),2)
+ def test_dry_run_changes_nothing(self):
+  self.two_tabs();self.desktop(self.beta_ds,[ID2]);before=self.map()
+  self.cleanup("--dry-run");self.cleanup("--dry-run")
+  self.assertEqual(self.map(),before);self.assertNotIn("session stop",self.calls_());self.assertEqual(self.log(),"")
+  self.assertFalse((self.state/"beta.pending").exists())
+ def test_plist_renders_and_lints(self):
+  r=subprocess.run(["bash",str(INSTALL),"--render"],capture_output=True,text=True,env={**os.environ,"HOME":str(self.home)})
+  self.assertEqual(r.returncode,0,r.stderr);p=plistlib.loads(r.stdout.encode())
+  self.assertEqual(p["Label"],"com.kendrickmalar.muxy-herdr-cleanup");self.assertEqual(p["StartInterval"],600)
+  self.assertEqual(p["ProgramArguments"],["/bin/bash",str(ROOT/"dot_local/bin/executable_muxy-herdr"),"cleanup"])
+  self.assertIn("/opt/homebrew/bin",p["EnvironmentVariables"]["PATH"]);self.assertNotIn("__",r.stdout)
+
 if __name__=="__main__":unittest.main()
