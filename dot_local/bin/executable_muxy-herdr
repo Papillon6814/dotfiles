@@ -70,7 +70,8 @@ server_mark() {
   local pid="$1" started
   [ -n "$pid" ] || return 0
   $ps_cmd 2>/dev/null | awk -v pid="$pid" '$1 == pid && $0 ~ /\/muxy-server( |$)/ { f = 1 } END { exit !f }' || return 0
-  started=$($lstart_cmd "$pid" 2>/dev/null | tr -s ' ' '_' | sed 's/^_//; s/_$//')
+  # 言語設定で書式が変わる（launchd は日本語、端末は英語など）ので C に固定する
+  started=$(LC_ALL=C $lstart_cmd "$pid" 2>/dev/null | tr -s ' ' '_' | sed 's/^_//; s/_$//')
   [ -n "$started" ] && printf '%s:%s\n' "$pid" "$started"
   return 0
 }
