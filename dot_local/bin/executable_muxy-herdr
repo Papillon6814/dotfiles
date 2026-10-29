@@ -1,8 +1,86 @@
-#!/bin/sh
+#!/bin/bash
+# Muxy の端末から herdr に入る。Muxy のタブ（ペイン）ごとに別の herdr セッションへつなぐ（2026-10-29）。
+# 安定版 Muxy は server.toml の default_shell からこのまま、Muxy Beta は fish 設定から --beta 付きで呼ばれる。
+#
+# セッション名: 基本名はフォルダ名（firstmate だけ default）。安定版は stable- を前に付ける。
+#   基本名にどのタブも紐づいていなければ、そのタブが基本名を使う。それ以外は「基本名-<MUXY_SESSION_ID の16進先頭8桁>」。
+#   紐づけは ~/.local/state/muxy-herdr/<beta|stable>.tsv（MUXY_SESSION_ID・セッション名・base|tab）。
+#
+# 使い方: muxy-herdr [--beta] [--print-name]
+# 環境変数（テスト用）: MUXY_HERDR_STATE_DIR・MUXY_HERDR_PS_CMD・MUXY_HERDR_BIN
+set -u
 export PATH="/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+herdr_bin="${MUXY_HERDR_BIN:-/opt/homebrew/bin/herdr}"
+state_dir="${MUXY_HERDR_STATE_DIR:-$HOME/.local/state/muxy-herdr}"
+ps_cmd="${MUXY_HERDR_PS_CMD:-ps -axE -o pid=,command=}"
+
+variant=stable; mode=run
+for a in "$@"; do
+  case "$a" in
+    --beta) variant=beta ;;
+    --print-name) mode=print ;;
+  esac
+done
+
+# 動いている herdr クライアントを「セッション名<TAB>MUXY_SESSION_ID」で並べる（ps -E の環境変数から ID を拾う）
+herdr_clients() {
+  $ps_cmd 2>/dev/null | awk -v self=$$ '
+    $1 == self { next }
+    {
+      n = split($2, p, "/"); if (p[n] != "herdr") next
+      if ($3 == "--session") { name = $4; i = 5 }
+      else if ($3 == "" || index($3, "=") > 0) { name = "default"; i = 3 }
+      else next
+      sid = ""
+      for (j = i; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { sid = substr($j, 17); break }
+      print name "\t" sid
+    }'
+}
+
+# MUXY_SESSION_ID の16進先頭8桁（2^63 を超えるので bc で変換する）
+hex8() {
+  local h; h=$(printf 'obase=16; %s\n' "$1" | bc | tr 'A-F' 'a-f')
+  while [ ${#h} -lt 16 ]; do h="0$h"; done
+  printf '%s\n' "${h:0:8}"
+}
+
+lock_dir() { printf '%s\n' "$state_dir/$1.lock"; }
+# 対応表の書き込みは mkdir ロックで1つずつ。5秒取れなければ、前の持ち主が落ちたとみなして奪う
+lock() {
+  local d; d=$(lock_dir "$1"); mkdir -p "$state_dir"
+  for _ in $(seq 50); do mkdir "$d" 2>/dev/null && return 0; sleep 0.1; done
+  return 0
+}
+unlock() { rmdir "$(lock_dir "$1")" 2>/dev/null; return 0; }
+
+base_name() {
+  local b; b=$(basename "$PWD"); [ "$b" = firstmate ] && b=default
+  [ "$variant" = stable ] && b="stable-$b"
+  printf '%s\n' "$b"
+}
+
+resolve_name() {
+  local id="${MUXY_SESSION_ID:-}" base map name
+  base=$(base_name)
+  case "$id" in ''|*[!0-9]*) printf '%s\n' "$base"; return ;; esac
+  map="$state_dir/$variant.tsv"
+  lock "$variant"
+  name=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$map" 2>/dev/null)
+  if [ -z "$name" ]; then
+    if awk -F'\t' -v b="$base" '$2 == b { f = 1 } END { exit !f }' "$map" 2>/dev/null ||
+       herdr_clients | awk -F'\t' -v b="$base" '$1 == b { f = 1 } END { exit !f }'; then
+      name="$base-$(hex8 "$id")"; printf '%s\t%s\ttab\n' "$id" "$name" >>"$map"
+    else
+      name="$base"; printf '%s\t%s\tbase\n' "$id" "$name" >>"$map"
+    fi
+  fi
+  unlock "$variant"
+  printf '%s\n' "$name"
+}
+
+name=$(resolve_name)
+if [ "$mode" = print ]; then printf '%s\n' "$name"; exit 0; fi
 export SHELL=/opt/homebrew/bin/fish
-session=$(basename "$PWD")
-if [ "$session" = firstmate ]; then
-    exec "/opt/homebrew/bin/herdr" --session stable-default
-fi
-exec "/opt/homebrew/bin/herdr" --session "stable-$session"
+[ "$name" = default ] && exec "$herdr_bin"
+exec "$herdr_bin" --session "$name"
