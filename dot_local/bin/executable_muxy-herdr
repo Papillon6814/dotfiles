@@ -3,7 +3,7 @@
 # 安定版 Muxy は server.toml の default_shell からこのまま、Muxy Beta は fish 設定から --beta 付きで呼ばれる。
 #
 # セッション名: 基本名はフォルダ名（firstmate だけ default）。安定版は stable- を前に付ける。
-#   基本名にどのタブも紐づいていなければ、そのタブが基本名を使う。それ以外は「基本名-<MUXY_SESSION_ID の16進先頭8桁>」。
+#   基本名の持ち主の端末が動いていなければ（未使用・Muxy サーバー再起動後）、そのタブが基本名を使う。それ以外は「基本名-<MUXY_SESSION_ID の16進先頭8桁>」。
 #   紐づけは ~/.local/state/muxy-herdr/<beta|stable>.tsv（MUXY_SESSION_ID・セッション名・base|tab）。
 #
 # 片付け（cleanup）: 閉じたタブのセッションを止める。launchd が10分ごとに呼ぶ（scripts/install-muxy-herdr-cleanup.sh）。
@@ -46,6 +46,19 @@ herdr_clients() {
     }'
 }
 
+# まだ動いている Muxy 端末の MUXY_SESSION_ID（herdr クライアントと、exec 前の muxy-herdr だけを見る）。
+# herdr サーバーとその中のペインは、起動したタブの ID を持ち続けるので数えない
+live_ids() {
+  $ps_cmd 2>/dev/null | awk '
+    {
+      n = split($2, p, "/"); m = split($3, q, "/")
+      client = p[n] == "herdr" && ($3 == "--session" || $3 == "" || index($3, "=") > 0)
+      starter = p[n] ~ /muxy-herdr$/ || q[m] ~ /muxy-herdr$/
+      if (!client && !starter) next
+      for (j = 3; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { print substr($j, 17); break }
+    }'
+}
+
 # MUXY_SESSION_ID の16進先頭8桁（2^63 を超えるので bc で変換する）
 hex8() {
   local h; h=$(printf 'obase=16; %s\n' "$1" | bc | tr 'A-F' 'a-f')
@@ -69,17 +82,22 @@ base_name() {
 }
 
 resolve_name() {
-  local id="${MUXY_SESSION_ID:-}" base map name
+  local id="${MUXY_SESSION_ID:-}" base map name owner tmp
   base=$(base_name)
   case "$id" in ''|*[!0-9]*) printf '%s\n' "$base"; return ;; esac
   map="$state_dir/$variant.tsv"
   lock "$variant"
   name=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$map" 2>/dev/null)
   if [ -z "$name" ]; then
-    if awk -F'\t' -v b="$base" '$2 == b { f = 1 } END { exit !f }' "$map" 2>/dev/null ||
-       herdr_clients | awk -F'\t' -v b="$base" '$1 == b { f = 1 } END { exit !f }'; then
+    # 基本名の持ち主の端末がもう無ければ（Muxy サーバー再起動で ID が振り直された後など）、このタブが引き継ぐ
+    owner=$(awk -F'\t' -v b="$base" '$2 == b { print $1; exit }' "$map" 2>/dev/null)
+    if has_name "$base" "$(herdr_clients)" || { [ -n "$owner" ] && has_line "$owner" "$(live_ids)"; }; then
       name="$base-$(hex8 "$id")"; printf '%s\t%s\ttab\n' "$id" "$name" >>"$map"
     else
+      if [ -n "$owner" ]; then
+        tmp=$(mktemp "$map.XXXXXX")
+        awk -F'\t' -v b="$base" '$2 != b' "$map" >"$tmp" && mv "$tmp" "$map"
+      fi
       name="$base"; printf '%s\t%s\tbase\n' "$id" "$name" >>"$map"
     fi
   fi

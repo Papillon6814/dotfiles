@@ -37,11 +37,14 @@ class MuxyHerdr(unittest.TestCase):
  # --- 名前決定 ---
  def test_first_tab_claims_base(self):
   self.assertEqual(self.name(ID1,"--beta"),"ai-secretary");self.assertEqual(self.name(ID1),"stable-ai-secretary")
+ def alive(self,*ids):
+  # 端末が動いている = その MUXY_SESSION_ID を持つ muxy-herdr（exec 前）か herdr クライアントがいる
+  self.ps.write_text("".join(f"{100+n} bash /Users/x/.local/bin/muxy-herdr --beta TERM=x MUXY_SESSION_ID={i}\n" for n,i in enumerate(ids)))
  def test_second_tab_gets_suffixed(self):
-  self.assertEqual(self.name(ID2,"--beta"),"ai-secretary")
+  self.assertEqual(self.name(ID2,"--beta"),"ai-secretary");self.alive(ID2)
   self.assertEqual(self.name(ID1,"--beta"),"ai-secretary-fad3c5e7")
  def test_same_id_reuses_mapping(self):
-  self.name(ID2,"--beta");a=self.name(ID1,"--beta");self.assertEqual(self.name(ID1,"--beta"),a);self.assertEqual(self.name(ID2,"--beta"),"ai-secretary")
+  self.name(ID2,"--beta");self.alive(ID2);a=self.name(ID1,"--beta");self.assertEqual(self.name(ID1,"--beta"),a);self.assertEqual(self.name(ID2,"--beta"),"ai-secretary")
  def test_base_taken_by_live_client_gets_suffix(self):
   self.ps.write_text("100 herdr --session ai-secretary TERM=xterm\n200 /opt/homebrew/bin/herdr server\n")
   self.assertEqual(self.name(ID1,"--beta"),"ai-secretary-fad3c5e7")
@@ -56,7 +59,22 @@ class MuxyHerdr(unittest.TestCase):
   self.name(ID2,"--beta")
   self.assertEqual(self.name(None,"--beta"),"ai-secretary");self.assertEqual(self.name("abc","--beta"),"ai-secretary")
   self.assertNotIn("abc",self.map())
+ def test_stale_base_owner_is_reclaimed(self):
+  # Muxy サーバー再起動後: 古い番号の端末はもう無いので、新しいタブが基本名を取り戻す
+  self.state.mkdir(parents=True);(self.state/"beta.tsv").write_text(f"1\tai-secretary\tbase\n5\tai-secretary-00000000\ttab\n")
+  self.assertEqual(self.name(ID1,"--beta"),"ai-secretary")
+  self.assertNotIn("1\tai-secretary\tbase",self.map().splitlines());self.assertIn(f"{ID1}\tai-secretary\tbase",self.map());self.assertIn("ai-secretary-00000000",self.map())
+ def test_herdr_server_env_does_not_count_as_alive(self):
+  # herdr サーバーとその中のペインは、起動したタブの MUXY_SESSION_ID を持ち続けるので、生きている根拠にしない
+  self.state.mkdir(parents=True);(self.state/"beta.tsv").write_text("1\tai-secretary\tbase\n")
+  self.ps.write_text("10 /opt/homebrew/bin/herdr server MUXY_SESSION_ID=1\n11 -fish MUXY_SESSION_ID=1\n12 claude MUXY_SESSION_ID=1\n")
+  self.assertEqual(self.name(ID1,"--beta"),"ai-secretary")
+ def test_live_herdr_client_owner_keeps_base(self):
+  self.state.mkdir(parents=True);(self.state/"beta.tsv").write_text("1\tai-secretary\tbase\n")
+  self.ps.write_text("10 /opt/homebrew/bin/herdr --session other MUXY_SESSION_ID=1\n")
+  self.assertEqual(self.name(ID1,"--beta"),"ai-secretary-fad3c5e7")
  def test_concurrent_two_ids_get_distinct_names(self):
+  self.alive(ID1,ID2)
   ps=[subprocess.Popen(["bash",str(SCRIPT),"--beta","--print-name"],env=self.env(i),cwd=self.proj,stdout=subprocess.PIPE,text=True) for i in (ID1,ID2)]
   names=[p.communicate()[0].strip() for p in ps]
   self.assertEqual(len(set(names)),2,names);self.assertIn("ai-secretary",names)
@@ -68,7 +86,7 @@ class MuxyHerdr(unittest.TestCase):
 
  # --- 片付け ---
  def two_tabs(self):
-  self.desktop(self.beta_ds,[ID2,ID1]);self.name(ID2,"--beta");self.name(ID1,"--beta")
+  self.desktop(self.beta_ds,[ID2,ID1]);self.name(ID2,"--beta");self.alive(ID2);self.name(ID1,"--beta");self.ps.write_text("")
  def test_learns_live_clients(self):
   self.desktop(self.beta_ds,[ID1]);self.desktop(self.stable_ds,[ID2])
   self.ps.write_text(f"10 herdr --session Code TERM=x MUXY_SESSION_ID={ID1}\n11 /opt/homebrew/bin/herdr --session stable-Docs MUXY_SESSION_ID={ID2}\n12 herdr --session Code-fad3c5e7 MUXY_SESSION_ID={ID1}\n")
