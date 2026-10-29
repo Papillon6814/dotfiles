@@ -3,22 +3,28 @@
 # 安定版 Muxy は server.toml の default_shell からこのまま、Muxy Beta は fish 設定から --beta 付きで呼ばれる。
 #
 # セッション名: 基本名はフォルダ名（firstmate だけ default）。安定版は stable- を前に付ける。
-#   基本名の持ち主の端末が動いていなければ（未使用・Muxy サーバー再起動後）、そのタブが基本名を使う。それ以外は「基本名-<MUXY_SESSION_ID の16進先頭8桁>」。
-#   紐づけは ~/.local/state/muxy-herdr/<beta|stable>.tsv（MUXY_SESSION_ID・セッション名・base|tab）。
+#   基本名の持ち主の端末が動いていなければ（未使用・Muxy サーバー再起動後）、そのタブが基本名を使う。
+#   それ以外は、Muxy サーバーの再起動で持ち主を失った同じフォルダの番号付きがあればそれを引き継ぎ、
+#   無ければ「基本名-<MUXY_SESSION_ID の16進先頭8桁>」を新しく作る。
+#   止まった herdr セッションにつなぎ直すと、herdr が pi・Claude などの会話を再開する（resume_agents_on_restore）。
+#   紐づけは ~/.local/state/muxy-herdr/<beta|stable>.tsv（MUXY_SESSION_ID・セッション名・base|tab・Muxy サーバーの印）。
+#   Muxy サーバーの印は「PID:起動時刻」。再起動で番号が振り直されたタブと、自分で閉じたタブを見分けるのに使う。
 #
 # 片付け（cleanup）: 閉じたタブのセッションを止める。launchd が10分ごとに呼ぶ（scripts/install-muxy-herdr-cleanup.sh）。
-#   タブが desktop-state.json から2回続けて消えていて、どの herdr クライアントもつながっていなければ、
+#   今の Muxy サーバーのタブが desktop-state.json から2回続けて消えていて、どの herdr クライアントもつながっていなければ、
 #   番号付き（tab）は herdr session stop で止め、基本名（base）は紐づけを外すだけにする。delete はしない。
+#   再起動前の Muxy サーバーのタブは、閉じたのではないので止めずに残す（新しいタブが引き継ぐ）。
 #
 # 使い方: muxy-herdr [--beta] [--print-name]
 #         muxy-herdr cleanup [--dry-run]
-# 環境変数（テスト用）: MUXY_HERDR_STATE_DIR・MUXY_HERDR_PS_CMD・MUXY_HERDR_BIN・MUXY_HERDR_{BETA,STABLE}_DESKTOP_STATE
+# 環境変数（テスト用）: MUXY_HERDR_STATE_DIR・MUXY_HERDR_PS_CMD・MUXY_HERDR_LSTART_CMD・MUXY_HERDR_BIN・MUXY_HERDR_{BETA,STABLE}_DESKTOP_STATE
 set -u
 export PATH="/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 herdr_bin="${MUXY_HERDR_BIN:-/opt/homebrew/bin/herdr}"
 state_dir="${MUXY_HERDR_STATE_DIR:-$HOME/.local/state/muxy-herdr}"
-ps_cmd="${MUXY_HERDR_PS_CMD:-ps -axE -o pid=,command=}"
+ps_cmd="${MUXY_HERDR_PS_CMD:-ps -axE -o pid=,ppid=,command=}"
+lstart_cmd="${MUXY_HERDR_LSTART_CMD:-ps -o lstart= -p}"
 log_file="$HOME/.local/state/muxy-herdr-cleanup.log"
 
 variant=stable; mode=run; dry=0
@@ -31,18 +37,18 @@ for a in "$@"; do
   esac
 done
 
-# 動いている herdr クライアントを「セッション名<TAB>MUXY_SESSION_ID」で並べる（ps -E の環境変数から ID を拾う）
+# 動いている herdr クライアントを「セッション名<TAB>MUXY_SESSION_ID<TAB>親の PID」で並べる（ps -E の環境変数から ID を拾う）
 herdr_clients() {
   $ps_cmd 2>/dev/null | awk -v self=$$ '
     $1 == self { next }
     {
-      n = split($2, p, "/"); if (p[n] != "herdr") next
-      if ($3 == "--session") { name = $4; i = 5 }
-      else if ($3 == "" || index($3, "=") > 0) { name = "default"; i = 3 }
+      n = split($3, p, "/"); if (p[n] != "herdr") next
+      if ($4 == "--session") { name = $5; i = 6 }
+      else if ($4 == "" || index($4, "=") > 0) { name = "default"; i = 4 }
       else next
       sid = ""
       for (j = i; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { sid = substr($j, 17); break }
-      print name "\t" sid
+      print name "\t" sid "\t" $2
     }'
 }
 
@@ -51,12 +57,30 @@ herdr_clients() {
 live_ids() {
   $ps_cmd 2>/dev/null | awk '
     {
-      n = split($2, p, "/"); m = split($3, q, "/")
-      client = p[n] == "herdr" && ($3 == "--session" || $3 == "" || index($3, "=") > 0)
+      n = split($3, p, "/"); m = split($4, q, "/")
+      client = p[n] == "herdr" && ($4 == "--session" || $4 == "" || index($4, "=") > 0)
       starter = p[n] ~ /muxy-herdr$/ || q[m] ~ /muxy-herdr$/
       if (!client && !starter) next
-      for (j = 3; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { print substr($j, 17); break }
+      for (j = 4; j <= NF; j++) if ($j ~ /^MUXY_SESSION_ID=/) { print substr($j, 17); break }
     }'
+}
+
+# Muxy サーバーの印「PID:起動時刻」。その PID が muxy-server でなければ空
+server_mark() {
+  local pid="$1" started
+  [ -n "$pid" ] || return 0
+  $ps_cmd 2>/dev/null | awk -v pid="$pid" '$1 == pid && $0 ~ /\/muxy-server( |$)/ { f = 1 } END { exit !f }' || return 0
+  started=$($lstart_cmd "$pid" 2>/dev/null | tr -s ' ' '_' | sed 's/^_//; s/_$//')
+  [ -n "$started" ] && printf '%s:%s\n' "$pid" "$started"
+  return 0
+}
+
+# その版の Muxy サーバー（ソケットの場所で見分ける）の印。動いていなければ空
+variant_server_mark() {
+  local sock pid
+  case "$1" in beta) sock="Muxy Beta/server.sock" ;; *) sock="Muxy 2/server.sock" ;; esac
+  pid=$($ps_cmd 2>/dev/null | awk -v sock="$sock" '$0 ~ /\/muxy-server --socket / && index($0, sock) { print $1; exit }')
+  server_mark "$pid"
 }
 
 # MUXY_SESSION_ID の16進先頭8桁（2^63 を超えるので bc で変換する）
@@ -75,30 +99,60 @@ lock() {
 }
 unlock() { rmdir "$(lock_dir "$1")" 2>/dev/null; return 0; }
 
+has_line() { grep -qxF -e "$1" <<<"$2"; }
+has_name() { awk -F'\t' -v n="$1" '$1 == n { f = 1 } END { exit !f }' <<<"$2"; }
+
+# 対応表を awk で書き換える（同じフォルダに一時ファイルを作って差し替える）
+rewrite_map() {
+  local map="$1" tmp; shift
+  tmp=$(mktemp "$map.XXXXXX")
+  awk "$@" "$map" >"$tmp" && mv "$tmp" "$map"
+}
+
 base_name() {
   local b; b=$(basename "$PWD"); [ "$b" = firstmate ] && b=default
   [ "$variant" = stable ] && b="stable-$b"
   printf '%s\n' "$b"
 }
 
+# 再起動前の Muxy サーバーで動いていて、持ち主の端末もクライアントも無い、同じフォルダの番号付きを1つ返す
+adoptable() {
+  local map="$1" base="$2" mark="$3" live="$4" clients="$5" oid oname okind omark
+  [ -n "$mark" ] || return 0
+  while IFS=$'\t' read -r oid oname okind omark; do
+    [ "$okind" = tab ] && [ -n "$omark" ] && [ "$omark" != "$mark" ] || continue
+    case "$oname" in "$base"-????????) ;; *) continue ;; esac
+    case "${oname#"$base"-}" in *[!0-9a-f]*) continue ;; esac
+    has_line "$oid" "$live" && continue
+    has_name "$oname" "$clients" && continue
+    printf '%s\n' "$oname"; return 0
+  done <"$map"
+}
+
 resolve_name() {
-  local id="${MUXY_SESSION_ID:-}" base map name owner tmp
+  local id="${MUXY_SESSION_ID:-}" base map name owner mark clients live orphan
   base=$(base_name)
   case "$id" in ''|*[!0-9]*) printf '%s\n' "$base"; return ;; esac
   map="$state_dir/$variant.tsv"
+  mark=$(server_mark "$PPID")
   lock "$variant"
-  name=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$map" 2>/dev/null)
+  touch "$map"
+  name=$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$map")
   if [ -z "$name" ]; then
-    # 基本名の持ち主の端末がもう無ければ（Muxy サーバー再起動で ID が振り直された後など）、このタブが引き継ぐ
-    owner=$(awk -F'\t' -v b="$base" '$2 == b { print $1; exit }' "$map" 2>/dev/null)
-    if has_name "$base" "$(herdr_clients)" || { [ -n "$owner" ] && has_line "$owner" "$(live_ids)"; }; then
-      name="$base-$(hex8 "$id")"; printf '%s\t%s\ttab\n' "$id" "$name" >>"$map"
-    else
-      if [ -n "$owner" ]; then
-        tmp=$(mktemp "$map.XXXXXX")
-        awk -F'\t' -v b="$base" '$2 != b' "$map" >"$tmp" && mv "$tmp" "$map"
+    clients=$(herdr_clients); live=$(live_ids)
+    owner=$(awk -F'\t' -v b="$base" '$2 == b { print $1; exit }' "$map")
+    if has_name "$base" "$clients" || { [ -n "$owner" ] && has_line "$owner" "$live"; }; then
+      orphan=$(adoptable "$map" "$base" "$mark" "$live" "$clients")
+      if [ -n "$orphan" ]; then
+        name="$orphan"
+        rewrite_map "$map" -F'\t' -v OFS='\t' -v n="$name" -v id="$id" -v m="$mark" '$2 == n { $1 = id; $3 = "tab"; $4 = m } { print }'
+      else
+        name="$base-$(hex8 "$id")"; printf '%s\t%s\ttab\t%s\n' "$id" "$name" "$mark" >>"$map"
       fi
-      name="$base"; printf '%s\t%s\tbase\n' "$id" "$name" >>"$map"
+    else
+      # 基本名の持ち主の端末がもう無ければ（Muxy サーバー再起動で ID が振り直された後など）、このタブが引き継ぐ
+      [ -n "$owner" ] && rewrite_map "$map" -F'\t' -v b="$base" '$2 != b'
+      name="$base"; printf '%s\t%s\tbase\t%s\n' "$id" "$name" "$mark" >>"$map"
     fi
   fi
   unlock "$variant"
@@ -136,14 +190,14 @@ with open(sys.argv[1]) as f:
 PY
 }
 
-has_line() { grep -qxF -e "$1" <<<"$2"; }
-has_name() { awk -F'\t' -v n="$1" '$1 == n { f = 1 } END { exit !f }' <<<"$2"; }
-
 cleanup_variant() {
-  local v="$1" map="$state_dir/$1.tsv" pending="$state_dir/$1.pending" ds ids clients work new newpend
-  local id name kind cname csid out
+  local v="$1" map="$state_dir/$1.tsv" pending="$state_dir/$1.pending" ds ids clients cur work new newpend
+  local id name kind mark cname csid cppid cmark out
   ds=$(desktop_state "$v")
   [ -e "$ds" ] || return 0
+  # Muxy サーバーが動いていなければ、閉じたのか再起動待ちなのか分からないので何もしない
+  cur=$(variant_server_mark "$v")
+  [ -n "$cur" ] || return 0
   # 書き込み途中・壊れている・端末0件のときは何も止めない
   ids=$(terminal_ids "$ds" 2>/dev/null) || { log "$v: desktop-state を読めないので中止"; return 0; }
   [ -n "$ids" ] || return 0
@@ -152,41 +206,48 @@ cleanup_variant() {
   lock "$v"
   work=$(mktemp "$state_dir/$v.work.XXXXXX"); new=$(mktemp "$state_dir/$v.new.XXXXXX"); newpend=$(mktemp "$state_dir/$v.pend.XXXXXX")
   cat "$map" >"$work" 2>/dev/null
-  # 動いているクライアントの紐づけを取り込む（この仕組みより前に開いたタブも対象にする）
-  while IFS=$'\t' read -r cname csid; do
+  # 動いているクライアントの紐づけを取り込む（この仕組みより前に開いたタブも対象にする）。印の無い行には印を足す
+  while IFS=$'\t' read -r cname csid cppid; do
     case "$csid" in ''|*[!0-9]*) continue ;; esac
     case "$cname" in stable-*) [ "$v" = stable ] || continue ;; *) [ "$v" = beta ] || continue ;; esac
-    awk -F'\t' -v id="$csid" '$1 == id { f = 1 } END { exit !f }' "$work" && continue
+    cmark=$(server_mark "$cppid")
+    if awk -F'\t' -v id="$csid" '$1 == id { f = 1 } END { exit !f }' "$work"; then
+      [ -n "$cmark" ] && rewrite_map "$work" -F'\t' -v OFS='\t' -v id="$csid" -v m="$cmark" '$1 == id && $4 == "" { $4 = m } { print }'
+      continue
+    fi
     kind=base; case "$cname" in *-"$(hex8 "$csid")") kind=tab ;; esac
-    printf '%s\t%s\t%s\n' "$csid" "$cname" "$kind" >>"$work"
+    printf '%s\t%s\t%s\t%s\n' "$csid" "$cname" "$kind" "$cmark" >>"$work"
   done <<<"$clients"
 
-  while IFS=$'\t' read -r id name kind; do
+  while IFS=$'\t' read -r id name kind mark; do
     [ -n "$id" ] || continue
     if has_line "$id" "$ids"; then
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"
     elif has_name "$name" "$clients"; then
       log "kept: ${name}（タブは閉じたが、herdr クライアントがつながっている）"
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"
+    elif [ -n "$mark" ] && [ "$mark" != "$cur" ]; then
+      # 再起動前の Muxy サーバーのタブ。閉じたのではないので残し、同じフォルダの新しいタブに引き継がせる
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"
     elif ! grep -qxF -e "$id" "$pending" 2>/dev/null; then
       # 1回目はまだ止めない（desktop-state への反映待ちかもしれない）
       [ $dry = 1 ] && log "would wait: ${name}（タブが見当たらない。次回も無ければ片付ける）"
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"; printf '%s\n' "$id" >>"$newpend"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"; printf '%s\n' "$id" >>"$newpend"
     elif [ "$kind" != tab ] && [ $dry = 1 ]; then
       log "would release: $name"
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"
     elif [ "$kind" != tab ]; then
       log "released: ${name}（タブを閉じたので紐づけを外す。セッションは止めない）"
     elif [ $dry = 1 ]; then
       log "would stop: $name"
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"
     elif out=$("$herdr_bin" session stop "$name" 2>&1); then
       log "stopped: ${name}（タブを閉じた）"
     elif [[ "$out" == *"is not running"* ]]; then
       log "gone: ${name}（既に止まっていた）"
     else
       log "kept: ${name}（止められなかった: ${out}）"
-      printf '%s\t%s\t%s\n' "$id" "$name" "$kind" >>"$new"; printf '%s\n' "$id" >>"$newpend"
+      printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$kind" "$mark" >>"$new"; printf '%s\n' "$id" >>"$newpend"
     fi
   done <"$work"
 
