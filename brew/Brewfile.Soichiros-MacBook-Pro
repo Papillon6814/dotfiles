@@ -137,6 +137,8 @@ brew "pyenv"
 brew "pylint"
 # Static type checker for Python
 brew "pyright"
+# Python interface to Tcl/Tk
+brew "python-tk@3.14"
 # Interpreted, interactive, object-oriented programming language
 brew "python@3.13"
 # File browser
@@ -185,8 +187,6 @@ brew "xcodegen"
 brew "yt-dlp"
 # Pluggable terminal workspace, with terminal multiplexer as the base feature
 brew "zellij"
-# Named Codex CLI profiles with separate local ChatGPT desktop state
-brew "ducksss/tap/codex-profile", trusted: true
 # Lightning-fast macOS screenshots & AI vision analysis
 brew "openclaw/tap/peekaboo", trusted: true
 # Portable daemon + CLI that bridges AI coding agents to the Moshi mobile app
@@ -215,8 +215,6 @@ cask "chatgpt"
 cask "chatwork"
 # Clipboard extension app
 cask "clipy"
-# OpenAI's coding agent that runs in your terminal
-cask "codex"
 # Write, edit, and chat about your code with AI
 cask "cursor"
 # Voice and text chat software
@@ -347,7 +345,6 @@ npm "depcheck"
 npm "docx"
 npm "gh-axi"
 npm "gh-issueflow"
-npm "happy"
 npm "lavish-axi"
 npm "mcp-gsheets"
 npm "pi-ask-user"

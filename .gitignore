@@ -1,1 +1,6 @@
 dot_local/bin/__pycache__/
+# 検証などの作業場所（中に入れ子の Git リポジトリができて、自動同期の git add -A が止まるため）
+work/
+# バックアップと Python の生成物（管理済みの pyc はそのまま残る）
+*.bak.*
+__pycache__/

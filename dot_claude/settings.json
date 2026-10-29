@@ -23,12 +23,6 @@
     "pr": ""
   },
   "includeCoAuthoredBy": false,
-  "autoMode": {
-    "allow": [
-      "$defaults",
-      "Self-configuration maintenance: Allow local changes to Claude Code's own configuration, including permissions, approval gates, hooks, sandbox settings, profiles, skills, and MCP configuration. This exception does not authorize unrelated actions or fabricated user consent."
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(git add *)",
@@ -117,13 +111,13 @@
     ]
   },
   "model": "opus[1m]",
+  "enabledMcpjsonServers": [
+    "Roblox_Studio"
+  ],
   "deniedMcpServers": [
     {
       "serverName": "claude_ai_Notion"
     }
-  ],
-  "enabledMcpjsonServers": [
-    "Roblox_Studio"
   ],
   "hooks": {
     "Notification": [
@@ -131,7 +125,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "command": "f=\"$HOME/.claude/hooks/notify.sh\"; [ -f \"$f\" ] || exit 0; exec /bin/bash \"$f\"",
             "timeout": 5
           }
         ]
@@ -185,19 +179,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/cleanup-merged-worktrees.sh --claude-post-tool-use",
+            "command": "f=\"$HOME/.claude/hooks/cleanup-merged-worktrees.sh\"; [ -f \"$f\" ] || exit 0; exec /bin/bash \"$f\" --claude-post-tool-use",
             "if": "Bash(git *)",
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "__aideck": true,
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
-            "timeout": 3
           }
         ]
       },
@@ -208,6 +192,16 @@
             "type": "command",
             "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUse # muxy-ask-relay",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
@@ -235,22 +229,22 @@
         ]
       },
       {
-        "__aideck": true,
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
-            "timeout": 3
-          }
-        ]
-      },
-      {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
             "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PreToolUse # muxy-ask-relay",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
@@ -270,18 +264,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/cleanup-merged-worktrees.sh \"$(jq -r '.cwd // empty')\" >/dev/null 2>&1",
+            "command": "f=\"$HOME/.claude/hooks/cleanup-merged-worktrees.sh\"; [ -f \"$f\" ] || exit 0; /bin/bash \"$f\" \"$(jq -r '.cwd // empty')\" >/dev/null 2>&1",
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "__aideck": true,
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
-            "timeout": 3
           }
         ]
       },
@@ -294,6 +278,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "Stop": [
@@ -301,7 +295,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "command": "f=\"$HOME/.claude/hooks/notify.sh\"; [ -f \"$f\" ] || exit 0; exec /bin/bash \"$f\"",
             "timeout": 5
           }
         ]
@@ -317,21 +311,21 @@
         ]
       },
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs Stop # muxy-ask-relay",
+            "timeout": 10
+          }
+        ]
+      },
+      {
         "__aideck": true,
         "hooks": [
           {
             "type": "command",
             "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
             "timeout": 3
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs Stop # muxy-ask-relay",
-            "timeout": 10
           }
         ]
       }
@@ -363,7 +357,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/bash ~/.claude/hooks/notify.sh",
+            "command": "f=\"$HOME/.claude/hooks/notify.sh\"; [ -f \"$f\" ] || exit 0; exec /bin/bash \"$f\"",
             "timeout": 5
           }
         ]
@@ -391,21 +385,21 @@
         ]
       },
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs UserPromptSubmit # muxy-ask-relay",
+            "timeout": 10
+          }
+        ]
+      },
+      {
         "__aideck": true,
         "hooks": [
           {
             "type": "command",
             "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
             "timeout": 3
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs UserPromptSubmit # muxy-ask-relay",
-            "timeout": 10
           }
         ]
       }
@@ -426,7 +420,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/sh ~/.claude/hooks/herdr-session-context.sh",
+            "command": "f=\"$HOME/.claude/hooks/herdr-session-context.sh\"; [ -f \"$f\" ] || exit 0; exec /bin/sh \"$f\"",
             "timeout": 5
           }
         ]
@@ -444,22 +438,22 @@
     ],
     "PostToolUseFailure": [
       {
-        "__aideck": true,
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
-            "timeout": 3
-          }
-        ]
-      },
-      {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
             "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUseFailure # muxy-ask-relay",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "__aideck": true,
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'n=$1; shift; [ -f \"$1\" ] || exit 0; [ -x \"$n\" ] || n=$(command -v node) || exit 0; exec \"$n\" \"$@\"' aideck-hook '/opt/homebrew/opt/node@22/bin/node' '/Users/papillon/.aideck/hook/hook.js' --provider 'claude'",
+            "timeout": 3
           }
         ]
       }
@@ -489,6 +483,7 @@
       }
     ]
   },
+  "enableArtifact": false,
   "statusLine": {
     "type": "command",
     "command": "HERDR_PLUGIN_STATE_DIR='/Users/papillon/.local/state/herdr/plugins/herdr-agent-quota' '/Users/papillon/.config/herdr/plugins/github/herdr-agent-quota-651432b09361/target/release/herdr-agent-quota' claude-statusline",
@@ -530,5 +525,13 @@
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
-  "agentPushNotifEnabled": true
+  "switchModelsOnFlag": false,
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Self-configuration maintenance: Allow local changes to Claude Code's own configuration, including permissions, approval gates, hooks, sandbox settings, profiles, skills, and MCP configuration. This exception does not authorize unrelated actions or fabricated user consent."
+    ]
+  },
+  "language": "Japanese"
 }
