@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  alerter-reaper（2分ごと）。herdr-focus-notify の通知（alerter）のうち、5分以上残っているものを閉じる。
+  直接コピーせず scripts/install-alerter-reaper.sh で設置する（__HOME__・__REPO__ を置き換えて ~/Library/LaunchAgents に置き、bootstrap する）。
+
+  状態:     launchctl print gui/$(id -u)/com.kendrickmalar.alerter-reaper
+  即時実行: launchctl kickstart -k gui/$(id -u)/com.kendrickmalar.alerter-reaper
+  停止:     scripts/install-alerter-reaper.sh に uninstall を付けて実行
+  ログ:     ~/.local/state/alerter-reaper.log（閉じたもの）、~/.local/state/alerter-reaper.launchd.log（標準出力・エラー）
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kendrickmalar.alerter-reaper</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO__/scripts/alerter-reaper.sh</string>
+  </array>
+
+  <!-- 2分ごと。5分の上限に対して、遅れても7分以内に閉じる -->
+  <key>StartInterval</key>
+  <integer>120</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/.local/state/alerter-reaper.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.local/state/alerter-reaper.launchd.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>__HOME__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LANG</key>
+    <string>ja_JP.UTF-8</string>
+    <key>PATH</key>
+    <string>/usr/sbin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>
