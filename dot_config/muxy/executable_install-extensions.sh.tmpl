@@ -1,0 +1,30 @@
+#!/bin/sh
+# Muxy の自作拡張を入れる・最新にする（両機で同じ状態にするため。何度実行してもよい）。
+# ~/.config/muxy/extensions/<name> は chezmoi が ~/Code/<name> への symlink として配る。
+set -eu
+for name in muxy-herdr-agent-status muxy-tab-names; do
+  repo="$HOME/Code/$name"
+  if [ -d "$repo/.git" ]; then
+    git -C "$repo" pull --ff-only
+  else
+    gh repo clone "KendrickMalar/$name" "$repo"
+  fi
+  (cd "$repo" && npm run build)
+done
+
+# Muxy 2（安定版）は固定版を読む。固定版は MBP で作ったものを写す（コミットから作り直しても同じにならない）
+release="$HOME/.local/share/muxy-herdr-agent-status/stable/releases/{{ .muxy.stable_release }}"
+if [ ! -d "$release" ]; then
+  cat <<MSG
+Muxy 2 用の固定版がありません: $release
+MBP から写してください（MBP 側で実行。logs は写さない）:
+  rsync -a --exclude logs "$release/" <この機械>:"$release/"
+MSG
+fi
+
+cat <<'MSG'
+次は Muxy 側で手動（拡張の登録は muxy-settings-apply が配る）:
+  1. Muxy・Muxy Beta を終了して muxy-settings-apply を実行し、起動する
+  2. 初回の実行許可（python3 / sleep）は Allow & remember
+  3. ⌘⇧P → 「herdr Status: Start color sync loop」（Muxy 再起動・拡張 Reload のたびに実行）
+MSG
