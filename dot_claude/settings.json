@@ -131,16 +131,6 @@
         ]
       },
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' notification # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
-      {
         "__aideck": true,
         "hooks": [
           {
@@ -152,16 +142,6 @@
       }
     ],
     "PermissionRequest": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' permission-request # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "matcher": "",
         "hooks": [
@@ -223,16 +203,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' pre-tool-use # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
             "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PreToolUse # muxy-ask-relay",
             "timeout": 10
           }
@@ -250,16 +220,6 @@
       }
     ],
     "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' session-end # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "hooks": [
           {
@@ -301,16 +261,6 @@
         ]
       },
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' stop # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
-      {
         "hooks": [
           {
             "type": "command",
@@ -331,16 +281,6 @@
       }
     ],
     "StopFailure": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' stop-failure # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "__aideck": true,
         "hooks": [
@@ -374,16 +314,6 @@
       }
     ],
     "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'/Users/papillon/Library/Application Support/Muxy/hooks/muxy-claude-hook.sh' user-prompt-submit # muxy-notification-hook",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "hooks": [
           {
