@@ -1,0 +1,102 @@
+#!/bin/sh
+# Muxy・Muxy Beta の設定（settings.toml、terminal.toml、ghostty.conf、拡張の登録）を dotfiles とそろえる。
+#
+# Muxy は起動中に設定を覚えていて、次に保存するときに古い値で書き戻す。
+# そのため、これらのファイルはふだんの chezmoi apply と dotfiles-sync では無視し
+# （.chezmoiignore の CHEZMOI_MUXY）、このコマンドで扱う。
+#
+# 正の機械（MBP）で設定を変えたら --snapshot で dotfiles に写す。ほかの機械では Muxy を終了して当てる。
+#
+# 使い方:
+#   muxy-settings-apply             Muxy が終了していれば当てる（今の設定は .bak-日時 に退避）。正の機械では当てない
+#   muxy-settings-apply --diff      当てずに差だけ見る（起動中でも可）
+#   muxy-settings-apply --check     現物と dotfiles の写しが同じか確かめる（作業状態は除く。違えば終了コード 1）
+#   muxy-settings-apply --snapshot  現物を dotfiles の写しに上書きする（正の機械で設定を変えたとき）
+set -eu
+
+SOURCE_HOST="${MUXY_SOURCE_HOST:-Soichiros-MacBook-Pro}"
+support="$HOME/Library/Application Support"
+targets="$support/Muxy Beta
+$support/Muxy 2"
+# 作業状態（機械ごとに違ってよい項目）。.chezmoitemplates の modify ファイルの drop と同じ
+state_keys="appearance.project_recent appearance.worktree_recent appearance.hidden_worktrees appearance.sidebar_expanded appearance.tab_focused_expanded panel_pins projects ai.project_pr_prompts worktrees.projects diagnostics"
+
+run_chezmoi() {
+  # 改行区切りの targets を、空白入りのパスのまま引数に渡す
+  old_ifs=$IFS
+  IFS='
+'
+  # shellcheck disable=SC2086
+  CHEZMOI_MUXY=1 chezmoi "$@" $targets
+  IFS=$old_ifs
+}
+
+# 「現物|dotfiles の写し（source からの相対）|種類」の一覧
+pairs() {
+  src_support="private_Library/private_Application Support"
+  cat <<EOF
+Muxy Beta/settings.toml|.chezmoitemplates/muxy/beta-settings.toml|toml
+Muxy 2/settings.toml|.chezmoitemplates/muxy/stable-settings.toml|toml
+Muxy Beta/terminal.toml|.chezmoitemplates/muxy/beta-terminal.toml|toml
+Muxy Beta/ghostty.conf|$src_support/private_Muxy Beta/private_ghostty.conf|file
+Muxy 2/ghostty.conf|$src_support/private_Muxy 2/private_ghostty.conf|file
+Muxy Beta/extension-enabled.json|$src_support/private_Muxy Beta/private_extension-enabled.json|file
+Muxy Beta/extension-grants.json|$src_support/private_Muxy Beta/private_extension-grants.json|file
+Muxy 2/extension-enabled.json|$src_support/private_Muxy 2/private_extension-enabled.json|file
+Muxy 2/extension-grants.json|$src_support/private_Muxy 2/private_extension-grants.json|file
+EOF
+}
+
+check() {
+  src="$(chezmoi source-path)"
+  ignore=""
+  for key in $state_keys; do ignore="$ignore --ignore $key"; done
+  status=0
+  pairs | while IFS='|' read -r live copy kind; do
+    [ -f "$support/$live" ] && [ -f "$src/$copy" ] || continue
+    if [ "$kind" = toml ]; then
+      # shellcheck disable=SC2086
+      python3 "$src/scripts/muxy-settings-compare.py" "$support/$live" "$src/$copy" $ignore | sed "s|^|$live: |" || exit 1
+      # shellcheck disable=SC2086
+      python3 "$src/scripts/muxy-settings-compare.py" "$src/$copy" "$support/$live" $ignore >/dev/null || { echo "$live: dotfiles の写しにだけある項目があります"; exit 1; }
+    else
+      cmp -s "$support/$live" "$src/$copy" || { echo "$live: dotfiles の写しと違います"; exit 1; }
+    fi
+  done || status=1
+  return $status
+}
+
+snapshot() {
+  src="$(chezmoi source-path)"
+  pairs | while IFS='|' read -r live copy kind; do
+    [ -f "$support/$live" ] || continue
+    mkdir -p "$(dirname "$src/$copy")"
+    cp "$support/$live" "$src/$copy"
+    echo "写しました: $live"
+  done
+}
+
+case "${1:-}" in
+  --diff) run_chezmoi diff; exit 0 ;;
+  --check) check; exit $? ;;
+  --snapshot) snapshot; exit 0 ;;
+esac
+
+if [ "$(hostname -s)" = "$SOURCE_HOST" ]; then
+  echo "この機械（${SOURCE_HOST}）の設定が正なので、dotfiles から当てません。" >&2
+  echo "設定を変えたなら muxy-settings-apply --snapshot で dotfiles に写してください（ずれは --check で確認）。" >&2
+  exit 1
+fi
+
+if running=$(pgrep -fl '/Applications/Muxy( Beta)?\.app/Contents/MacOS/muxy-app'); then
+  echo "Muxy が起動しています。終了してから実行してください（起動中に当てると書き戻されます）:" >&2
+  echo "$running" >&2
+  exit 1
+fi
+
+stamp="$(date +%Y%m%d-%H%M%S)"
+for f in "Muxy Beta/settings.toml" "Muxy Beta/terminal.toml" "Muxy 2/settings.toml"; do
+  [ -f "$support/$f" ] && cp -p "$support/$f" "$support/$f.bak-$stamp"
+done
+run_chezmoi apply
+echo "Muxy の設定を当てました（退避: *.bak-${stamp}）。Muxy を起動してください。"

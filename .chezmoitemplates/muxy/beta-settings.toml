@@ -1,0 +1,231 @@
+[ai.project_pr_prompts]
+
+[ai.prompts]
+
+[ai.providers]
+
+[appearance]
+auto_expand_worktrees = false
+dark_theme = "Muxy"
+extension_sidebar = ""
+hidden_worktrees = ["7e943a3b55734ddd8edd41791d6dda94"]
+layout = "project_focused"
+light_theme = "Muxy Light"
+project_recent = [
+    "3dc3885ca1bd4029979240be77eb22d4",
+    "693a8a86848d4b50bde0128687104a23",
+    "dfec3f1b577a498cb89b5da9431558b8",
+    "136069a545994a218daa4f926ea0a4fd",
+    "6cfbac07f61044dfa548d3979cb45bc7",
+    "4a73f884745c453895b58fc8d6c9737c",
+    "7e943a3b55734ddd8edd41791d6dda94",
+    "51ffa498349544168990c5489d834454",
+    "2c18423d5b234f3ebcb4fc147381bf4a",
+    "71633577dc8146a39d656fde3fbb2030",
+    "32df3054688c4a0eb1b5e48d8e9e59b2",
+    "c8b71a19dc9547689f345418fa3bb990",
+    "732661eea64e4941a6e295769a30a4f4",
+    "2ae97332a59343608327822362e138d3",
+    "723268c65f754a469e3fd77d8241b5bb",
+]
+sidebar_collapsed_style = "icons"
+sidebar_expanded = true
+sidebar_expanded_width = 180.0
+sidebar_vibrancy = true
+sidebar_vibrancy_level = 50
+status_bar_visible = true
+tab_focused_focus = false
+tab_focused_project_order = "manual"
+tips_visible = false
+worktree_order_by_mru = true
+worktree_recent = [
+    "3dc3885ca1bd4029979240be77eb22d4",
+    "693a8a86848d4b50bde0128687104a23",
+    "dfec3f1b577a498cb89b5da9431558b8",
+    "2349ab09c8d44a5a932755eb9e10e1b2",
+    "136069a545994a218daa4f926ea0a4fd",
+    "6cfbac07f61044dfa548d3979cb45bc7",
+    "4a73f884745c453895b58fc8d6c9737c",
+    "7e943a3b55734ddd8edd41791d6dda94",
+    "51ffa498349544168990c5489d834454",
+    "2c18423d5b234f3ebcb4fc147381bf4a",
+    "71633577dc8146a39d656fde3fbb2030",
+    "32df3054688c4a0eb1b5e48d8e9e59b2",
+    "c8b71a19dc9547689f345418fa3bb990",
+    "732661eea64e4941a6e295769a30a4f4",
+    "2ae97332a59343608327822362e138d3",
+    "723268c65f754a469e3fd77d8241b5bb",
+    "37f909d24d51457fb1222dc2e5aada47",
+]
+worktree_show_unread = true
+
+[appearance.tab_focused_expanded]
+
+[clipboard]
+copy_on_select = false
+
+[composer]
+broadcast = false
+clear_after_sending = false
+clear_on_close = false
+expanded = false
+floating_height = 236.0
+floating_width = 570.0
+font_family = "SF Mono"
+font_size = 13.0
+height = 220.0
+image_strategy = "clipboard"
+language = ""
+line_height = 1.2
+pinned = false
+position = "right"
+presentation = "panel"
+voice_auto_send = false
+width = 380.0
+
+[keymap]
+add_project = "cmd-o"
+"button.activate" = "enter"
+close_pane = "cmd-w"
+close_tab = "cmd-shift-w"
+"composer.close" = "escape"
+"composer.insert" = "cmd-shift-enter"
+"composer.submit" = "cmd-enter"
+copy = "cmd-c"
+decrease_font_size = "cmd--"
+existing_terminals = "cmd-alt-t"
+find = "cmd-f"
+find_next = "cmd-g"
+find_previous = "cmd-shift-g"
+focus_pane_down = "cmd-alt-down"
+focus_pane_left = "cmd-alt-left"
+focus_pane_right = "cmd-alt-right"
+focus_pane_up = "cmd-alt-up"
+hide_app = "cmd-h"
+hide_others = "cmd-alt-h"
+increase_font_size = "cmd-+"
+"menu.confirm_highlighted" = "enter"
+"menu.dismiss_menu" = "escape"
+"menu.highlight_next" = "down"
+"menu.highlight_previous" = "up"
+minimize = "cmd-m"
+navigate_back = "cmd-ctrl-left"
+navigate_forward = "cmd-ctrl-right"
+new_home_tab = "cmd-n"
+new_tab = "cmd-t"
+next_project = "cmd-]"
+next_prompt = "cmd-down"
+next_tab = "ctrl-tab"
+open_settings = "cmd-,"
+paste = "cmd-v"
+"popover.confirm" = "enter"
+"popover.dismiss" = "escape"
+"popover.navigate_back" = "alt-backspace"
+"popover.next_tab" = "ctrl-tab"
+"popover.previous_tab" = "ctrl-shift-tab"
+"popover.secondary_confirm" = "alt-enter"
+"popover.select_next" = "down"
+"popover.select_previous" = "up"
+"popover.tab_pressed" = "tab"
+previous_project = "cmd-["
+previous_prompt = "cmd-up"
+previous_tab = "ctrl-shift-tab"
+"project_colors.choose_color" = "enter"
+"project_colors.dismiss_colors" = "escape"
+"project_colors.next_color" = "right"
+"project_colors.previous_color" = "left"
+quit = "cmd-q"
+scroll_to_bottom = "cmd-end"
+select_tab1 = "cmd-1"
+select_tab2 = "cmd-2"
+select_tab3 = "cmd-3"
+select_tab4 = "cmd-4"
+select_tab5 = "cmd-5"
+select_tab6 = "cmd-6"
+select_tab7 = "cmd-7"
+select_tab8 = "cmd-8"
+select_tab9 = "cmd-9"
+"settings.close" = "cmd-w"
+"settings.focus_navbar" = "cmd-shift-e"
+"settings.next_control" = "tab"
+"settings.previous_control" = "shift-tab"
+"settings.search" = "cmd-f"
+split_down = "cmd-shift-d"
+split_right = "cmd-d"
+"terminal.close_find" = "escape"
+"text_input.backspace" = "backspace"
+"text_input.cancel" = "escape"
+"text_input.copy" = "cmd-c"
+"text_input.cut" = "cmd-x"
+"text_input.delete" = "delete"
+"text_input.delete_word" = "alt-backspace"
+"text_input.document_end" = "end"
+"text_input.document_start" = "home"
+"text_input.down" = "down"
+"text_input.end" = "cmd-right"
+"text_input.home" = "cmd-left"
+"text_input.insert_newline" = "enter"
+"text_input.left" = "left"
+"text_input.page_down" = "pagedown"
+"text_input.page_up" = "pageup"
+"text_input.paste" = "cmd-v"
+"text_input.redo" = "cmd-shift-z"
+"text_input.right" = "right"
+"text_input.select_all" = "cmd-a"
+"text_input.select_document_end" = "cmd-shift-down"
+"text_input.select_document_start" = "cmd-shift-up"
+"text_input.select_down" = "shift-down"
+"text_input.select_end" = "cmd-shift-right"
+"text_input.select_home" = "cmd-shift-left"
+"text_input.select_left" = "shift-left"
+"text_input.select_page_down" = "shift-pagedown"
+"text_input.select_page_up" = "shift-pageup"
+"text_input.select_right" = "shift-right"
+"text_input.select_up" = "shift-up"
+"text_input.select_word_left" = "alt-shift-left"
+"text_input.select_word_right" = "alt-shift-right"
+"text_input.show_character_palette" = "cmd-ctrl-space"
+"text_input.submit" = "enter"
+"text_input.undo" = "cmd-z"
+"text_input.up" = "up"
+"text_input.word_left" = "alt-left"
+"text_input.word_right" = "alt-right"
+toggle_command_palette = "cmd-shift-p"
+toggle_composer = "cmd-i"
+toggle_full_screen = "cmd-ctrl-f"
+toggle_sidebar = "cmd-b"
+toggle_theme_picker = "cmd-shift-k"
+toggle_voice_recording = "cmd-shift-i"
+toggle_zoom_pane = "cmd-alt-enter"
+"voice.cancel" = "escape"
+"voice.finish" = "enter"
+"voice.pause" = "space"
+
+[openers]
+file = "system.editor"
+url = "system.browser"
+
+[panel_pins]
+
+[panes]
+new_pane_directory = "project"
+
+[projects]
+
+[quick_terminal]
+blur = 70
+enabled = true
+height = 430
+transparency = 0
+width = 720
+
+[quick_terminal.shortcut]
+type = "unassigned"
+
+[window]
+close_behavior = "close_session"
+confirm_running_process = true
+default_size = [
+    1200.0,
+    800.0,
+]

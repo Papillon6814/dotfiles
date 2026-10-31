@@ -1,69 +1,60 @@
 {
-  "hooks" : {
-    "afterAgentThought" : [
+  "hooks": {
+    "afterAgentThought": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "beforeSubmitPrompt" : [
+    "beforeSubmitPrompt": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
-      },
-      {
-        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' beforeSubmitPrompt # muxy-notification-hook"
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "postToolUse" : [
+    "postToolUse": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "postToolUseFailure" : [
+    "postToolUseFailure": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "preCompact" : [
+    "preCompact": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "preToolUse" : [
+    "preToolUse": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "sessionEnd" : [
+    "sessionEnd": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
-      },
-      {
-        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' sessionEnd # muxy-notification-hook"
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "sessionStart" : [
+    "sessionStart": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "stop" : [
+    "stop": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
-      },
-      {
-        "command" : "'\/Users\/papillon\/Library\/Application Support\/Muxy\/hooks\/muxy-cursor-hook.sh' stop # muxy-notification-hook"
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "subagentStart" : [
+    "subagentStart": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ],
-    "subagentStop" : [
+    "subagentStop": [
       {
-        "command" : "\"\/opt\/homebrew\/bin\/node\" \"\/Users\/papillon\/Documents\/Github\/clawd-on-desk\/hooks\/cursor-hook.js\""
+        "command": "\"/opt/homebrew/bin/node\" \"/Users/papillon/Documents/Github/clawd-on-desk/hooks/cursor-hook.js\""
       }
     ]
   },
-  "version" : 1
+  "version": 1
 }

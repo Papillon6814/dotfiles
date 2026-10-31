@@ -1,0 +1,2 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- includeTemplate "muxy-merge" (dict "stdin" .chezmoi.stdin "want" (include ".chezmoitemplates/muxy/stable-settings.toml") "drop" (list "appearance.project_recent" "appearance.worktree_recent" "appearance.hidden_worktrees" "appearance.sidebar_expanded" "appearance.tab_focused_expanded" "panel_pins" "projects" "ai.project_pr_prompts" "worktrees.projects") "merge" (list "appearance" "ai" "worktrees")) -}}

@@ -14,7 +14,8 @@
 | `~/.config/herdr` | herdr（エージェント向けマルチプレクサ）。`config.toml` とプラグイン個別設定。プラグイン本体は `install-plugins.sh` でコミット固定のまま再導入。ログ・ソケット・セッション・`plugins.json` は追跡しない |
 | `~/Library/Application Support/Muxy/ghostty.conf` | 旧 Muxy 1.x ターミナル。`command` 行で herdr を起動（Ghostty 側は tmux）。`settings.json` は Muxy が起動中に上書きするので追跡しない |
 | `~/Library/Application Support/Muxy 2/server.toml`, `~/.local/bin/muxy-herdr` | Muxy 2 の `default_shell` から herdr を起動。作業フォルダ名ごとにセッションへ接続し、`firstmate` は既定セッション（Muxy の Coding Manager の作業フォルダ。中身は空）。herdr 本体は `~/.local/bin/herdr`、内部シェルは `/opt/homebrew/bin/fish` |
-| `~/.config/muxy` | Muxy 拡張。`extensions/muxy-herdr-agent-status` は `~/Code/muxy-herdr-agent-status`（自作、herdr のエージェント状態をプロジェクト色に反映）への symlink。本体は `install-extensions.sh` で clone + build。有効化とループ起動（⌘⇧P）は手動。公式拡張 `files` は Muxy が入れるので追跡しない |
+| `~/.config/muxy` | Muxy 拡張。`extensions/` の `muxy-herdr-agent-status`（herdr のエージェント状態をプロジェクト色に反映）と `muxy-tab-names` は `~/Code/<name>` への symlink。`install-extensions.sh` で clone（済みなら pull）+ build。Muxy 2 用の固定版（`~/.local/share/muxy-herdr-agent-status/stable/releases/<版>`、版は `.chezmoidata/muxy.toml`）はコミットから作り直しても同じにならないので、MBP から rsync で写す。公式拡張 `files` は Muxy が入れるので追跡しない |
+| `~/Library/Application Support/Muxy 2/`, `Muxy Beta/` の `settings.toml`・`terminal.toml`・`ghostty.conf`・`extension-*.json` | Muxy の見た目・キー割り当て・拡張の登録。MBP が正。Muxy は起動中に設定を書き戻すので、ふだんの `chezmoi apply` と dotfiles-sync では無視し（`.chezmoiignore` の `CHEZMOI_MUXY`）、Muxy を終了してから `muxy-settings-apply` で当てる。`settings.toml`・`terminal.toml` は modify テンプレート（`.chezmoitemplates/muxy-merge`）で、最近使った一覧などの作業状態を残して MBP の値を当てる。MBP で設定を変えたら `muxy-settings-apply --snapshot` で dotfiles に写す（ずれは `--check`。MBP では当てる操作をしない）。`--check`・`--snapshot` は `tomllib` のある python3（3.11 以上）が要る。両機の比較は `scripts/muxy-settings-compare.py` |
 | `~/.config/git`, `~/.config/karabiner`, `~/.config/iterm2` | 各種 |
 | `~/.pi/` | pi (pi-coding-agent) 設定一式（auth/cache は除外）|
 | `~/.claude/` | Claude Code グローバル設定（CLAUDE.md, rules, agents, hooks）|
@@ -34,6 +35,26 @@ muxy settings set default-shell "$HOME/.local/bin/muxy-herdr"
 新しい端末から反映される。既存端末を終了したり、サーバーを再起動したりしない。
 Herdr 本体と fish は別途インストール済みであることが前提。
 通常のシェルへ一時的に戻すには `muxy settings set default-shell default`。次の `chezmoi apply` で自動起動設定へ戻る。
+
+### 別の機械（Mac mini）を MBP の Muxy 環境にそろえる
+
+```sh
+# MBP で: Muxy 2 用の固定版を写す（版は .chezmoidata/muxy.toml）
+rsync -a --exclude logs ~/.local/share/muxy-herdr-agent-status/stable/releases/<版>/ macmini@<IP>:.local/share/muxy-herdr-agent-status/stable/releases/<版>/
+# MBP で: Claude の設定を mini 用に作って書き込む（まず差だけ見て、よければ --apply）
+scripts/claude-settings-to-host.sh macmini@<IP>
+scripts/claude-settings-to-host.sh macmini@<IP> --apply
+
+# mini で
+brew bundle --file brew/Brewfile.MacMininoMac-mini-4
+~/.config/herdr/install-plugins.sh
+~/.config/muxy/install-extensions.sh
+scripts/install-muxy-herdr-cleanup.sh && scripts/install-alerter-reaper.sh && scripts/install-tmp-cleanup.sh
+# Muxy・Muxy Beta を終了してから
+muxy-settings-apply
+```
+
+Claude の `settings.json` を1つのファイルで共有しない理由: muxy-ask-relay などは、入れる・更新するたびにその機械の絶対パスで hook を書き直す。共有すると片方の更新でもう片方が壊れる。そこで MBP を正とし、`scripts/claude-settings-for-host.py` で機械ごとに作る（relay の hook はその機械のものを残し、otel は外す）。
 
 ## シークレットの扱い
 

@@ -1,0 +1,68 @@
+font_families = ["iosevka"]
+font_size = 14.0
+cell_height = "0"
+macos_option_as_alt = "true"
+keybindings = [
+    "",
+    'cmd+enter=text:\x19',
+    'cmd+d=ignore',
+    'cmd+w=ignore',
+    'shift+enter=text:\x1b[13;2u',
+]
+diagnostics = [
+    "ghostty.conf:1: shell-integration is not supported by Muxy",
+    "ghostty.conf:11: mouse-hide-while-typing is not supported by Muxy",
+    "ghostty.conf:13: window-decoration is not supported by Muxy",
+    "ghostty.conf:15: confirm-close-surface is not supported by Muxy",
+    "ghostty.conf:23: command is not supported by Muxy",
+    "ghostty.conf:25: clipboard-paste-protection is not supported by Muxy",
+    "ghostty.conf:26: clipboard-paste-bracketed-safe is not supported by Muxy",
+    "ghostty.conf:28: desktop-notifications is not supported by Muxy",
+]
+
+[font]
+bold = []
+italic = []
+bold_italic = []
+features = []
+cell_width = "0"
+thicken = true
+thicken_strength = 255
+
+[[font.codepoints]]
+start = 57760
+end = 57782
+family = "Herdr Agent Icons Max"
+
+[[font.codepoints]]
+start = 57792
+end = 57797
+family = "Herdr Agent Icons Max"
+
+[options]
+cursor_opacity = 1.0
+cursor_style = "Bar"
+cursor_blink = false
+cursor_thickness = "0"
+selection_clear_on_typing = false
+selection_clear_on_copy = false
+background_opacity_cells = false
+background_vibrancy = 0
+bold_is_bright = true
+mouse_reporting = true
+scroll_precision = 1.0
+scroll_discrete = 1.0
+scroll_on_keystroke = true
+scroll_on_output = false
+padding_x = [
+    2.0,
+    2.0,
+]
+padding_y = [
+    2.0,
+    2.0,
+]
+padding_balance = false
+padding_color = "extend"
+
+[options.palette]

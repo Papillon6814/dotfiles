@@ -1,0 +1,3 @@
+[muxy]
+# Muxy 2（安定版）が読む muxy-herdr-agent-status の固定版。muxy-stable-release で作る
+stable_release = "826273a"

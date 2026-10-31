@@ -1,7 +1,7 @@
 {
   "extensions": [
     "+builtin:codemode",
-    "/Users/papillon/Library/Application Support/ai-improvement/extensions/pi/index.ts"
+    "~/Library/Application Support/ai-improvement/extensions/pi/index.ts"
   ],
   "defaultTools": [
     "+codemode"

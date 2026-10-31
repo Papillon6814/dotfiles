@@ -1,0 +1,2 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- includeTemplate "muxy-merge" (dict "stdin" .chezmoi.stdin "want" (include ".chezmoitemplates/muxy/beta-terminal.toml") "drop" (list "diagnostics") "merge" (list)) -}}

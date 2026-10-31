@@ -1,0 +1,28 @@
+{{- /*
+  Muxy が自分で書き直す TOML に、MBP の値を当てはめる（modify テンプレートから呼ぶ）。
+  引数: stdin=今のファイル、want=MBP の値（TOML 文字列）、
+        drop=当てはめない項目（作業状態。"表.キー" か "キー"）、merge=キー単位で混ぜる表
+  規則: want にある表は丸ごと MBP の値にする。merge の表だけはキー単位で上書きし、
+        相手の作業状態を残す。want に無い表（Muxy が足した既定値など）はそのまま残す。
+*/ -}}
+{{- $cur := dict -}}
+{{- if .stdin }}{{ $cur = fromToml .stdin }}{{ end -}}
+{{- $want := fromToml .want -}}
+{{- range $p := .drop -}}
+{{-   $parts := splitList "." $p -}}
+{{-   if eq (len $parts) 1 -}}
+{{-     $_ := unset $want $p -}}
+{{-   else -}}
+{{-     $t := get $want (first $parts) -}}
+{{-     if kindIs "map" $t }}{{ $_ := unset $t (last $parts) }}{{ end -}}
+{{-   end -}}
+{{- end -}}
+{{- $merge := .merge -}}
+{{- range $k, $v := $want -}}
+{{-   if and (has $k $merge) (kindIs "map" (get $cur $k)) -}}
+{{-     $_ := set $cur $k (mergeOverwrite (get $cur $k) $v) -}}
+{{-   else -}}
+{{-     $_ := set $cur $k $v -}}
+{{-   end -}}
+{{- end -}}
+{{- toToml $cur -}}
