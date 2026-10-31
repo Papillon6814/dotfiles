@@ -1,4 +1,4 @@
-tap "muxy-app/tap"
+tap "muxy-app/tap", trusted: true
 tap "openclaw/tap"
 tap "rjyo/moshi", trusted: true
 tap "supabase/tap"
@@ -17,6 +17,7 @@ brew "eza"
 brew "fd"
 # Play, record, convert, and stream select audio and video codecs
 brew "ffmpeg"
+brew "herdr"
 # OCR (Optical Character Recognition) engine
 brew "tesseract"
 # Play, record, convert, and stream many audio and video codecs
@@ -86,7 +87,7 @@ cask "claude-code"
 cask "font-iosevka"
 # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "ghostty"
-cask "muxy"
+cask "muxy-app/tap/muxy"
 # Control your tools with a few keystrokes
 cask "raycast"
 # Messaging app with a focus on speed and security
