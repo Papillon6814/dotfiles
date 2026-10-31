@@ -13,15 +13,24 @@ TEMPLATE = REPO / "dot_config" / "muxy" / "executable_install-extensions.sh.tmpl
 EXTENSIONS = ("muxy-herdr-agent-status", "muxy-tab-names")
 
 
+def minimal_source(tmp):
+    """chezmoi の source を、テンプレートの展開に要るものだけで作る（work/ などの状態に左右されないため）。"""
+    import shutil
+    for name in (".chezmoitemplates", ".chezmoidata"):
+        shutil.copytree(REPO / name, Path(tmp) / name)
+    return Path(tmp)
+
+
 def render():
-    return subprocess.run(
-        ["chezmoi", "--source", str(REPO), "execute-template", "--file", str(TEMPLATE)],
-        capture_output=True, text=True, check=True,
-    ).stdout
+    with tempfile.TemporaryDirectory() as tmp:
+        return subprocess.run(
+            ["chezmoi", "--source", str(minimal_source(tmp)), "execute-template", "--file", str(TEMPLATE)],
+            capture_output=True, text=True, check=True,
+        ).stdout
 
 
 class MuxyInstallExtensions(unittest.TestCase):
-    def run_install(self, existing=(), release=False):
+    def run_install(self, existing=(), release=False, branch="main", pull_fails=False):
         with tempfile.TemporaryDirectory() as home:
             bin_dir = Path(home, "fakebin")
             bin_dir.mkdir()
@@ -30,6 +39,10 @@ class MuxyInstallExtensions(unittest.TestCase):
                 tool = bin_dir / name
                 # gh repo clone は本物と同じく clone 先（4番目の引数）を作る
                 make_dest = 'mkdir -p "$4"\n' if name == "gh" else ""
+                if name == "git":
+                    # 今のブランチ（空なら detached）と、pull の失敗を真似る
+                    make_dest = (f'[ "$3" = symbolic-ref ] && {{ [ -n "{branch}" ] && echo "{branch}" && exit 0; exit 1; }}\n'
+                                 + ('[ "$3" = pull ] && exit 1\n' if pull_fails else ""))
                 tool.write_text(f"#!/bin/sh\necho \"{name} $* (in $PWD)\" >> '{log}'\n{make_dest}")
                 tool.chmod(0o755)
             for name in existing:
@@ -64,6 +77,25 @@ class MuxyInstallExtensions(unittest.TestCase):
     def test_no_stable_release_warning_when_present(self):
         result, _, _ = self.run_install(existing=EXTENSIONS, release=True)
         self.assertNotIn("rsync", result.stdout + result.stderr)
+
+    def test_skips_pull_when_not_on_main_but_still_builds(self):
+        result, calls, home = self.run_install(existing=EXTENSIONS, branch="feat/wip")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("pull", calls)
+        self.assertIn("feat/wip", result.stdout + result.stderr)
+        for name in EXTENSIONS:
+            self.assertIn(f"npm run build (in {home}/Code/{name})", calls)
+
+    def test_detached_head_skips_pull(self):
+        result, calls, _ = self.run_install(existing=EXTENSIONS, branch="")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("pull", calls)
+
+    def test_failed_pull_warns_and_continues_with_next_extension(self):
+        result, calls, home = self.run_install(existing=EXTENSIONS, pull_fails=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"npm run build (in {home}/Code/muxy-tab-names)", calls)
+        self.assertIn("pull", result.stdout + result.stderr)
 
 
 if __name__ == "__main__":

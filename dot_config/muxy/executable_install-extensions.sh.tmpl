@@ -5,7 +5,13 @@ set -eu
 for name in muxy-herdr-agent-status muxy-tab-names; do
   repo="$HOME/Code/$name"
   if [ -d "$repo/.git" ]; then
-    git -C "$repo" pull --ff-only
+    # main にいるときだけ最新にする（開発中のブランチや detached HEAD はそのままビルドする）
+    branch="$(git -C "$repo" symbolic-ref -q --short HEAD || true)"
+    if [ "$branch" != main ]; then
+      echo "$name: main ではない（${branch:-detached HEAD}）ので pull せずにビルドします" >&2
+    elif ! git -C "$repo" pull --ff-only; then
+      echo "$name: pull できませんでした（未コミットの変更など）。今の状態でビルドします" >&2
+    fi
   else
     gh repo clone "KendrickMalar/$name" "$repo"
   fi
