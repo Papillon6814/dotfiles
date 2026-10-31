@@ -1,0 +1,38 @@
+#!/bin/sh
+# Muxy・Muxy Beta の設定（settings.toml、terminal.toml、ghostty.conf、拡張の登録）を dotfiles から当てる。
+#
+# Muxy は起動中に設定を覚えていて、次に保存するときに古い値で書き戻す。
+# そのため、これらのファイルはふだんの chezmoi apply と dotfiles-sync では無視し
+# （.chezmoiignore の CHEZMOI_MUXY）、Muxy を終了してからこのコマンドで当てる。
+#
+# 使い方:
+#   muxy-settings-apply          Muxy が終了していれば当てる
+#   muxy-settings-apply --diff   当てずに差だけ見る（起動中でも可）
+set -eu
+
+targets="$HOME/Library/Application Support/Muxy Beta
+$HOME/Library/Application Support/Muxy 2"
+
+run_chezmoi() {
+  # 改行区切りの targets を、空白入りのパスのまま引数に渡す
+  old_ifs=$IFS
+  IFS='
+'
+  # shellcheck disable=SC2086
+  CHEZMOI_MUXY=1 chezmoi "$@" $targets
+  IFS=$old_ifs
+}
+
+if [ "${1:-}" = "--diff" ]; then
+  run_chezmoi diff
+  exit 0
+fi
+
+if running=$(pgrep -fl '/Applications/Muxy( Beta)?\.app/Contents/MacOS/muxy-app'); then
+  echo "Muxy が起動しています。終了してから実行してください（起動中に当てると書き戻されます）:" >&2
+  echo "$running" >&2
+  exit 1
+fi
+
+run_chezmoi apply
+echo "Muxy の設定を当てました。Muxy を起動してください。"
