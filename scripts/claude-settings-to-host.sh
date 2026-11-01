@@ -33,4 +33,4 @@ fi
 stamp="$(date +%Y%m%d-%H%M%S)"
 ssh "$host" "bash -c 'cp -p \"\$HOME/.claude/settings.json\" \"\$HOME/.claude/settings.json.bak-$stamp\"'"
 ssh "$host" 'bash -c "cat > \"\$HOME/.claude/settings.json.new\" && mv \"\$HOME/.claude/settings.json.new\" \"\$HOME/.claude/settings.json\""' < "$work/new.json"
-echo "書き込みました（退避: ~/.claude/settings.json.bak-$stamp）"
+echo "書き込みました（退避: ~/.claude/settings.json.bak-${stamp}）"
