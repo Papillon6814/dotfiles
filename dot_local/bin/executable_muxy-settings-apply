@@ -47,18 +47,31 @@ Muxy 2/extension-grants.json|$src_support/private_Muxy 2/private_extension-grant
 EOF
 }
 
+# tomllib（Python 3.11 以上）を使える python を選ぶ。mini の /usr/bin/python3 は 3.9 で tomllib が無い
+toml_python() {
+  if python3 -c 'import tomllib' >/dev/null 2>&1; then
+    echo python3
+  elif command -v uv >/dev/null 2>&1; then
+    echo "uv run --quiet --no-project --python >=3.11 python"
+  else
+    return 1
+  fi
+}
+
 check() {
   src="$(chezmoi source-path)"
+  py="$(toml_python)" || { echo "比べられません: tomllib のある python（3.11 以上）か uv が要ります" >&2; return 2; }
   ignore=""
   for key in $state_keys; do ignore="$ignore --ignore $key"; done
   status=0
   pairs | while IFS='|' read -r live copy kind; do
     [ -f "$support/$live" ] && [ -f "$src/$copy" ] || continue
     if [ "$kind" = toml ]; then
+      # 終了コードを sed に隠されないよう、出力をいったん受けてから判定する
       # shellcheck disable=SC2086
-      python3 "$src/scripts/muxy-settings-compare.py" "$support/$live" "$src/$copy" $ignore | sed "s|^|$live: |" || exit 1
+      out="$($py "$src/scripts/muxy-settings-compare.py" "$support/$live" "$src/$copy" $ignore)" || { printf '%s\n' "$out" | sed "s|^|$live: |"; exit 1; }
       # shellcheck disable=SC2086
-      python3 "$src/scripts/muxy-settings-compare.py" "$src/$copy" "$support/$live" $ignore >/dev/null || { echo "$live: dotfiles の写しにだけある項目があります"; exit 1; }
+      $py "$src/scripts/muxy-settings-compare.py" "$src/$copy" "$support/$live" $ignore >/dev/null || { echo "$live: dotfiles の写しにだけある項目があります"; exit 1; }
     else
       cmp -s "$support/$live" "$src/$copy" || { echo "$live: dotfiles の写しと違います"; exit 1; }
     fi
