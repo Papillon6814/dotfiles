@@ -72,4 +72,5 @@ pi の `~/.pi/agent/AGENTS.md` と同じ規律を、Claude Code のツール名�
 - 変更を伴う作業は Git worktree の規則に従う。複数 writer が必要なら作業範囲と worktree を分離し、1つの worktree には writer を1人だけ置く
 - herdr の pane で子の pi を起動するときは `pi-profile spawn --pane <ID> [--name <名前>]` を使う。親の Profile とアカウントを引き継ぐ。`herdr agent start --kind pi` や `herdr pane run <pane> pi` は Profile のツール（pi-gh・pi-scaffold）が入らないため使わない（pi の親からは拒否される）。Claude Code から起動するときは引き継ぐ Profile がないので、`env PI_PROFILE_ACTIVE=<id> pi-profile spawn --pane <ID>` と明示する（muu / rbx は `PI_CODING_AGENT_DIR=~/.pi/agent-<名前>` も付ける）
 - 子には目的、repo/cwd、編集権限と範囲、関連ファイル・制約、受け入れ条件、検証方法、期待する報告形式を渡す
+- 子への依頼には「時間のかかるコマンド（試験一式など）も前景で流し、終わるまで待つ。バックグラウンドで流して手を止めない。10分を超えそうなら分けて流す」と書く。子がバックグラウンドの完了通知を待ったまま止まる事例が続いたため（2026-11-01）。子が「待っている」と報告したら、親はその場でプロセスが動いているかを確かめ、終わっていれば続きを指示する
 - サブエージェントの報告だけで完了扱いにしない。親が差分を読み、適切なテスト・lint・type-check を実行して結果を確認する
