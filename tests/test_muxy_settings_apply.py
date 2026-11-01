@@ -105,6 +105,33 @@ class MuxySettingsApply(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("keymap.close_pane", result.stdout)
 
+    def test_check_reports_key_missing_from_snapshot(self):
+        self.live("Muxy Beta", "settings.toml", SNAPSHOT + '\n[panes]\nfocus_follows_mouse = true\n')
+        result, _ = self.run_apply("--check", host=SOURCE_HOST)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("panes", result.stdout)
+
+    def use_python_without_tomllib(self, with_uv):
+        """python3 が 3.9（tomllib なし）の機械を真似る。with_uv なら uv 経由で本物の python を使える。"""
+        self.write_tool("python3", 'case "$*" in *tomllib*) exit 1;; esac\n'
+                                   'echo "ModuleNotFoundError: No module named tomllib" >&2; exit 1\n')
+        if with_uv:
+            self.write_tool("uv", f'while [ "$1" != python ]; do shift; done; shift\nexec "{sys.executable}" "$@"\n')
+
+    def test_check_uses_uv_when_python3_lacks_tomllib(self):
+        self.use_python_without_tomllib(with_uv=True)
+        self.live("Muxy Beta", "settings.toml", SNAPSHOT.replace('"cmd-w"', '"cmd-shift-w"'))
+        result, _ = self.run_apply("--check", host=SOURCE_HOST)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("keymap.close_pane", result.stdout)
+
+    def test_check_fails_when_no_python_with_tomllib(self):
+        self.use_python_without_tomllib(with_uv=False)
+        self.live("Muxy Beta", "settings.toml", SNAPSHOT)
+        result, _ = self.run_apply("--check", host=SOURCE_HOST)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("tomllib", result.stderr)
+
     def test_snapshot_copies_live_files_into_source(self):
         changed = SNAPSHOT.replace('"cmd-w"', '"cmd-shift-w"')
         self.live("Muxy Beta", "settings.toml", changed)
