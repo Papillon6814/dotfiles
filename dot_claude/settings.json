@@ -147,7 +147,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PermissionRequest # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PermissionRequest # muxy-ask-relay",
             "timeout": 86400
           }
         ]
@@ -170,7 +170,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUse # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUse # muxy-ask-relay",
             "timeout": 10
           }
         ]
@@ -203,7 +203,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PreToolUse # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PreToolUse # muxy-ask-relay",
             "timeout": 10
           }
         ]
@@ -234,7 +234,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs SessionEnd # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs SessionEnd # muxy-ask-relay",
             "timeout": 10
           }
         ]
@@ -264,7 +264,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs Stop # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs Stop # muxy-ask-relay",
             "timeout": 10
           }
         ]
@@ -318,7 +318,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs UserPromptSubmit # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs UserPromptSubmit # muxy-ask-relay",
             "timeout": 10
           }
         ]
@@ -372,7 +372,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/opt/homebrew/Cellar/node/26.10.0_1/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUseFailure # muxy-ask-relay",
+            "command": "/opt/homebrew/bin/node /Users/papillon/.local/share/muxy-ask-relay/current/claude-hook.mjs PostToolUseFailure # muxy-ask-relay",
             "timeout": 10
           }
         ]
