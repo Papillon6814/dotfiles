@@ -1,3 +1,4 @@
+tap "muxy-app/tap", trusted: true
 tap "openclaw/tap"
 tap "oven-sh/bun", trusted: { formulae: ["bun"] }
 tap "rjyo/moshi", trusted: true
@@ -91,6 +92,7 @@ cask "gcloud-cli"
 cask "ghostty"
 # 2D and 3D game engine
 cask "godot"
+cask "muxy-app/tap/muxy"
 uv "gdtoolkit"
 uv "ruff"
 npm "@earendil-works/pi-coding-agent"
